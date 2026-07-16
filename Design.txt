@@ -1,0 +1,499 @@
+================================================================================
+                       NITYAGEETA — DESIGN DOCUMENT
+          Layout, Structure, and Visual Design of All Pages
+================================================================================
+Created: July 2026
+Purpose: Complete page-by-page layout specification for NityaGeeta platform.
+         This document describes every element, its position, and its purpose
+         so any developer or designer can implement it exactly.
+================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: WHAT IS NITYAGEETA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NityaGeeta is an AI-powered conversational platform that allows users to seek
+wisdom from the Bhagavad Gita through natural conversation. "Nitya" (Sanskrit)
+means "eternal" — the eternal teachings of the Gita.
+
+PRIMARY PURPOSE:
+  A user can ask any question about life, duty, karma, purpose, relationships,
+  fear, ego, or any philosophical topic — and NityaGeeta answers drawing from
+  authenticated Gita commentary sources, not from general AI knowledge.
+
+WHO IT SERVES:
+  - Students of Vedic philosophy
+  - People seeking clarity during difficult life situations
+  - Devotees who want to understand specific shlokas
+  - Entrepreneurs and professionals exploring dharmic principles
+
+SOURCE MATERIAL (Knowledge Base):
+  1. Bhagavad Gita with Commentary of Adi Shankaracharya (English)
+     — Oldest and most authoritative Advaita Vedanta commentary
+  2. Gita Sadhak Sanjeevani (English Edition)
+     — Swami Ramsukhdas commentary, most popular in India
+  3. Srimad Bhagavad Gita — Gita Press Gorakhpur (Hindi + Sanskrit)
+     — The gold-standard Hindi edition used by millions
+  4. The Bhagavad Gita — Winthrop Sargeant (Word-for-Word English)
+     — Academic, verse-by-verse English translation
+
+TECHNOLOGY STACK (simplified):
+  Frontend : HTML, CSS, Vanilla JavaScript (no frameworks)
+  Backend  : Python FastAPI
+  Database : Neon PostgreSQL (user data, conversations, messages)
+  Cache    : Redis (sessions, fast lookups)
+  AI       : OpenRouter API (Claude/GPT-4) for conversations
+  AI Memory: Full conversation history stored in PostgreSQL
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: DESIGN PRINCIPLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inspired by: Apple.com, Linear.app, Perplexity AI
+Theme concept: Aged gold leaf on temple stone — sacred but refined
+
+CORE RULES:
+  1. Restraint — every element earns its place. No decorative noise.
+  2. Whitespace is structural — sections breathe, nothing feels cramped.
+  3. One accent color (gold) — used sparingly, never everywhere.
+  4. Typography carries hierarchy — size and weight do the work.
+  5. Hover states: single property only (opacity or slight background lift).
+  6. Sacred imagery from Krishna, Vishnu, Mahabharata — for cultural trust.
+
+COLOR PALETTE:
+  Background main  : #0b0a10  (deep near-black, cool undertone)
+  Background card  : #131220  (slightly lifted dark surface)
+  Background alt   : #0e0d16  (alternating section tone)
+  Gold primary     : #c9a455  (aged gold leaf — main accent)
+  Gold dim         : #8a6d35  (muted gold for secondary elements)
+  Gold border      : rgba(201,164,85,0.16)
+  Gold glow        : rgba(201,164,85,0.05)
+  Cream primary    : #ede0c4  (parchment — main text)
+  Cream secondary  : #9e9280  (subtitles, captions)
+  Cream faint      : #5c5448  (labels, disabled states)
+  Border line      : rgba(255,255,255,0.06)
+
+TYPOGRAPHY:
+  Headings   : Cinzel (400–700 weight) — Roman, ancient, authoritative
+  Body text  : Crimson Pro (300–600 weight) — Elegant serif, readable
+  Sanskrit   : Noto Sans Devanagari (300–400 weight) — Verse display
+  (All from Google Fonts, loaded via CDN — no local file required)
+
+ANIMATIONS POLICY (strict):
+  ALLOWED:
+    - Cursor golden glow (lerp 0.3 speed — fast, no lag)
+    - Om symbol gentle float (5s, ease-in-out, infinite, 10px movement)
+    - Hero background slow drift (40–45s, scale 1.06–1.08, barely visible)
+    - Scroll reveal: single fade-up (opacity 0→1, translateY 20px→0, once)
+    - Hover states: border-color or background change only (0.25s transition)
+    - Step number hover fill on How It Works section
+  NOT ALLOWED:
+    - Canvas particles / sacred geometry floating
+    - Loading screens / splash animations
+    - Staggered card animations
+    - Rotating rings or orbital shapes
+    - Magnetic cursor-following effects
+    - Shimmer on text / gradient text animation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: RESEARCH — OTHER GITA/MAHABHARAT PLATFORM LAYOUTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OBSERVED FROM OTHER SPIRITUAL/GITA PLATFORMS:
+
+1. GitaSupersite (Kurukshetra University)
+   Layout: Basic academic — header nav, left sidebar for verse selection,
+           right content area. No design — purely functional.
+   What to borrow: Verse-reference system (chapter.verse notation)
+   What to avoid: The entire visual design
+
+2. Gitasaar.com
+   Layout: Header with logo, full-width hero with Sanskrit verse banner,
+           then tabbed content (Shlokas / Meaning / Commentary).
+   What to borrow: Shloka-meaning-commentary separation pattern
+   What to avoid: Flat colors, no hierarchy
+
+3. Bhagavad-Gita.org
+   Layout: Image-heavy header, Sanskrit text prominently displayed,
+           commentary below in two columns.
+   What to borrow: Two-column commentary layout
+   What to avoid: Cluttered header
+
+4. Perplexity AI (inspiration for chat interface)
+   Layout: Left sidebar (conversation history), center chat area,
+           clean message bubbles, source citations shown below answers.
+   What to borrow: Source citation display, clean chat bubbles
+   What to adapt: Replace their minimal white with our dark gold theme
+
+5. Anthropic Claude (inspiration for chat input area)
+   Layout: Input at bottom, messages fill upward, no fixed sidebar nav.
+   What to borrow: Bottom input bar style, full-height chat container
+
+DESIGN DIFFERENTIATORS FOR NITYAGEETA (what no one else has done):
+  - Golden cursor glow that moves with the user — connects to divine presence
+  - Verse banner with Sanskrit AND English on landing page mid-section
+  - Two-panel auth pages (image left, form right) — sacred image anchors trust
+  - Chapter.Verse reference shown inline in AI responses like footnotes
+  - Full conversation history — no AI memory loss ever
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: PAGE LAYOUTS (Detailed)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 1: LANDING PAGE  (frontend/pages/landing.html)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LAYOUT TYPE: Full-scroll single page with 6 sections
+
+┌─────────────────────────────────────────────────────────────────┐
+│  NAVBAR  (fixed, top)                                           │
+│  LEFT: NityaGeeta  (Cinzel font, gold, top-left, 1.2rem)       │
+│  RIGHT: Home | About | Sign In | [Get Started] button          │
+│  Behavior: transparent → rgba(11,10,16,0.85) on scroll         │
+│  Border-bottom: 1px rgba(201,164,85,0.1) when scrolled         │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  SECTION 1: HERO  (100vh)                                       │
+│                                                                 │
+│  BACKGROUND: Full-page image of Krishna-Arjuna at Kurukshetra  │
+│              brightness(0.3) saturate(0.8) — dimmed             │
+│              Slow drift animation (40s, barely visible)         │
+│                                                                 │
+│  OVERLAY: Gradient from bottom — rgba(11,10,16,0.7)            │
+│                                                                 │
+│  CENTER CONTENT (vertically & horizontally centered):           │
+│    Eyebrow: "BHAGAVAD GITA · AI COMPANION" (Cinzel, 0.65rem,   │
+│             letter-spacing 0.3em, gold-dim, uppercase)          │
+│    H1: "Seek Wisdom from" (Cinzel, 4rem, cream, weight 400)    │
+│    H1: "the Eternal Gita"  (same, word "Eternal" in gold)      │
+│    Subtitle: "Ask any question about life, dharma, or purpose.  │
+│              NityaGeeta answers from authentic scripture."      │
+│              (Crimson Pro, 1.2rem, cream-dim, max-width 480px) │
+│                                                                 │
+│    CTA ROW:                                                     │
+│      [Begin Your Journey →]  (gold bg, dark text, Cinzel)      │
+│      [See How It Works]       (ghost button, cream border)      │
+│                                                                 │
+│  BOTTOM CENTER: ∨ scroll indicator (gentle pulse, cream-faint) │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  SECTION 2: VERSE BANNER  (auto height, dark alt bg)            │
+│                                                                 │
+│  LAYOUT: Centered column, max-width 640px, padding 5rem 2rem   │
+│                                                                 │
+│  CONTENT:                                                       │
+│    Sanskrit verse: "यदा यदा हि धर्मस्य..." (Devanagari font)   │
+│    line-height: 2.2, font-size 1.1rem, color cream              │
+│    Blank line                                                   │
+│    English meaning: italic, cream-dim, 0.95rem                  │
+│    "Whenever righteousness declines..."                         │
+│    Reference: "— Bhagavad Gita, 4.7" (Cinzel, uppercase, tiny) │
+│                                                                 │
+│  DECORATION: Hairline gold lines left and right of text block  │
+│  (left: 1px border, fades in from transparent, to gold 0.2)    │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  SECTION 3: FEATURES  (auto height, main bg)                    │
+│                                                                 │
+│  TOP: Section label (eyebrow) — "WHAT WE OFFER"                │
+│       Cinzel, 0.62rem, letter-spacing 0.3em, gold-dim           │
+│       Section title — "Ancient Wisdom, Modern Clarity"          │
+│       Cinzel, 2.2rem, cream, weight 400, max-width 440px        │
+│                                                                 │
+│  GRID: 2 columns × 2 rows = 4 feature cards                    │
+│        gap: 1px (hairline border effect)                        │
+│        background of gap area: rgba(201,164,85,0.08)           │
+│                                                                 │
+│  CARD CONTENT (each card):                                      │
+│    Icon: text icon in Devanagari or simple Unicode symbol       │
+│          (e.g., ॐ, ✦, ◈, ⬡) in gold, 1.8rem                   │
+│    Title: Cinzel, 1rem, cream, weight 500                       │
+│    Body: Crimson Pro, 0.95rem, cream-dim, line-height 1.75     │
+│    Hover: background lifts to rgba(255,255,255,0.03)           │
+│                                                                 │
+│  FOUR FEATURES:                                                 │
+│    1. Scripture-Grounded Answers (ॐ icon)                       │
+│       "Every response traces back to verse and commentary."    │
+│    2. Full Conversation Memory (◈ icon)                         │
+│       "The AI remembers every question you've ever asked."     │
+│    3. Authentic Translations (✦ icon)                           │
+│       "Shankaracharya, Sadhak Sanjeevani — not AI guesses."   │
+│    4. English, Hindi, Sanskrit (⬡ icon)                        │
+│       "Answers in your preferred language and script."         │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  SECTION 4: HOW IT WORKS  (auto height, alt bg)                 │
+│                                                                 │
+│  TOP: Eyebrow "THE PROCESS", Title "Four Steps to Wisdom"      │
+│                                                                 │
+│  LAYOUT: 4 columns of steps, centered                          │
+│          Each step separated by hairline vertical line          │
+│                                                                 │
+│  STEP CARD:                                                     │
+│    Large Number: "01" (Cinzel, 3rem, color: gold-dim)          │
+│    On hover: number fills to gold color (0.3s transition)      │
+│    Title below: Cinzel, 0.9rem, cream                          │
+│    Description: Crimson Pro, 0.88rem, cream-dim                │
+│                                                                 │
+│  FOUR STEPS:                                                    │
+│    01 Create Account  → "Sign up with Google in one click."    │
+│    02 Ask a Question  → "Type anything on your mind."          │
+│    03 Receive Wisdom  → "AI answers from Gita commentary."     │
+│    04 Explore Deeper  → "Ask follow-ups, save favorites."      │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  SECTION 5: CTA SECTION  (auto height, card bg)                 │
+│                                                                 │
+│  LAYOUT: Centered column, max-width 560px                      │
+│  Small Om symbol: ॐ (Devanagari, gold, 2rem)                   │
+│  Title: "Begin Your Eternal Journey"  (Cinzel, 2.2rem, cream)  │
+│  Subtitle: short text, cream-dim                               │
+│  CTA button: [Create Free Account →] (gold bg, Cinzel)         │
+│  Below: "Already a seeker? Sign In ↗" (cream-faint, link)      │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  FOOTER  (dark main bg)                                         │
+│                                                                 │
+│  LEFT: NityaGeeta logo text (gold) + Sanskrit tagline below    │
+│        "सत्यं ज्ञानम् अनन्तम्" (Noto Devanagari, tiny)        │
+│  CENTER: Links — Home, About, Privacy, Terms                   │
+│  RIGHT: nothing OR social icons if added later                 │
+│  BOTTOM LINE: hairline gold line, then:                        │
+│  "© 2026 NityaGeeta. Built with devotion." (centered, faint)  │
+└─────────────────────────────────────────────────────────────────┘
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 2: SIGN IN  (frontend/pages/signin.html)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LAYOUT TYPE: Two-panel split (no scroll on desktop)
+
+┌──────────────────────────┬──────────────────────────┐
+│  LEFT PANEL (55%)        │  RIGHT PANEL (45%)        │
+│  Visual / Brand          │  Form                     │
+└──────────────────────────┴──────────────────────────┘
+
+LEFT PANEL:
+  Background: Sacred image (Vishnu on lotus / Krishna teaching)
+              brightness(0.32) saturate(0.85)
+              Slow drift animation (40s)
+  Gradient overlay: linear-gradient 135deg over image
+  Hairline right border: 1px gold gradient (top→gold→bottom)
+
+  TOP-LEFT (absolute): "NityaGeeta" (Cinzel, 1.2rem, gold)
+                        href links back to landing.html
+  
+  CENTER (vertical & horizontal):
+    ॐ symbol (Devanagari, gold, 4rem, gentle float animation)
+    Verse in Sanskrit (Devanagari font, cream, 1.05rem)
+    Translation (italic, cream-dim, 0.92rem)
+    Reference line (Cinzel, tiny, uppercase, gold-dim)
+
+RIGHT PANEL:
+  Background: bg-card (#131220)
+  Content centered vertically
+  
+  H1: "Welcome Back"  (Cinzel, 1.9rem, cream)
+      "Back" in gold accent
+  Subtitle: "Continue your journey with the eternal wisdom."
+            (Crimson Pro, 0.98rem, cream-dim)
+
+  [Continue with Google]  (button with Google SVG icon)
+  ─────── or sign in with email ────────── (divider line)
+
+  FORM FIELDS (floating label style):
+    Email Address  (input, label floats up on focus)
+    Password       (input, label floats up on focus)
+    "Forgot password?" link (right-aligned, cream-faint)
+    [Sign In]      (gold button, full width)
+
+  BOTTOM: "No account? Create one →" (link)
+
+ERROR STATE: Red-tinted banner slides in above form on bad credentials
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 3: SIGN UP  (frontend/pages/signup.html)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LAYOUT TYPE: Two-panel split (scrollable on right side)
+
+Same two-panel structure as Sign In, but panels swap sides:
+  LEFT PANEL (45%): Visual (different image — Krishna teaching Arjuna)
+  RIGHT PANEL (55%): Form (wider because more fields)
+
+RIGHT PANEL CONTENT:
+  H1: "Begin Your Journey" (Cinzel, "Journey" in gold)
+  Subtitle text
+
+  BENEFITS LIST (small box above form):
+    ✦ Unlimited questions from authentic commentaries
+    ✦ AI memory that never forgets your conversations
+    ✦ Save and bookmark your favourite verses
+    ✦ Answers in English, Hindi, or Sanskrit
+    (Crimson Pro, 0.88rem, cream-dim, gold bullet ✦)
+    Box: thin gold border, very subtle gold tinted background
+
+  [Sign up with Google]  (Google SVG button)
+  ─────── or create an account ────────── (divider)
+
+  FORM FIELDS:
+    [First Name]  [Last Name]     (2-column row)
+    [Email Address]               (full width)
+    [Password]                    (full width)
+    Password strength bar         (4 bars, color-coded: red→green)
+    Strength label                (Cinzel, tiny, uppercase: Weak/Fair/Good/Strong)
+    [Preferred Language dropdown] (English / Hindi / Sanskrit)
+    [Create Account]              (gold button, full width)
+    Terms text                    (tiny, cream-faint, centered)
+
+  BOTTOM: "Already have an account? Sign in →"
+
+  SUCCESS STATE: Form replaced by success message
+    🙏 emoji (3rem)
+    "Welcome to NityaGeeta" (gold Cinzel heading)
+    Short welcome text
+    [Go to Sign In] button
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 4: CHAT / CONVERSATION  (frontend/pages/chat.html)
+[NOT YET BUILT — Planned Layout]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LAYOUT TYPE: Three-panel (sidebar + main chat + optional detail panel)
+
+┌────────────────┬──────────────────────────────┬────────────────┐
+│  LEFT SIDEBAR  │  CHAT AREA (center, main)     │  RIGHT PANEL   │
+│  (260px fixed) │  (flex, fills remaining)      │  (0px, hidden) │
+└────────────────┴──────────────────────────────┴────────────────┘
+
+LEFT SIDEBAR:
+  TOP: "NityaGeeta" logo (gold, Cinzel)
+       [+ New Conversation] button (ghost, gold border)
+  
+  MIDDLE: Conversation history list
+    Each item: conversation title (first few words of first question)
+               Date (cream-faint, tiny)
+    Hover: background lift
+    Active: left gold border (2px), slightly brighter text
+  
+  BOTTOM: User avatar + name + settings icon
+
+CHAT AREA:
+  TOP BAR: Current conversation title (editable on click)
+            Hamburger menu icon (on mobile)
+
+  MESSAGES AREA (scrollable, fills center):
+    User message: right-aligned, card bg, cream text, 80% width
+    AI response: left-aligned, slightly different bg, cream text
+    
+    AI RESPONSE STRUCTURE:
+      Main answer text (Crimson Pro, 1rem, cream, line-height 1.8)
+      Then: SOURCE CITATIONS (below answer)
+        Small box with gold left border
+        "Source: Bhagavad Gita 4.7 — Shankaracharya Commentary"
+        "Source: Sadhak Sanjeevani, Chapter 4"
+        (Cinzel, 0.6rem, uppercase, gold-dim)
+      
+      Sanskrit verse if quoted:
+        Devanagari text (Noto font, cream, slightly larger)
+        English translation below (italic, cream-dim)
+        Chapter.Verse reference (gold-dim, right-aligned)
+
+  BOTTOM INPUT BAR (fixed at bottom):
+    Large text input area (auto-expands up to 5 lines)
+    Placeholder: "Ask anything about dharma, karma, or purpose..."
+    Send button: gold icon (arrow)
+    Character count (tiny, cream-faint, right of input)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 5: USER PROFILE / SETTINGS  (frontend/pages/profile.html)
+[NOT YET BUILT — Planned Layout]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LAYOUT TYPE: Centered form page (like Sign Up, no two-panel)
+
+TOP: "NityaGeeta" logo (left) + Back to Chat link (right)
+TITLE: "Your Profile" (H1, Cinzel, cream)
+
+SECTIONS:
+  1. Profile Information
+     Avatar / Profile picture (circle, Google avatar if Google login)
+     First Name, Last Name (editable fields)
+     Email (shown but not editable — linked to Google)
+     Preferred Language (dropdown)
+     [Save Changes] button
+
+  2. Conversation Settings
+     Toggle: "Show source citations in AI responses" (on/off)
+     Toggle: "Always show Sanskrit verse when AI quotes one" (on/off)
+
+  3. Account
+     Session info (logged in since: date)
+     [Sign Out] button (ghost, red-tinted border on hover)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 5: GLOBAL ELEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CURSOR GLOW (present on all pages):
+  Element: fixed div, 480×480px circle, pointer-events none
+  Color: radial-gradient gold at 0% → transparent at 68%
+  Opacity of gold: 0.05 (subtle, not distracting)
+  Movement: lerp factor 0.3 (very fast, feels immediate)
+  Disabled: on touch devices (ontouchstart detection)
+  Code: requestAnimationFrame loop, not setInterval
+
+FLOATING LABELS (all form inputs):
+  Label sits at vertical center of input by default
+  On focus OR when value is entered: label moves to top (0.5rem from top)
+  Label font: Cinzel, 0.65rem → 0.55rem on float, letter-spacing 0.12em
+  Transition: all 0.25s cubic-bezier(0.0, 0.0, 0.2, 1)
+
+ERROR MESSAGES:
+  Display: block (hidden by default)
+  Style: red-tinted background rgba(180,50,50,0.1)
+         red border rgba(180,50,50,0.2)
+         text color #e08080
+  Animation: shake (left-right, 0.35s)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 6: RESPONSIVE DESIGN BREAKPOINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Desktop (> 1024px): Full two-panel layouts, 4-column grids
+Tablet (768–1024px): Reduced columns (2→1 or 4→2), panels may stack
+Mobile (< 768px):
+  - Two-panel pages: stack vertically (visual panel becomes top image, 240px)
+  - Feature grid: 1 column
+  - How It Works: 2×2 grid instead of 4 columns
+  - Chat sidebar: hidden by default, hamburger to open
+  - Input area: full width, larger touch targets
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 7: IMAGE ASSETS NEEDED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  FILE NAME             DESCRIPTION                  USED ON
+  ─────────────────────────────────────────────────────────────
+  hero_krishna.png      Krishna-Arjuna at battle     Landing Hero
+                        Kurukshetra, chariot, flag
+  bg_vishnu.png         Vishnu on lotus / cosmic     Sign In (left panel)
+                        blue form, serene
+  hero_krishna.png      Krishna teaching Arjuna      Sign Up (left panel)
+                        (can reuse or different angle)
+  
+  All images: Large (min 1920px wide), high quality
+  Applied filter: brightness(0.28–0.32) saturate(0.8–0.85)
+  So dark/low-quality originals are acceptable — filter hides flaws
+
+================================================================================
+END OF DESIGN DOCUMENT
+================================================================================

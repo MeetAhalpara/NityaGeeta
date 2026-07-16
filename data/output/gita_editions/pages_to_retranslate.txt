@@ -1,0 +1,10 @@
+# Pages That Need Retranslation
+
+## CRITICAL (ERROR — must fix):
+
+
+## ALL (ERROR + WARN):
+51, 66, 68, 70, 71, 72, 73, 76, 94, 95, 98
+
+## Commands to retranslate each error page:
+

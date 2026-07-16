@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  # Local Redis Cache (Runs on port 1870)
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis-nityageeta
+    ports:
+      - "1870:1870"
+    command: redis-server --port 1870
+    volumes:
+      - redis_data:/data
+    restart: always
+
+volumes:
+  redis_data:

@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Integration keys and secrets
+.env
+
+# Local database files (Docker volumes)
+data/postgres/
+data/redis/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# MyFiles
+Source.txt
+Notes.txt
+Q&A.txt
+Plan.txt
+Files/
+data/raw/
+gcp-key.json
+Prompt.txt

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<!--
+  frontend/pages/landing.html
+  NityaGeeta — Landing Page
+
+  HOW TO RUN:
+    Double-click this file to open in your browser. No server needed.
+
+  PHILOSOPHY:
+    Clean. Professional. Apple-inspired restraint.
+    Every animation serves a purpose — none for decoration alone.
+    One subtle mouse glow, one clean scroll reveal, nothing more.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="NityaGeeta — AI-powered wisdom from the Bhagavad Gita. Ask questions, receive answers from authentic Sanskrit commentaries." />
+  <title>NityaGeeta — Wisdom of the Eternal Scripture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Sans+Devanagari:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+
+    /* =============================================================
+       DESIGN TOKENS — Refined palette inspired by aged gold leaf
+       and temple stone. Every color has a purpose.
+       ============================================================= */
+    :root {
+      --bg:          #0b0a10;   /* Deep near-black, cool undertone */
+      --bg-card:     #131220;   /* Slightly lifted surface for cards */
+      --bg-section:  #0e0d16;   /* Alternating section background    */
+
+      /* Gold — restrained, not garish. Aged like temple gold leaf. */
+      --gold:        #c9a455;
+      --gold-dim:    #8a6d35;
+      --gold-soft:   rgba(201, 164, 85, 0.15);
+      --gold-line:   rgba(201, 164, 85, 0.18);
+
+      --cream:       #ede0c4;   /* Warm white — manuscript parchment */
+      --cream-dim:   #9e9280;   /* Secondary text                    */
+      --cream-faint: #5c5448;   /* Tertiary / disabled text          */
+
+      --border:      rgba(255, 255, 255, 0.06); /* Subtle card border */
+
+      --font-h:   'Cinzel', serif;
+      --font-b:   'Crimson Pro', serif;
+      --font-dev: 'Noto Sans Devanagari', sans-serif;
+
+      --ease: cubic-bezier(0.25, 0, 0.25, 1);
+      --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+    }
+
+    /* =============================================================
+       RESET
+       ============================================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-b);
+      background: var(--bg);
+      color: var(--cream);
+      overflow-x: hidden;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: rgba(201,164,85,0.3); }
+    a { color: var(--gold); text-decoration: none; }
+
+    /* =============================================================
+       CURSOR GLOW — Single, subtle, fast
+       lerp = 0.3 for responsive feel (not sluggish)
+       ============================================================= */
+    #glow {
+      position: fixed;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(201,164,85,0.06) 0%, transparent 68%);
+      will-change: left, top;
+    }
+
+    /* =============================================================
+       NAVBAR
+       ============================================================= */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem 5%;
+      transition: background 0.4s var(--ease), padding 0.4s var(--ease);
+    }
+    .nav.solid {
+      background: rgba(11,10,16,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 5%;
+    }
+
+    /* Logo — English only */
+    .logo {
+      font-family: var(--font-h);
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--gold);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--font-h);
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      transition: color 0.25s;
+    }
+    .nav-links a:hover { color: var(--cream); }
+
+    .nav-cta {
+      padding: 0.55rem 1.4rem;
+      background: var(--gold);
+      color: var(--bg) !important;
+      border-radius: 6px;
+      font-family: var(--font-h) !important;
+      font-size: 0.7rem !important;
+      font-weight: 600;
+      letter-spacing: 0.1em !important;
+      transition: opacity 0.25s !important;
+    }
+    .nav-cta:hover { opacity: 0.88; }
+
+    /* =============================================================
+       HERO
+       ============================================================= */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      padding: 0 1.5rem;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: -8%;
+      background-image: url('../assets/images/hero_krishna.png');
+      background-size: cover;
+      background-position: center 20%;
+      filter: brightness(0.28) saturate(0.8);
+      will-change: transform;
+      z-index: 0;
+    }
+
+    /* Single clean gradient — dark at bottom so content is readable */
+    .hero-fade {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(180deg,
+        rgba(11,10,16,0.35) 0%,
+        rgba(11,10,16,0.0) 40%,
+        rgba(11,10,16,0.75) 72%,
+        rgba(11,10,16,1.0) 100%
+      );
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      max-width: 760px;
+    }
+
+    .hero-eyebrow {
+      display: inline-block;
+      font-family: var(--font-dev);
+      font-size: 0.82rem;
+      color: var(--gold);
+      letter-spacing: 0.28em;
+      margin-bottom: 1.75rem;
+      opacity: 0;
+      transform: translateY(14px);
+      animation: up 0.8s 0.2s var(--ease-out) forwards;
+    }
+
+    .hero-title {
+      font-family: var(--font-h);
+      font-size: clamp(2.6rem, 6vw, 5rem);
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      transform: translateY(14px);
+      animation: up 0.8s 0.35s var(--ease-out) forwards;
+    }
+    /* The gold word uses a simple color, not a gradient — cleaner */
+    .hero-title .accent { color: var(--gold); }
+
+    .hero-sub {
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      color: var(--cream-dim);
+      max-width: 520px;
+      margin: 0 auto 2.75rem;
+      font-weight: 300;
+      opacity: 0;
+      transform: translateY(14px);
+      animation: up 0.8s 0.5s var(--ease-out) forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      transform: translateY(14px);
+      animation: up 0.8s 0.65s var(--ease-out) forwards;
+    }
+
+    /* Buttons — clean, no shadow explosions */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.8rem 2rem;
+      border-radius: 6px;
+      font-family: var(--font-h);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: all 0.25s var(--ease);
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: var(--bg);
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--cream-dim);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--cream); border-color: rgba(255,255,255,0.15); }
+
+    /* Scroll hint */
+    .scroll-cue {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .scroll-cue span {
+      font-family: var(--font-h);
+      font-size: 0.58rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--cream-faint);
+    }
+    .scroll-line {
+      width: 1px;
+      height: 36px;
+      background: linear-gradient(to bottom, var(--gold-dim), transparent);
+      animation: lineDown 2s ease-in-out infinite;
+    }
+    @keyframes lineDown {
+      0%, 100% { transform: scaleY(1); opacity: 1; }
+      50%       { transform: scaleY(0.5); opacity: 0.35; }
+    }
+
+    /* =============================================================
+       VERSE BANNER — Keep exactly as user liked it
+       ============================================================= */
+    .verse-band {
+      padding: 5rem 1.5rem;
+      text-align: center;
+      background: var(--bg-section);
+      border-top:    1px solid var(--gold-line);
+      border-bottom: 1px solid var(--gold-line);
+      position: relative;
+      z-index: 10;
+    }
+    .verse-sanskrit {
+      font-family: var(--font-dev);
+      font-size: clamp(0.95rem, 2vw, 1.3rem);
+      color: var(--gold);
+      line-height: 2.4;
+      margin-bottom: 1.5rem;
+    }
+    .verse-english {
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--cream-dim);
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.85;
+    }
+    .verse-ref {
+      margin-top: 1.25rem;
+      font-family: var(--font-h);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+    }
+
+    /* =============================================================
+       SECTIONS — Shared layout
+       ============================================================= */
+    .section {
+      position: relative;
+      z-index: 10;
+      padding: 7rem 5%;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-family: var(--font-h);
+      font-size: 0.65rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: var(--font-h);
+      font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+      font-weight: 500;
+      line-height: 1.2;
+      margin-bottom: 3.5rem;
+      color: var(--cream);
+    }
+    .section-title .accent { color: var(--gold); }
+
+    /* =============================================================
+       FEATURES GRID — Clean cards, single subtle hover
+       No stagger, no complex animations. Hover lift only.
+       ============================================================= */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px; /* Creates hairline borders between cards */
+      background: var(--gold-line);
+      border: 1px solid var(--gold-line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .feature-card {
+      padding: 2.25rem;
+      background: var(--bg-card);
+      transition: background 0.25s var(--ease);
+    }
+    .feature-card:hover {
+      background: var(--bg-section);
+    }
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 1.25rem;
+      display: block;
+    }
+    .feature-name {
+      font-family: var(--font-h);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--cream);
+      margin-bottom: 0.65rem;
+      letter-spacing: 0.03em;
+    }
+    .feature-desc {
+      font-size: 0.95rem;
+      color: var(--cream-dim);
+      line-height: 1.7;
+    }
+
+    /* =============================================================
+       HOW IT WORKS — Keep hover exactly as user liked
+       ============================================================= */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1rem;
+    }
+    /* The number circle — user liked this hover */
+    .step-num {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1px solid var(--gold-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-h);
+      font-size: 1rem;
+      color: var(--gold);
+      transition: all 0.3s var(--ease);
+      background: transparent;
+    }
+    .step:hover .step-num {
+      background: var(--gold);
+      color: var(--bg);
+      border-color: var(--gold);
+      transform: scale(1.08);
+    }
+    .step-name {
+      font-family: var(--font-h);
+      font-size: 0.88rem;
+      color: var(--cream);
+      letter-spacing: 0.03em;
+    }
+    .step-desc {
+      font-size: 0.9rem;
+      color: var(--cream-dim);
+      max-width: 200px;
+      line-height: 1.6;
+    }
+
+    /* =============================================================
+       CTA — Simple, no glow explosions
+       ============================================================= */
+    .cta {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 7rem 5%;
+      border-top: 1px solid var(--gold-line);
+    }
+    .cta h2 {
+      font-family: var(--font-h);
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    .cta h2 .accent { color: var(--gold); }
+    .cta p {
+      color: var(--cream-dim);
+      font-size: 1.05rem;
+      max-width: 440px;
+      margin: 0 auto 2.5rem;
+    }
+
+    /* =============================================================
+       FOOTER
+       ============================================================= */
+    .footer {
+      position: relative;
+      z-index: 10;
+      padding: 2rem 5%;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--cream-faint);
+    }
+    .footer-logo { font-family: var(--font-h); color: var(--gold); font-size: 0.9rem; }
+
+    /* =============================================================
+       SCROLL REVEAL — One clean animation, no stagger complexity
+       ============================================================= */
+    [data-reveal] {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.75s var(--ease-out), transform 0.75s var(--ease-out);
+    }
+    [data-reveal].in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =============================================================
+       KEYFRAMES
+       ============================================================= */
+    @keyframes up {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =============================================================
+       RESPONSIVE
+       ============================================================= */
+    @media (max-width: 1024px) {
+      .features { grid-template-columns: repeat(2, 1fr); }
+      .steps { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .features { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cursor glow — fast lerp, not sluggish -->
+  <div id="glow"></div>
+
+  <!-- ============================== NAVBAR ============================== -->
+  <nav class="nav" id="nav">
+    <span class="logo">NityaGeeta</span>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="signin.html">Sign In</a></li>
+      <li><a href="signup.html" class="nav-cta">Begin</a></li>
+    </ul>
+  </nav>
+
+  <!-- ============================== HERO ============================== -->
+  <section class="hero">
+    <div class="hero-bg" id="hero-bg"></div>
+    <div class="hero-fade"></div>
+
+    <div class="hero-content">
+      <span class="hero-eyebrow">॥ श्रीमद् भगवद्गीता ॥</span>
+
+      <h1 class="hero-title">
+        Eternal Wisdom,<br><span class="accent">Guided by AI</span>
+      </h1>
+
+      <p class="hero-sub">
+        Ask questions from the Bhagavad Gita. Receive answers drawn from Shankaracharya's Bhashya, Sadhak Sanjeevani, and authentic Sanskrit commentaries.
+      </p>
+
+      <div class="hero-actions">
+        <a href="signup.html" class="btn btn-primary">Begin Your Journey</a>
+        <a href="signin.html" class="btn btn-ghost">Sign In</a>
+      </div>
+    </div>
+
+    <div class="scroll-cue">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ============================== VERSE ============================== -->
+  <section class="verse-band">
+    <p class="verse-sanskrit" data-reveal>
+      यदा यदा हि धर्मस्य ग्लानिर्भवति भारत।<br>
+      अभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम्॥
+    </p>
+    <p class="verse-english" data-reveal>
+      "Whenever righteousness declines and unrighteousness arises, O Bharata,
+      at that time I manifest Myself."
+    </p>
+    <p class="verse-ref" data-reveal>— Bhagavad Gita, Chapter 4, Verse 7</p>
+  </section>
+
+  <!-- ============================== FEATURES ============================== -->
+  <div class="section" id="features">
+    <p class="section-label" data-reveal>What We Offer</p>
+    <h2 class="section-title" data-reveal>Your <span class="accent">Spiritual Companion</span></h2>
+
+    <div class="features" data-reveal>
+      <div class="feature-card">
+        <span class="feature-icon">🕉️</span>
+        <h3 class="feature-name">Multi-Source Wisdom</h3>
+        <p class="feature-desc">Answers drawn from Shankaracharya's Bhashya, Sadhak Sanjeevani, Gita Press, and Winthrop Sargeant's word-for-word translation.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🧠</span>
+        <h3 class="feature-name">Infinite Memory</h3>
+        <p class="feature-desc">Our AI remembers your full conversation — every question, every verse — no matter how long the session grows.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📖</span>
+        <h3 class="feature-name">Sanskrit · Hindi · English</h3>
+        <p class="feature-desc">Receive answers in your preferred language. Original Devanagari text, Hindi commentary, and English translation.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔖</span>
+        <h3 class="feature-name">Save & Revisit</h3>
+        <p class="feature-desc">Bookmark any verse, answer, or insight. Build your personal library of Gita wisdom over time.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3 class="feature-name">Instant Answers</h3>
+        <p class="feature-desc">Sub-second retrieval from thousands of pages of authentic Gita commentaries, powered by advanced AI.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h3 class="feature-name">Private & Secure</h3>
+        <p class="feature-desc">Your conversations are private. Sign in with Google — no passwords to remember, no data shared.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== HOW IT WORKS ============================== -->
+  <div class="section" id="how-it-works" style="padding-top:0;">
+    <p class="section-label" data-reveal>Simple Process</p>
+    <h2 class="section-title" data-reveal>How It <span class="accent">Works</span></h2>
+
+    <div class="steps" data-reveal>
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4 class="step-name">Sign In with Google</h4>
+        <p class="step-desc">One click. No forms, no passwords, no friction.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4 class="step-name">Ask Any Question</h4>
+        <p class="step-desc">About dharma, karma, moksha, purpose — ask freely in English or Hindi.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4 class="step-name">Receive Sacred Wisdom</h4>
+        <p class="step-desc">The AI searches authentic commentaries and presents the most relevant teaching.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h4 class="step-name">Bookmark & Reflect</h4>
+        <p class="step-desc">Save answers to your personal library. Return to them anytime.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== CTA ============================== -->
+  <section class="cta">
+    <h2 data-reveal>Begin Your <span class="accent">Gita Journey</span></h2>
+    <p data-reveal>Thousands of years of wisdom, now accessible through a single conversation.</p>
+    <a href="signup.html" class="btn btn-primary" data-reveal>Start for Free</a>
+  </section>
+
+  <!-- ============================== FOOTER ============================== -->
+  <footer class="footer">
+    <span class="footer-logo">NityaGeeta</span>
+    <span>© 2026 NityaGeeta. Built with devotion.</span>
+    <span>Content sourced from authentic Gita commentaries.</span>
+  </footer>
+
+  <!-- =============================================================
+       JAVASCRIPT
+       ============================================================= -->
+  <script>
+    // --- Cursor glow — fast lerp (0.3) so it feels immediate ---
+    const glow = document.getElementById('glow');
+    let mx = window.innerWidth / 2,
+        my = window.innerHeight / 2,
+        gx = mx, gy = my;
+
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+    (function animGlow() {
+      gx += (mx - gx) * 0.3;  // 0.3 = fast, responsive
+      gy += (my - gy) * 0.3;
+      glow.style.left = gx + 'px';
+      glow.style.top  = gy + 'px';
+      requestAnimationFrame(animGlow);
+    })();
+
+    if ('ontouchstart' in window) glow.style.display = 'none';
+
+    // --- Navbar becomes solid on scroll ---
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('solid', window.scrollY > 60);
+    }, { passive: true });
+
+    // --- Hero parallax — simple, single layer ---
+    const heroBg = document.getElementById('hero-bg');
+    window.addEventListener('scroll', () => {
+      heroBg.style.transform = 'translateY(' + window.scrollY * 0.35 + 'px)';
+    }, { passive: true });
+
+    // --- Scroll reveal — clean IntersectionObserver ---
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
