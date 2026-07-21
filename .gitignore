@@ -11,22 +11,29 @@ env/
 
 # Integration keys and secrets
 .env
+gcp-key.json
 
-# Local database files (Docker volumes)
+# Local database files & storage
 data/postgres/
 data/redis/
+data/raw/
+Files/
+
+# Scratch & Temporary Files
+scratch/
+*.tmp
+*.log
+image.png
 
 # OS metadata
 .DS_Store
 Thumbs.db
 
-# MyFiles
-Source.txt
-Notes.txt
-Q&A.txt
-Plan.txt
-Files/
-data/raw/
-gcp-key.json
-Prompt.txt
-Clean_Geeta.txt
+# Documentation & Private Notes
+docs/Notes.txt
+docs/Q&A.txt
+docs/Plan.txt
+docs/Source.txt
+docs/Prompt.txt
+docs/Clean_Geeta.txt
+docs/Issues.txt
