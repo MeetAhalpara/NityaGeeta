@@ -1,0 +1,119 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+:root {
+  --background: #FAF7F2;
+  --foreground: #2D2622;
+}
+
+.dark {
+  --background: #1A1816;
+  --foreground: #F5F2EB;
+}
+
+*,
+*:before,
+*:after,
+html,
+body,
+input,
+textarea,
+select,
+button,
+a,
+[contenteditable] {
+  cursor: none !important;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.font-sans {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif !important;
+}
+
+.font-serif {
+  font-family: var(--font-serif), ui-serif, Georgia, serif !important;
+}
+
+/* Fixed Top Header Lock */
+.sticky-header-fixed {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 99999 !important;
+}
+
+/* Liquid Glass Navbar Styling */
+.liquid-glass {
+  background: rgba(250, 247, 242, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(216, 204, 190, 0.6);
+}
+
+.dark .liquid-glass {
+  background: rgba(28, 26, 23, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Liquid Shimmer Border Animation */
+.liquid-border-shimmer::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(194, 94, 56, 0.25) 20%,
+    rgba(194, 94, 56, 0.95) 50%,
+    rgba(194, 94, 56, 0.25) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: liquidGlassShimmer 4s infinite linear;
+  pointer-events: none;
+}
+
+.dark .liquid-border-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(224, 109, 67, 0.2) 20%,
+    rgba(224, 109, 67, 0.9) 50%,
+    rgba(224, 109, 67, 0.2) 80%,
+    transparent 100%
+  );
+}
+
+@keyframes liquidGlassShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Magic UI View Transitions API AnimatedThemeToggler */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-magicui-theme-vt="active"]::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration);
+}
