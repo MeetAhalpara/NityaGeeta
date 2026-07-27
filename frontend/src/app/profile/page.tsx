@@ -5,12 +5,15 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  User, Mail, Phone, MapPin, Calendar, Save, Check, ChevronRight,
+  User, Mail, Phone, MapPin, Save, Check, ChevronRight,
   ShieldCheck, ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { lookupAccountByEmail, updateGoogleProfile } from "@/lib/auth-api";
+import { AgePicker } from "@/components/ui/age-picker";
+import { DiaTextReveal } from "@/components/ui/dia-text-reveal";
 
 interface ProfileData {
   firstName: string;
@@ -61,6 +64,8 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState(false);
+  const [password, setPassword] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"personal" | "contact" | "spiritual">("personal");
 
   // Redirect unauthenticated users
@@ -70,21 +75,59 @@ export default function ProfilePage() {
     }
   }, [status, router]);
 
-  // Load existing profile or pre-fill from Google session
+  // Show loading state while checking authentication
+  const [isChecking, setIsChecking] = useState(true);
+
+  // Step 0: Check if user already exists and redirect to home immediately
+  // This handles both the Google OAuth flow and direct navigation
   useEffect(() => {
-    if (!session?.user) return;
+    if (status === "loading") return;
+    
+    // Not authenticated - redirect to signin
+    if (status === "unauthenticated") {
+      router.replace("/signin");
+      return;
+    }
+    
+    // Authenticated - check if user exists
+    if (status === "authenticated" && session?.user?.email) {
+      // Check if session indicates user already exists (from Google OAuth callback)
+      const userExists = (session.user as Record<string, unknown>)._exists;
+      
+      if (userExists) {
+        // User exists in database, redirect to home immediately
+        router.replace("/");
+        return;
+      }
+      
+      // Also check localStorage for completed profile
+      const storageKey = `nityageeta_profile_${session.user.email}`;
+      const stored = localStorage.getItem(storageKey);
+      const profile = stored ? JSON.parse(stored) : null;
+      
+      if (profile?.isProfileComplete) {
+        // User has completed profile locally, redirect to home
+        router.replace("/");
+        return;
+      }
+      
+      // User doesn't exist and hasn't completed profile - allow to stay
+      setIsChecking(false);
+    }
+  }, [status, session, router]);
+
+  // Step 1: Pre-fill profile immediately from localStorage / session — no network wait.
+  useEffect(() => {
+    if (!session?.user?.email) return;
 
     const storageKey = `nityageeta_profile_${session.user.email}`;
     const stored = localStorage.getItem(storageKey);
 
     if (stored) {
       setProfile(JSON.parse(stored));
-      setIsFirstTime(false);
     } else {
-      // First-time user: pre-fill from Google data
       const googleName = session.user.name || "";
       const nameParts = googleName.split(" ");
-
       setProfile({
         ...DEFAULT_PROFILE,
         firstName: nameParts[0] || "",
@@ -95,39 +138,107 @@ export default function ProfilePage() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
-      setIsFirstTime(true);
     }
-  }, [session]);
+  }, [session?.user?.email, session?.user?.name, session?.user?.image]);
+
+  // Step 2: Check DB in background to determine new vs returning user.
+  // This is a fallback if the session flag wasn't set during OAuth
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    if (status !== "authenticated") return;
+
+    let cancelled = false;
+
+    const checkAndLoadUser = async () => {
+      // If localStorage already has a completed profile, trust it — no need to
+      // show the new-user setup flow even if the DB check lags or fails.
+      const storageKey = `nityageeta_profile_${session.user.email}`;
+      const stored = localStorage.getItem(storageKey);
+      const storedProfile = stored ? JSON.parse(stored) : null;
+      if (storedProfile?.isProfileComplete) {
+        // Profile complete in localStorage, redirect to home
+        router.replace("/");
+        return;
+      }
+
+      try {
+        const result = await lookupAccountByEmail(session.user.email);
+        if (cancelled) return;
+
+        if (result.exists) {
+          // User already has an account — send them straight to the landing page.
+          router.replace("/");
+          return;
+        } else {
+          // Genuinely new user — no DB record and no completed local profile.
+          setIsFirstTime(true);
+          setNotice("Seems like you're new here start from here.");
+        }
+      } catch (error) {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : "Could not reach the server.";
+        setNotice(`⚠ ${message} Your changes will be saved locally.`);
+      }
+    };
+
+    void checkAndLoadUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.email, status, router]);
 
   const handleChange = (field: keyof ProfileData, value: string) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
     setSaved(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!session?.user?.email) return;
+
+    if (isFirstTime && !password.trim()) {
+      setNotice("Password is mandatory for credentials authentication later.");
+      return;
+    }
+
     setIsSaving(true);
+    setNotice(null);
 
-    const updated = {
-      ...profile,
-      isProfileComplete: true,
-      updatedAt: new Date().toISOString(),
-    };
+    try {
+      if (isFirstTime) {
+        await updateGoogleProfile({
+          email: session.user.email,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          password: password.trim(),
+          age: profile.age || undefined,
+          preferredLanguage: "English",
+        });
+      }
 
-    const storageKey = `nityageeta_profile_${session.user.email}`;
-    localStorage.setItem(storageKey, JSON.stringify(updated));
-    setProfile(updated);
+      const updated = {
+        ...profile,
+        isProfileComplete: true,
+        updatedAt: new Date().toISOString(),
+      };
 
-    setTimeout(() => {
-      setIsSaving(false);
+      const storageKey = `nityageeta_profile_${session.user.email}`;
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+      setProfile(updated);
+
       setSaved(true);
       setIsFirstTime(false);
 
-      setTimeout(() => setSaved(false), 2500);
-    }, 500);
+      // Auto-reset the saved state after 4 s so the button returns to normal
+      setTimeout(() => setSaved(false), 4000);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Failed to update profile settings.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  if (status === "loading" || !session) {
+  if (status === "loading" || !session || isChecking) {
     return (
       <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#1A1816] flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-[#C25E38] border-t-transparent rounded-full animate-spin" />
@@ -203,21 +314,37 @@ export default function ProfilePage() {
 
             {/* Section Navigation */}
             <nav className="space-y-1.5 flex-1">
-              {sections.map((sec) => (
-                <button
-                  key={sec.key}
-                  onClick={() => setActiveSection(sec.key)}
-                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                    activeSection === sec.key
-                      ? "bg-[#C25E38]/15 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] border border-[#C25E38]/20 dark:border-[#E06D43]/30"
-                      : "text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A] border border-transparent"
-                  }`}
-                >
-                  <sec.icon className="w-4 h-4" />
-                  <span>{sec.label}</span>
-                  <ChevronRight className={`w-3.5 h-3.5 ml-auto transition-transform ${activeSection === sec.key ? "rotate-90" : ""}`} />
-                </button>
-              ))}
+              {sections.map((sec) => {
+                const isActive = activeSection === sec.key;
+                return (
+                  <button
+                    key={sec.key}
+                    onClick={() => setActiveSection(sec.key)}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                      isActive
+                        ? "bg-[#C25E38]/15 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] border border-[#C25E38]/20 dark:border-[#E06D43]/30"
+                        : "text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A] border border-transparent"
+                    }`}
+                  >
+                    <sec.icon className="w-4 h-4" />
+                    <span>{sec.label}</span>
+                    <AnimatePresence>
+                      {isActive && (
+                        <motion.span
+                          key="arrow"
+                          className="ml-auto"
+                          initial={{ opacity: 0, x: -6 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -6 }}
+                          transition={{ duration: 0.18, ease: "easeOut" }}
+                        >
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </button>
+                );
+              })}
             </nav>
           </div>
 
@@ -234,6 +361,12 @@ export default function ProfilePage() {
                   : "Update your personal details, contact information, and spiritual preferences."}
               </p>
             </div>
+
+            {notice && (
+              <div className="mb-6 rounded-2xl border border-[#C25E38]/25 bg-[#C25E38]/10 px-4 py-2.5 text-xs text-[#5C4F45] dark:text-[#F5F2EB]">
+                {notice}
+              </div>
+            )}
 
             {/* Form Sections */}
             <AnimatePresence mode="wait">
@@ -274,22 +407,10 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <InputField
-                        label="Age"
-                        icon={<Calendar className="w-4 h-4" />}
-                        type="text"
-                        inputMode="numeric"
+                      {/* Age — scroll drum picker */}
+                      <AgePicker
                         value={profile.age}
-                        onChange={(v) => {
-                          // Only allow digits, enforce 18-100 range
-                          const cleaned = v.replace(/[^0-9]/g, "").slice(0, 3);
-                          const num = parseInt(cleaned, 10);
-                          if (cleaned === "" || (num >= 0 && num <= 100)) {
-                            handleChange("age", cleaned);
-                          }
-                        }}
-                        placeholder="18 – 100"
-                        sublabel="Must be 18–100"
+                        onChange={(v) => handleChange("age", v)}
                       />
                       <div>
                         <label className="block text-xs font-semibold text-[#5C4F45] dark:text-[#D4C7B8] mb-1.5">
@@ -308,6 +429,20 @@ export default function ProfilePage() {
                         </select>
                       </div>
                     </div>
+
+                    {isFirstTime && (
+                      <div className="grid grid-cols-1 gap-4 pt-2">
+                        <InputField
+                          label="Password"
+                          type="password"
+                          required
+                          value={password}
+                          onChange={(v) => setPassword(v)}
+                          placeholder="Create a password for manual login later"
+                          sublabel="Mandatory"
+                        />
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -325,14 +460,38 @@ export default function ProfilePage() {
                         disabled
                         sublabel="From Google"
                       />
-                      <InputField
-                        label="Mobile Number"
-                        icon={<Phone className="w-4 h-4" />}
-                        type="tel"
-                        value={profile.mobile}
-                        onChange={(v) => handleChange("mobile", v)}
-                        placeholder="+1 (555) 000-0000"
-                      />
+                      {/* Mobile — digits only, auto-formats to (XXX)-XXX-XXXX */}
+                      <div>
+                        <label className="block text-xs font-semibold text-[#5C4F45] dark:text-[#D4C7B8] mb-1.5">
+                          Mobile Number
+                        </label>
+                        <div className="relative">
+                          <Phone className="w-4 h-4 text-[#8C7B70] dark:text-[#A89F91] absolute left-3.5 top-3.5" />
+                          <input
+                            type="tel"
+                            inputMode="numeric"
+                            value={profile.mobile}
+                            onChange={(e) => {
+                              // Strip everything except digits
+                              const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                              // Build (XXX)-XXX-XXXX progressively
+                              let formatted = "";
+                              if (digits.length === 0) {
+                                formatted = "";
+                              } else if (digits.length <= 3) {
+                                formatted = `(${digits}`;
+                              } else if (digits.length <= 6) {
+                                formatted = `(${digits.slice(0, 3)})-${digits.slice(3)}`;
+                              } else {
+                                formatted = `(${digits.slice(0, 3)})-${digits.slice(3, 6)}-${digits.slice(6)}`;
+                              }
+                              handleChange("mobile", formatted);
+                            }}
+                            placeholder="(XXX)-XXX-XXXX"
+                            className="w-full bg-[#EFE9DF]/60 dark:bg-[#1C1917] border border-[#DFD5C6] dark:border-[#38332E] rounded-xl pl-10 pr-4 py-3 text-xs text-[#2D2622] dark:text-[#F5F2EB] placeholder-[#8C7B70] focus:outline-none focus:border-[#C25E38] dark:focus:border-[#E06D43] transition font-mono tracking-wider"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     <InputField
@@ -423,43 +582,56 @@ export default function ProfilePage() {
             </AnimatePresence>
 
             {/* Save Button & Section Navigation */}
-            <div className="mt-8 pt-6 border-t border-[#DFD5C6]/60 dark:border-[#38332E]/60 flex items-center justify-between gap-4">
-              {/* Section Step Indicators */}
-              <div className="flex items-center gap-1.5">
-                {sections.map((sec) => (
-                  <button
-                    key={sec.key}
-                    onClick={() => setActiveSection(sec.key)}
-                    className={`w-2.5 h-2.5 rounded-full transition-all ${
-                      activeSection === sec.key
-                        ? "bg-[#C25E38] dark:bg-[#E06D43] scale-110"
-                        : "bg-[#DFD5C6] dark:bg-[#38332E] hover:bg-[#C25E38]/40"
-                    }`}
-                    title={sec.label}
-                  />
-                ))}
-              </div>
+            <div className="mt-8 pt-6 border-t border-[#DFD5C6]/60 dark:border-[#38332E]/60 flex items-center justify-end gap-4">
 
-              {/* Save Button */}
-              <InteractiveHoverButton
-                type="button"
-                onClick={handleSave}
-                text={
-                  isSaving
-                    ? "Saving..."
-                    : saved
-                    ? "Saved!"
-                    : isFirstTime
-                    ? "Save & Complete Profile"
-                    : "Save Changes"
-                }
-                icon={saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                className={`px-6 py-3 text-xs font-sans font-bold shadow-lg ${
-                  saved
-                    ? "shadow-emerald-500/20 border-emerald-500/40"
-                    : "shadow-[#C25E38]/20"
-                }`}
-              />
+              {/* Save area — shows success animation when saved, button otherwise */}
+              <AnimatePresence mode="wait">
+                {saved ? (
+                  <motion.div
+                    key="saved-msg"
+                    initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-400/40 bg-emerald-50 dark:bg-emerald-900/20 text-sm font-sans font-semibold"
+                  >
+                    <Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                    <span className="text-emerald-700 dark:text-emerald-300">
+                      <DiaTextReveal
+                        text={isFirstTime ? "Profile complete!" : "Changes saved!"}
+                        duration={1.2}
+                        startOnView={false}
+                        once={false}
+                        colors={["#34d399", "#10b981", "#6ee7b7", "#a7f3d0", "#059669"]}
+                        textColor="rgb(4 120 87)"
+                        className="font-sans font-semibold text-sm"
+                      />
+                    </span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="save-btn"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <InteractiveHoverButton
+                      type="button"
+                      onClick={handleSave}
+                      text={
+                        isSaving
+                          ? "Saving..."
+                          : isFirstTime
+                          ? "Save & Complete Profile"
+                          : "Save Changes"
+                      }
+                      icon={<Save className="w-4 h-4" />}
+                      className="px-6 py-3 text-xs font-sans font-bold shadow-lg shadow-[#C25E38]/20"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </motion.div>

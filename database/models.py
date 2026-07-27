@@ -36,6 +36,7 @@ class User(Base):
     # Language preference for AI responses: 'en', 'hi', 'sa'
     preferred_lang  = Column(String(10), nullable=False, default="en")
     bio             = Column(Text, nullable=True)
+    password_hash   = Column(String(255), nullable=True)
     is_active       = Column(Boolean, nullable=False, default=True)
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
     updated_at      = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

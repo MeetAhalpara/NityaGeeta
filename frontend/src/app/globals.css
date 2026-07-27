@@ -2,14 +2,84 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+/* Hide scrollbar — used by AgePicker drum */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 :root {
+  /* Light Theme */
   --background: #FAF7F2;
   --foreground: #2D2622;
+  
+  /* Light Theme Colors */
+  --background-alt: #F5F0E8;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(212, 168, 71, 0.25);
+  --text-primary: #2D2622;
+  --text-secondary: #8C7B70;
+  --text-muted: #A89F91;
+  --gold-primary: #d4a847;
+  --gold-hover: #f0c96a;
+  --gold-light: #e8c86b;
+  --orange-accent: #e8823a;
+  --saffron: #C25E38;
+  --saffron-hover: #E06D43;
+  --input-bg: rgba(255, 255, 255, 0.6);
+  --input-border: rgba(212, 168, 71, 0.2);
+  --input-focus: #d4a847;
+  --google-btn-bg: rgba(255, 255, 255, 0.8);
+  --google-btn-border: rgba(255, 255, 255, 0.5);
+  --google-btn-hover: rgba(255, 255, 255, 0.95);
+  --navbar-bg: rgba(250, 247, 242, 0.95);
+  --navbar-border: rgba(216, 204, 190, 0.6);
+  --divider: rgba(212, 168, 71, 0.2);
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(212, 168, 71, 0.25);
+  --error-bg: rgba(180, 50, 50, 0.1);
+  --error-border: rgba(180, 50, 50, 0.2);
+  --error-text: #b43232;
+  --success-text: #16a34a;
+  --shadow-color: rgba(0, 0, 0, 0.1);
 }
 
 .dark {
-  --background: #1A1816;
-  --foreground: #F5F2EB;
+  /* Dark Theme */
+  --background: #0a0812;
+  --background-alt: #0f0e1a;
+  
+  /* Dark Theme Colors */
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(212, 168, 71, 0.25);
+  --text-primary: #f5e6c8;
+  --text-secondary: #c4b89a;
+  --text-muted: #a89f91;
+  --gold-primary: #d4a847;
+  --gold-hover: #f0c96a;
+  --gold-light: #e8c86b;
+  --orange-accent: #e8823a;
+  --saffron: #C25E38;
+  --saffron-hover: #E06D43;
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-border: rgba(212, 168, 71, 0.2);
+  --input-focus: #d4a847;
+  --google-btn-bg: rgba(255, 255, 255, 0.07);
+  --google-btn-border: rgba(255, 255, 255, 0.15);
+  --google-btn-hover: rgba(255, 255, 255, 0.12);
+  --navbar-bg: rgba(10, 8, 18, 0.6);
+  --navbar-border: rgba(212, 168, 71, 0.1);
+  --divider: rgba(212, 168, 71, 0.2);
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(212, 168, 71, 0.25);
+  --error-bg: rgba(180, 50, 50, 0.1);
+  --error-border: rgba(180, 50, 50, 0.2);
+  --error-text: #e08080;
+  --success-text: #4ade80;
+  --shadow-color: rgba(0, 0, 0, 0.3);
 }
 
 *,
@@ -53,17 +123,17 @@ body {
 
 /* Liquid Glass Navbar Styling */
 .liquid-glass {
-  background: rgba(250, 247, 242, 0.95);
+  background: var(--navbar-bg);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(216, 204, 190, 0.6);
+  border-bottom: 1px solid var(--navbar-border);
 }
 
 .dark .liquid-glass {
-  background: rgba(28, 26, 23, 0.95);
+  background: var(--navbar-bg);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--navbar-border);
 }
 
 /* Liquid Shimmer Border Animation */

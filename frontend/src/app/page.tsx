@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
 import {
   BookOpen,
   Shield,
@@ -29,6 +31,8 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import { TextReveal } from "@/components/ui/text-reveal";
 
 export default function LandingPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const heroRef = useRef<HTMLDivElement>(null);
   
   // Motion scroll hook for background zoom
@@ -201,12 +205,32 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center font-sans mb-14">
-            <Link href="/chat">
-              <InteractiveHoverButton
-                text="Ask NityaGeeta AI"
-                className="p-3.5 px-8 text-base font-sans font-semibold shadow-xl"
-              />
-            </Link>
+            {session?.user ? (
+              <Link href="/chat">
+                <InteractiveHoverButton
+                  text="Ask NityaGeeta AI"
+                  className="p-3.5 px-8 text-base font-sans font-semibold shadow-xl"
+                />
+              </Link>
+            ) : (
+              <div
+                onClick={() => router.push("/signup")}
+                className="group relative w-auto cursor-pointer overflow-hidden rounded-xl border border-[#C25E38]/40 dark:border-[#E06D43]/50 bg-[#FAF7F2] dark:bg-[#262320] p-3.5 px-8 text-center font-sans font-semibold text-[#2D2622] dark:text-[#F5F2EB] shadow-xl transition-all duration-250 ease-out active:scale-[0.98] flex items-center justify-center gap-2 transform-gpu will-change-transform hover:shadow-2xl"
+              >
+                {/* Default Content with Pulsing Terracotta Dot */}
+                <div className="flex items-center justify-center gap-2 transform-gpu transition-all duration-250 ease-out">
+                  <div className="bg-[#C25E38] dark:bg-[#E06D43] h-2.5 w-2.5 rounded-full transition-transform duration-300 ease-out group-hover:scale-[110] transform-gpu will-change-transform" />
+                  <span className="inline-block transition-all duration-250 ease-out group-hover:translate-x-3 group-hover:opacity-0 whitespace-nowrap font-sans font-semibold will-change-[transform,opacity]">
+                    Ask NityaGeeta AI
+                  </span>
+                </div>
+
+                {/* Hover Content */}
+                <div className="text-white absolute inset-0 z-10 flex h-full w-full items-center justify-center gap-2 opacity-0 transition-all duration-250 ease-out translate-x-3 group-hover:translate-x-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transform-gpu will-change-[transform,opacity]">
+                  <span className="font-sans font-semibold">Ask NityaGeeta AI</span>
+                </div>
+              </div>
+            )}
             <a
               href="#sources"
               className="p-3.5 px-8 text-base font-sans font-semibold text-white bg-[#C25E38] dark:bg-[#E06D43] hover:bg-[#A84F2E] dark:hover:bg-[#C25E38] rounded-xl border border-[#C25E38]/40 dark:border-[#E06D43]/50 shadow-xl transition-all duration-300 hover:shadow-2xl active:scale-[0.98] flex items-center justify-center gap-2"
@@ -834,37 +858,47 @@ export default function LandingPage() {
                     <label className="block text-xs font-semibold text-[#5C4F45] mb-1">
                       Topic / Category
                     </label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg bg-[#EFE9DF] border border-[#DFD5C6] text-[#2D2622] focus:outline-none focus:ring-2 focus:ring-[#C25E38] transition"
-                    >
-                      <option value="ai_feedback">AI Chat Feedback / Issue</option>
-                      <option value="unresourceful_info">Incorrect or Unhelpful Answer</option>
-                      <option value="share_wisdom">Share Geeta Wisdom / Commentary</option>
-                      <option value="report_misuse">Report Misuse / Misinterpretation</option>
-                      <option value="other">Other</option>
-                    </select>
-
-                    {formData.category === "other" && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        className="mt-3"
+                    <div className="relative">
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-lg bg-[#EFE9DF] border border-[#DFD5C6] text-[#2D2622] focus:outline-none focus:ring-2 focus:ring-[#C25E38] transition appearance-none cursor-pointer"
                       >
-                        <label className="block text-xs font-semibold text-[#5C4F45] mb-1">
-                          Please describe other category
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Please describe other category..."
-                          value={formData.otherCategory}
-                          onChange={(e) => setFormData({ ...formData, otherCategory: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-lg bg-[#EFE9DF] border border-[#DFD5C6] text-[#2D2622] placeholder-[#8C7B70] focus:outline-none focus:ring-2 focus:ring-[#C25E38] transition"
-                        />
-                      </motion.div>
-                    )}
+                        <option value="ai_feedback">AI Chat Feedback / Issue</option>
+                        <option value="unresourceful_info">Incorrect or Unhelpful Answer</option>
+                        <option value="share_wisdom">Share Geeta Wisdom / Commentary</option>
+                        <option value="report_misuse">Report Misuse / Misinterpretation</option>
+                        <option value="other">Other</option>
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-[#C25E38] absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                      {formData.category === "other" && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, height: 0 }}
+                          animate={{ opacity: 1, y: 0, height: "auto" }}
+                          exit={{ opacity: 0, y: -10, height: 0 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="overflow-hidden"
+                        >
+                          <label className="block text-xs font-semibold text-[#5C4F45] mt-3 mb-1">
+                            Please describe other category
+                          </label>
+                          <motion.input
+                            type="text"
+                            required
+                            placeholder="Please describe other category..."
+                            value={formData.otherCategory}
+                            onChange={(e) => setFormData({ ...formData, otherCategory: e.target.value })}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="w-full px-4 py-2.5 rounded-lg bg-[#EFE9DF] border border-[#DFD5C6] text-[#2D2622] placeholder-[#8C7B70] focus:outline-none focus:ring-2 focus:ring-[#C25E38] transition"
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   <div>
@@ -983,37 +1017,47 @@ export default function LandingPage() {
                     <label className="block text-xs font-semibold text-[#D4C7B8] mb-1">
                       Topic / Category
                     </label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg bg-[#1A1816] border border-[#38332E] text-[#F5F2EB] focus:outline-none focus:ring-2 focus:ring-[#E06D43] transition"
-                    >
-                      <option value="ai_feedback">AI Chat Feedback / Issue</option>
-                      <option value="unresourceful_info">Incorrect or Unhelpful Answer</option>
-                      <option value="share_wisdom">Share Geeta Wisdom / Commentary</option>
-                      <option value="report_misuse">Report Misuse / Misinterpretation</option>
-                      <option value="other">Other</option>
-                    </select>
-
-                    {formData.category === "other" && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        className="mt-3"
+                    <div className="relative">
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-lg bg-[#1A1816] border border-[#38332E] text-[#F5F2EB] focus:outline-none focus:ring-2 focus:ring-[#E06D43] transition appearance-none cursor-pointer"
                       >
-                        <label className="block text-xs font-semibold text-[#D4C7B8] mb-1">
-                          Please describe other category
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Please describe other category..."
-                          value={formData.otherCategory}
-                          onChange={(e) => setFormData({ ...formData, otherCategory: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-lg bg-[#1A1816] border border-[#38332E] text-[#F5F2EB] placeholder-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#E06D43] transition"
-                        />
-                      </motion.div>
-                    )}
+                        <option value="ai_feedback">AI Chat Feedback / Issue</option>
+                        <option value="unresourceful_info">Incorrect or Unhelpful Answer</option>
+                        <option value="share_wisdom">Share Geeta Wisdom / Commentary</option>
+                        <option value="report_misuse">Report Misuse / Misinterpretation</option>
+                        <option value="other">Other</option>
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-amber-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                      {formData.category === "other" && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, height: 0 }}
+                          animate={{ opacity: 1, y: 0, height: "auto" }}
+                          exit={{ opacity: 0, y: -10, height: 0 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="overflow-hidden"
+                        >
+                          <label className="block text-xs font-semibold text-[#D4C7B8] mt-3 mb-1">
+                            Please describe other category
+                          </label>
+                          <motion.input
+                            type="text"
+                            required
+                            placeholder="Please describe other category..."
+                            value={formData.otherCategory}
+                            onChange={(e) => setFormData({ ...formData, otherCategory: e.target.value })}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="w-full px-4 py-2.5 rounded-lg bg-[#1A1816] border border-[#38332E] text-[#F5F2EB] placeholder-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#E06D43] transition"
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   <div>
@@ -1124,7 +1168,20 @@ export default function LandingPage() {
               QUICK LINKS
             </h4>
             <ul className="space-y-2 text-xs">
-              <li><Link href="/chat" className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition">Geeta AI Dialogue</Link></li>
+              <li>
+                {session?.user ? (
+                  <Link href="/chat" className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition">
+                    Geeta AI Dialogue
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => router.push("/signup")}
+                    className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition"
+                  >
+                    Geeta AI Dialogue
+                  </button>
+                )}
+              </li>
               <li><a href="#sources" className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition">Geeta Sources</a></li>
               <li><a href="#support" className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition">Contact Us & Feedback</a></li>
               <li><a href="#faq" className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition">FAQ</a></li>

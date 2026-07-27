@@ -505,3 +505,5 @@ Krishna: Who is he
 FullScene: What place is this? which war?
 Like this the image should hover work for the everything
 https://designbeep.com/2025/06/13/20-pure-css-and-javascript-custom-cursor-effects-with-code/
+
+
