@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { Plus_Jakarta_Sans, Playfair_Display, Rozha_One, Cinzel } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { SmoothCursor } from "../components/SmoothCursor";
 
 const sansFont = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -13,6 +12,19 @@ const sansFont = Plus_Jakarta_Sans({
 const serifFont = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-serif",
+  display: "swap",
+});
+
+const devanagariFont = Rozha_One({
+  weight: "400",
+  subsets: ["latin", "devanagari"],
+  variable: "--font-devanagari",
+  display: "swap",
+});
+
+const cinzelFont = Cinzel({
+  subsets: ["latin"],
+  variable: "--font-cinzel",
   display: "swap",
 });
 
@@ -27,10 +39,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sansFont.variable} ${serifFont.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${sansFont.variable} ${serifFont.variable} ${devanagariFont.variable} ${cinzelFont.variable}`} suppressHydrationWarning>
+
       <body className="min-h-screen antialiased bg-background text-foreground transition-colors duration-300 font-sans" suppressHydrationWarning>
         <Providers>
-          <SmoothCursor />
           {children}
         </Providers>
       </body>

@@ -19,6 +19,15 @@ export function Navbar({ activePage = "" }: { activePage?: string }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
+  // Pre-load all primary routes in background for instant 0ms page switching
+  useEffect(() => {
+    router.prefetch("/app");
+    router.prefetch("/signin");
+    router.prefetch("/signup");
+    router.prefetch("/profile");
+    router.prefetch("/");
+  }, [router]);
+
   // Close profile dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -42,7 +51,7 @@ export function Navbar({ activePage = "" }: { activePage?: string }) {
         className="max-w-7xl mx-auto px-6 flex items-center justify-between font-sans"
       >
         {/* LEFT SIDE: Brand Name */}
-        <Link href="/" className="flex items-center group shrink-0">
+        <Link href="/" prefetch={true} className="flex items-center group shrink-0">
           <motion.span
             style={{ scale: logoScale, originX: 0 }}
             className="text-2xl font-bold tracking-tight text-text-primary font-serif hover:text-gold-primary transition-colors"
@@ -263,18 +272,9 @@ export function Navbar({ activePage = "" }: { activePage?: string }) {
           <Link href="/#how-it-works" className="hover:text-gold-primary transition">
             How It Works
           </Link>
-          {session?.user ? (
-            <Link href="/chat" className="hover:text-gold-primary transition">
-              Geeta AI
-            </Link>
-          ) : (
-            <button
-              onClick={() => router.push("/signup")}
-              className="hover:text-gold-primary transition cursor-pointer"
-            >
-              Geeta AI
-            </button>
-          )}
+          <Link href="/app" className="hover:text-gold-primary transition">
+            NityaGeeta Dialogue
+          </Link>
           <Link href="/#support" className="hover:text-gold-primary transition">
             Contact Us
           </Link>
@@ -369,12 +369,12 @@ export function Navbar({ activePage = "" }: { activePage?: string }) {
                       </Link>
 
                       <Link
-                        href="/chat"
+                        href="/app"
                         onClick={() => setProfileOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-text-secondary hover:bg-glass-bg transition"
                       >
                         <Search className="w-4 h-4" />
-                        <span>Geeta AI Chat</span>
+                        <span>NityaGeeta Dialogue</span>
                       </Link>
 
                       <button
@@ -429,7 +429,7 @@ export function Navbar({ activePage = "" }: { activePage?: string }) {
               className="w-full bg-transparent text-sm text-text-primary placeholder-text-muted focus:outline-none"
             />
             <Link
-              href={`/chat?q=${encodeURIComponent(searchQuery)}`}
+              href={`/app?q=${encodeURIComponent(searchQuery)}`}
               className="px-3.5 py-1.5 rounded-lg bg-saffron text-white text-xs font-semibold shrink-0"
             >
               Search AI

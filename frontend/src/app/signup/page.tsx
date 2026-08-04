@@ -16,6 +16,13 @@ function SignUpContent() {
   const [notice, setNotice] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
 
+  // Pre-load target routes for instant page switching
+  useEffect(() => {
+    router.prefetch("/app");
+    router.prefetch("/signin");
+    router.prefetch("/");
+  }, [router]);
+
   // ── Guard: if user already has a completed account, redirect to home ──
   useEffect(() => {
     if (status === "loading") return;
@@ -150,7 +157,7 @@ function SignUpContent() {
             <div className="mt-8 pt-6 border-t border-[#DFD5C6]/60 dark:border-[#38332E]/60 text-center">
               <p className="text-xs text-[#5C4F45] dark:text-[#D4C7B8]">
                 Already have an account?{" "}
-                <Link href="/signin" className="text-[#C25E38] dark:text-[#E06D43] font-bold hover:underline">
+                <Link href="/signin" prefetch={true} className="text-[#C25E38] dark:text-[#E06D43] font-bold hover:underline">
                   Sign In
                 </Link>
               </p>

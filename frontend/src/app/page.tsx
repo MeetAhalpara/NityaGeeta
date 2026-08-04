@@ -22,7 +22,8 @@ import {
   Twitter,
   Facebook,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -205,32 +206,13 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center font-sans mb-14">
-            {session?.user ? (
-              <Link href="/chat">
-                <InteractiveHoverButton
-                  text="Ask NityaGeeta AI"
-                  className="p-3.5 px-8 text-base font-sans font-semibold shadow-xl"
-                />
-              </Link>
-            ) : (
-              <div
-                onClick={() => router.push("/signup")}
-                className="group relative w-auto cursor-pointer overflow-hidden rounded-xl border border-[#C25E38]/40 dark:border-[#E06D43]/50 bg-[#FAF7F2] dark:bg-[#262320] p-3.5 px-8 text-center font-sans font-semibold text-[#2D2622] dark:text-[#F5F2EB] shadow-xl transition-all duration-250 ease-out active:scale-[0.98] flex items-center justify-center gap-2 transform-gpu will-change-transform hover:shadow-2xl"
-              >
-                {/* Default Content with Pulsing Terracotta Dot */}
-                <div className="flex items-center justify-center gap-2 transform-gpu transition-all duration-250 ease-out">
-                  <div className="bg-[#C25E38] dark:bg-[#E06D43] h-2.5 w-2.5 rounded-full transition-transform duration-300 ease-out group-hover:scale-[110] transform-gpu will-change-transform" />
-                  <span className="inline-block transition-all duration-250 ease-out group-hover:translate-x-3 group-hover:opacity-0 whitespace-nowrap font-sans font-semibold will-change-[transform,opacity]">
-                    Ask NityaGeeta AI
-                  </span>
-                </div>
-
-                {/* Hover Content */}
-                <div className="text-white absolute inset-0 z-10 flex h-full w-full items-center justify-center gap-2 opacity-0 transition-all duration-250 ease-out translate-x-3 group-hover:translate-x-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none transform-gpu will-change-[transform,opacity]">
-                  <span className="font-sans font-semibold">Ask NityaGeeta AI</span>
-                </div>
-              </div>
-            )}
+            <Link href="/app" prefetch={true}>
+              <InteractiveHoverButton
+                text="NityaGeeta Dialogue"
+                icon={<Sparkles className="w-4 h-4" />}
+                className="p-3.5 px-8 text-base font-sans font-semibold shadow-xl"
+              />
+            </Link>
             <a
               href="#sources"
               className="p-3.5 px-8 text-base font-sans font-semibold text-white bg-[#C25E38] dark:bg-[#E06D43] hover:bg-[#A84F2E] dark:hover:bg-[#C25E38] rounded-xl border border-[#C25E38]/40 dark:border-[#E06D43]/50 shadow-xl transition-all duration-300 hover:shadow-2xl active:scale-[0.98] flex items-center justify-center gap-2"
@@ -299,14 +281,14 @@ export default function LandingPage() {
               {
                 num: 3,
                 badge: "Step 03",
-                title: "Bhashya Synthesis",
-                desc: "Cross-references traditional commentaries from Ramsukhdas, Prabhupada, Shankara, Ramanuja & Madhva.",
+                title: "5-Model AI Fan-Out",
+                desc: "Dispatches query in parallel across 5 AI models (Groq 70B, Gemini 2.0, OpenRouter, NaraRouter) & scores candidates.",
               },
               {
                 num: 4,
                 badge: "Step 04",
-                title: "Grounded Wisdom",
-                desc: "Receive clear daily life guidance linked directly with authenticated Sanskrit text and verse citations.",
+                title: "Evaluated #1 Best Answer",
+                desc: "Receive the winning #1 Best Answer with scorecards, verse citations, and an interactive 5-model inspection drawer.",
               },
             ].map((step) => {
               const isUnlocked = activeStep >= step.num;
@@ -1169,18 +1151,9 @@ export default function LandingPage() {
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                {session?.user ? (
-                  <Link href="/chat" className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition">
-                    Geeta AI Dialogue
-                  </Link>
-                ) : (
-                  <button
-                    onClick={() => router.push("/signup")}
-                    className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition"
-                  >
-                    Geeta AI Dialogue
-                  </button>
-                )}
+                <Link href="/app" className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition">
+                  NityaGeeta Dialogue
+                </Link>
               </li>
               <li><a href="#sources" className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition">Geeta Sources</a></li>
               <li><a href="#support" className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition">Contact Us & Feedback</a></li>

@@ -51,7 +51,7 @@ export function GoogleAuthModal({ isOpen, onClose, onSuccess }: GoogleAuthModalP
       if (onSuccess) {
         onSuccess(userObj);
       } else {
-        window.location.href = "/chat";
+        window.location.href = "/app";
       }
     }, 700);
   };

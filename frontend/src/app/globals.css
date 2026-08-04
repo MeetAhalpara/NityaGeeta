@@ -2,14 +2,33 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* Hide scrollbar — used by AgePicker drum */
+/* Hide scrollbar — used by AgePicker drum & chat containers */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+  width: 0 !important;
+  height: 0 !important;
 }
+
+/* Global sleek ultra-thin scrollbars for edge scrolling */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(194, 94, 56, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(194, 94, 56, 0.7);
+}
+
 
 :root {
   /* Light Theme */
@@ -186,4 +205,42 @@ body {
 
 html[data-magicui-theme-vt="active"]::view-transition-group(root) {
   animation-duration: var(--magicui-theme-toggle-vt-duration);
+}
+
+/* Pixelate Dissolve View Transitions */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+    types: pixelate-dissolve;
+  }
+}
+
+html:active-view-transition-type(pixelate-dissolve)::view-transition-old(root) {
+  animation: pixelate-out 0.6s ease forwards;
+}
+
+html:active-view-transition-type(pixelate-dissolve)::view-transition-new(root) {
+  animation: pixelate-in 0.6s ease forwards;
+}
+
+@keyframes pixelate-out {
+  0% {
+    filter: blur(0px);
+    opacity: 1;
+  }
+  100% {
+    filter: blur(40px);
+    opacity: 0;
+  }
+}
+
+@keyframes pixelate-in {
+  0% {
+    filter: blur(40px);
+    opacity: 0;
+  }
+  100% {
+    filter: blur(0px);
+    opacity: 1;
+  }
 }

@@ -15,6 +15,13 @@ function SignInFormContent() {
   const { data: session, status } = useSession();
   const [notice, setNotice] = useState<string | null>(null);
 
+  // Pre-load target routes for fast switching
+  useEffect(() => {
+    router.prefetch("/app");
+    router.prefetch("/signup");
+    router.prefetch("/");
+  }, [router]);
+
   // Redirect authenticated users with existing accounts to home
   useEffect(() => {
     if (status === "loading") return;
@@ -130,7 +137,7 @@ function SignInFormContent() {
             <div className="mt-8 pt-6 border-t border-[#DFD5C6]/60 dark:border-[#38332E]/60 text-center">
               <p className="text-xs text-[#5C4F45] dark:text-[#D4C7B8]">
                 New to NityaGeeta?{" "}
-                <Link href="/signup" className="text-[#C25E38] dark:text-[#E06D43] font-bold hover:underline">
+                <Link href="/signup" prefetch={true} className="text-[#C25E38] dark:text-[#E06D43] font-bold hover:underline">
                   Create an Account
                 </Link>
               </p>

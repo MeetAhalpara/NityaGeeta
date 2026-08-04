@@ -68,6 +68,14 @@ export default function ProfilePage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"personal" | "contact" | "spiritual">("personal");
 
+  // Pre-load primary routes for instant page switching
+  useEffect(() => {
+    router.prefetch("/");
+    router.prefetch("/app");
+    router.prefetch("/signin");
+    router.prefetch("/signup");
+  }, [router]);
+
   // Redirect unauthenticated users
   useEffect(() => {
     if (status === "unauthenticated") {

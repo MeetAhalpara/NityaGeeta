@@ -19,7 +19,9 @@ data/postgres/
 data/redis/
 data/raw/
 Files/
-
+frontend/assets/images
+frontend/assets/LandingPage
+frontend/public/assets
 # Node modules
 frontend/node_modules
 frontend/.next
@@ -43,5 +45,6 @@ docs/Prompt.txt
 docs/Clean_Geeta.txt
 docs/Issues.txt
 docs/*
-
+boss_out.txt
+Eternal Knowledge FeedBack.txt
 SA - Lean Canvas Template.docx

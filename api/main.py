@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from passlib.hash import bcrypt
 
-from api.services.rag_engine import execute_rag_query
 from api.services.dataset_cache import search_dataset, get_page
 from database.connection import get_db_connection
 
@@ -71,16 +70,19 @@ def health_check():
     """Simple API health check endpoint."""
     return {"status": "healthy", "service": "NityaGeeta API"}
 
+from api.services.rag_engine import execute_rag_query, execute_rag_pipeline_async
+
 @app.post("/api/v1/chat")
 async def chat_endpoint(request: ChatRequest):
-    """Conversational endpoint executing scripture-grounded RAG query."""
+    """Conversational endpoint executing 4-dataset RAG -> 5-model parallel fan-out -> Judge evaluation."""
     try:
         logger.info(f"Received chat request: {request.question}")
-        response = execute_rag_query(request.question)
+        response = await execute_rag_pipeline_async(request.question)
         return response
     except Exception as e:
-        logger.error(f"Error executing chat: {e}")
+        logger.error(f"Error executing chat pipeline: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/api/v1/search")
 async def search_endpoint(request: SearchRequest):
@@ -93,13 +95,47 @@ async def search_endpoint(request: SearchRequest):
         logger.error(f"Error executing search: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+from fastapi.responses import FileResponse
+from api.config import BASE_DIR
+
+PDF_MAP = {
+    "p1_gita_press": BASE_DIR / "data" / "raw" / "gita_editions" / "Srimad Bhagavad Gita Press Gorakhpur.pdf",
+    "p2_winthrop_sargeant": BASE_DIR / "data" / "raw" / "gita_editions" / "The Bhagavad Gita Winthrop Sargeant (Word-for-Word English).pdf",
+    "p3_sadhak_sanjeevani_eng": BASE_DIR / "data" / "raw" / "gita_editions" / "Gita-Sadhak-Sanjevani-English.pdf",
+    "p4_shankaracharya": BASE_DIR / "data" / "raw" / "gita_editions" / "Bhagavad Gita with the Commentary of Adi Shankaracharya.pdf",
+    "alt_boss_ocr": BASE_DIR / "data" / "raw" / "veducation_books" / "Basics of Sanatan Sanskriti.pdf"
+}
+
+@app.get("/api/v1/pdf/{source_id}")
+async def get_pdf_file(source_id: str):
+    """Serves original canonical PDF file for browser viewing at specific page numbers."""
+    pdf_path = PDF_MAP.get(source_id)
+    if not pdf_path or not pdf_path.exists():
+        pdf_path = PDF_MAP["p1_gita_press"]
+    if not pdf_path.exists():
+        raise HTTPException(status_code=404, detail="Requested PDF file not found on server.")
+    return FileResponse(path=pdf_path, media_type="application/pdf", filename=pdf_path.name)
+
 @app.get("/api/v1/pages/{page_id}")
 async def page_endpoint(page_id: int):
-    """Retrieves original Sanskrit and English translation for a specific page."""
+    """Retrieves original Sanskrit and English translation for a specific page with PDF viewer & translation tools."""
     page = get_page(page_id)
     if not page:
         raise HTTPException(status_code=404, detail=f"Page number {page_id} not found in dataset.")
-    return page
+    
+    return {
+        "page": page_id,
+        "source": "Srimad Bhagavad Gita Press Gorakhpur (Priority 1)",
+        "disclaimer": "Original text is in Sanskrit & Hindi Devanagari script.",
+        "translation_resources": [
+            {"name": "PolyTranslator (Sanskrit to English)", "url": "https://www.polytranslator.com/sanskrit-to-english/"},
+            {"name": "MachineTranslation (Sanskrit to English)", "url": "https://www.machinetranslation.com/translation/sanskrit-english"}
+        ],
+        "pdf_viewer_url": f"http://localhost:8000/api/v1/pdf/p1_gita_press#page={page_id}",
+        "original": page.get("original", ""),
+        "english": page.get("english", "")
+    }
+
 
 
 # =============================================================================
