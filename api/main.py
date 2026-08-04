@@ -314,3 +314,209 @@ async def google_setup_endpoint(request: GoogleSetupRequest):
     finally:
         if conn:
             conn.close()
+
+
+# =============================================================================
+# SESSION ENDPOINTS — Perplexity-style conversation persistence
+# =============================================================================
+
+import json as _json
+from typing import Any as _Any
+
+class SessionSaveRequest(BaseModel):
+    session_id: str = Field(..., description="UUID of the conversation session")
+    user_email: str = Field(..., description="User email for DB lookup")
+    title: str = Field(..., description="Session title from first message")
+    messages: list = Field(..., description="Full message array")
+
+
+class SessionListRequest(BaseModel):
+    user_email: str = Field(..., description="User email to fetch sessions for")
+
+
+@app.post("/api/v1/sessions/save")
+async def save_session_endpoint(request: SessionSaveRequest):
+    """
+    Upserts a conversation session + all messages to PostgreSQL.
+    Called fire-and-forget from the frontend on each message.
+    """
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Resolve user_id from email
+        cur.execute("SELECT id FROM users WHERE email = %s;", (request.user_email.strip().lower(),))
+        user_row = cur.fetchone()
+        if not user_row:
+            return {"success": False, "reason": "User not found"}
+        user_id = str(user_row["id"])
+
+        # Upsert conversation (INSERT … ON CONFLICT DO UPDATE)
+        cur.execute(
+            """
+            INSERT INTO conversations (id, user_id, title, last_active_at)
+            VALUES (%s::uuid, %s::uuid, %s, NOW())
+            ON CONFLICT (id) DO UPDATE
+              SET title = EXCLUDED.title,
+                  last_active_at = NOW();
+            """,
+            (request.session_id, user_id, request.title[:120])
+        )
+
+        # Delete existing messages for this conversation and re-insert all
+        # (simple replace strategy — messages array is the source of truth)
+        cur.execute(
+            "DELETE FROM messages WHERE conversation_id = %s::uuid;",
+            (request.session_id,)
+        )
+
+        msg_count = 0
+        for msg in request.messages:
+            role = "user" if msg.get("sender") == "user" else "assistant"
+            content = msg.get("text", "")
+            if not content:
+                continue
+            cur.execute(
+                """
+                INSERT INTO messages (conversation_id, user_id, role, content)
+                VALUES (%s::uuid, %s::uuid, %s, %s);
+                """,
+                (request.session_id, user_id, role, content)
+            )
+            msg_count += 1
+
+        # Update message count
+        cur.execute(
+            "UPDATE conversations SET message_count = %s WHERE id = %s::uuid;",
+            (msg_count, request.session_id)
+        )
+
+        conn.commit()
+        cur.close()
+        return {"success": True, "session_id": request.session_id, "messages_saved": msg_count}
+
+    except Exception as e:
+        logger.error(f"Session save error: {e}")
+        return {"success": False, "reason": str(e)}
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.post("/api/v1/sessions/list")
+async def list_sessions_endpoint(request: SessionListRequest):
+    """
+    Returns all conversation sessions for a user, sorted newest first.
+    Used by the /app/library page.
+    """
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT id FROM users WHERE email = %s;", (request.user_email.strip().lower(),))
+        user_row = cur.fetchone()
+        if not user_row:
+            return {"sessions": []}
+        user_id = str(user_row["id"])
+
+        cur.execute(
+            """
+            SELECT id, title, message_count, last_active_at, created_at
+            FROM conversations
+            WHERE user_id = %s::uuid
+            ORDER BY last_active_at DESC
+            LIMIT 100;
+            """,
+            (user_id,)
+        )
+        rows = cur.fetchall()
+        cur.close()
+
+        sessions = [
+            {
+                "id": str(r["id"]),
+                "title": r["title"] or "Untitled Session",
+                "message_count": r["message_count"],
+                "last_active_at": r["last_active_at"].isoformat() if r["last_active_at"] else None,
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+            }
+            for r in rows
+        ]
+        return {"sessions": sessions}
+
+    except Exception as e:
+        logger.error(f"Session list error: {e}")
+        return {"sessions": []}
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.get("/api/v1/sessions/{session_id}/messages")
+async def get_session_messages_endpoint(session_id: str):
+    """
+    Returns all messages for a given session UUID.
+    Used to restore a conversation from DB when localStorage is cold.
+    """
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, role, content, created_at
+            FROM messages
+            WHERE conversation_id = %s::uuid
+            ORDER BY created_at ASC;
+            """,
+            (session_id,)
+        )
+        rows = cur.fetchall()
+        cur.close()
+
+        messages = [
+            {
+                "id": str(r["id"]),
+                "sender": "user" if r["role"] == "user" else "bot",
+                "text": r["content"],
+            }
+            for r in rows
+        ]
+        return {"messages": messages}
+
+    except Exception as e:
+        logger.error(f"Session messages fetch error: {e}")
+        return {"messages": []}
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.delete("/api/v1/sessions/{session_id}")
+async def delete_session_endpoint(session_id: str, user_email: str):
+    """Deletes a conversation and all its messages."""
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE email = %s;", (user_email.strip().lower(),))
+        user_row = cur.fetchone()
+        if not user_row:
+            raise HTTPException(status_code=404, detail="User not found")
+        cur.execute(
+            "DELETE FROM conversations WHERE id = %s::uuid AND user_id = %s::uuid;",
+            (session_id, str(user_row["id"]))
+        )
+        conn.commit()
+        cur.close()
+        return {"success": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Session delete error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if conn:
+            conn.close()

@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Send,
-  BookOpen,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -14,7 +13,7 @@ import {
   Trash2,
   History,
   Globe,
-  Layers
+  Layers,
 } from "lucide-react";
 import {
   AnimatedSidebarProvider,
@@ -37,12 +36,19 @@ import { FormattedChatMessage } from "@/components/ui/formatted-chat-message";
 
 
 interface CitationItem {
+  type?: string;
   priority: number;
   source: string;
   page: number;
+  chapter?: string;
+  verse?: string;
+  citation?: string;
   sanskrit?: string;
   translation?: string;
   score?: number;
+  url?: string;
+  title?: string;
+  snippet?: string;
 }
 
 interface ScorecardItem {
@@ -69,6 +75,7 @@ interface Message {
   scorecards?: ScorecardItem[];
   candidates?: CandidateItem[];
   citations?: CitationItem[];
+  web_citations?: CitationItem[];
 }
 
 interface ConversationSession {
@@ -80,10 +87,34 @@ interface ConversationSession {
 
 const STORAGE_KEY = "nityageeta_chat_history";
 
+/** Generate a UUID v4 for new session IDs */
+function generateUUID(): string {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+/** Fire-and-forget: save conversation to backend DB (does not block UI) */
+async function saveSessionToDb(sessionId: string, userEmail: string, messages: Message[], title: string) {
+  try {
+    const apiBase = process.env.NEXT_PUBLIC_AUTH_API_BASE || "http://localhost:8000";
+    await fetch(`${apiBase}/api/v1/sessions/save`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, user_email: userEmail, title, messages }),
+    });
+  } catch {
+    // Silently ignore — localStorage is the primary store, DB is secondary
+  }
+}
+
 export default function AppMainPage() {
   const { theme, setTheme } = useTheme();
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -94,22 +125,32 @@ export default function AppMainPage() {
   const [conversations, setConversations] = useState<ConversationSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [showHistoryMenu, setShowHistoryMenu] = useState(false);
+  const [showHistoryMenu, setShowHistoryMenu] = useState(true);
 
+  // On mount: if URL is /app/search/[id], restore that session
   useEffect(() => {
+    const match = pathname?.match(/\/app\/search\/([a-zA-Z0-9_-]+)/);
+    const urlSessionId = match?.[1] ?? null;
+
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed: ConversationSession[] = JSON.parse(saved);
         setConversations(parsed);
-        if (parsed.length > 0) {
-          setActiveSessionId(parsed[0].id);
-          setMessages(parsed[0].messages);
+        if (urlSessionId) {
+          const found = parsed.find((s) => s.id === urlSessionId);
+          if (found) {
+            setActiveSessionId(found.id);
+            setMessages(found.messages);
+            return;
+          }
         }
+        // No URL session — start fresh (don't auto-load last session)
       }
     } catch (e) {
       console.error("Failed to load conversation history:", e);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -154,12 +195,14 @@ export default function AppMainPage() {
     setActiveSessionId(null);
     setMessages([]);
     setQuery("");
+    router.replace("/app", { scroll: false });
   };
 
   const selectConversation = (sessionItem: ConversationSession) => {
     if (loading) return;
     setActiveSessionId(sessionItem.id);
     setMessages(sessionItem.messages);
+    router.replace(`/app/search/${sessionItem.id}`, { scroll: false });
   };
 
   const deleteConversation = (sessionId: string, e: React.MouseEvent) => {
@@ -186,6 +229,8 @@ export default function AppMainPage() {
   const updateSessionState = (updatedMessages: Message[], promptTitle?: string) => {
     setConversations((prev) => {
       let nextSessions: ConversationSession[] = [];
+      let resolvedId = activeSessionId;
+
       if (activeSessionId) {
         nextSessions = prev.map((s) =>
           s.id === activeSessionId
@@ -193,9 +238,15 @@ export default function AppMainPage() {
             : s
         );
       } else {
-        const newId = `chat_${Date.now()}`;
+        // First message — generate a UUID and update the URL (Perplexity-style)
+        const newId = generateUUID();
+        resolvedId = newId;
         setActiveSessionId(newId);
-        const titleText = promptTitle ? promptTitle.slice(0, 28) + (promptTitle.length > 28 ? "..." : "") : "Dialogue Session";
+        // Update URL without navigation — layout stays exactly the same
+        router.replace(`/app/search/${newId}`, { scroll: false });
+        const titleText = promptTitle
+          ? promptTitle.slice(0, 40) + (promptTitle.length > 40 ? "…" : "")
+          : "Dialogue Session";
         const newSession: ConversationSession = {
           id: newId,
           title: titleText,
@@ -203,12 +254,26 @@ export default function AppMainPage() {
           messages: updatedMessages,
         };
         nextSessions = [newSession, ...prev];
+
+        // Fire-and-forget DB save for the new session
+        if (session?.user?.email) {
+          saveSessionToDb(newId, session.user.email, updatedMessages, titleText);
+        }
       }
+
+      // Persist to localStorage
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSessions));
       } catch (e) {
         console.error(e);
       }
+
+      // Sync DB on subsequent messages too (fire-and-forget)
+      if (resolvedId && session?.user?.email) {
+        const titleText = nextSessions.find((s) => s.id === resolvedId)?.title ?? "Dialogue Session";
+        saveSessionToDb(resolvedId, session.user.email, updatedMessages, titleText);
+      }
+
       return nextSessions;
     });
   };
@@ -284,7 +349,7 @@ export default function AppMainPage() {
         {
           id: (Date.now() + 1).toString(),
           sender: "bot" as const,
-          text: `Something went wrong while reaching the server. Please make sure the API is running on port 8000 and try again.`,
+          text: "Something went wrong reaching the server. Please make sure the API is running on port 8000 and try again.",
         },
       ];
       setMessages(errMessages);
@@ -305,7 +370,7 @@ export default function AppMainPage() {
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && !loading && handleSend()}
         placeholder={loading ? "NityaGeeta is contemplating your question..." : "Ask any Bhagavad Gita doubt or life decision......"}
-        className="flex-1 bg-transparent px-4 py-2.5 text-sm sm:text-base focus:outline-none text-[#2D2622] dark:text-[#F5F2EB] placeholder-[#8C7B70] min-w-0 disabled:opacity-50"
+        className="flex-1 bg-transparent px-4 py-2.5 text-sm sm:text-base focus:outline-n  text-[#2D2622] dark:text-[#F5F2EB] placeholder-[#8C7B70] min-w-0 disabled:opacity-50"
         disabled={loading}
       />
       <button
@@ -334,15 +399,16 @@ export default function AppMainPage() {
             </div>
           </AnimatedSidebarHeader>
 
-          <AnimatedSidebarContent className="px-1.5 py-2 space-y-2">
+          <AnimatedSidebarContent className="px-1.5 py-2 flex flex-col gap-1 overflow-hidden">
             <div className="w-full flex items-center justify-start">
               <AnimatedSidebarTrigger showLabel={false} />
             </div>
 
+            {/* + New Dialogue — always visible (icon when collapsed, icon+label when expanded) */}
             <AnimatedSidebarMenu>
               <AnimatedSidebarMenuItem className="w-full">
                 <AnimatedSidebarMenuButton
-                  onClick={createNewDialogue}
+                  onSelect={() => router.push("/app")}
                   disabled={loading}
                   icon={<Plus className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />}
                 >
@@ -350,47 +416,70 @@ export default function AppMainPage() {
                 </AnimatedSidebarMenuButton>
               </AnimatedSidebarMenuItem>
 
+              {/* History icon — always visible, opens library */}
               <AnimatedSidebarMenuItem className="w-full">
                 <AnimatedSidebarMenuButton
-                  onClick={() => setShowHistoryMenu((prev) => !prev)}
+                  onSelect={() => setShowHistoryMenu((p) => !p)}
                   isActive={showHistoryMenu}
                   icon={<History className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />}
                 >
-                  Dialogue History
+                  Recent
                 </AnimatedSidebarMenuButton>
               </AnimatedSidebarMenuItem>
             </AnimatedSidebarMenu>
 
-            {showHistoryMenu && (
-              <div className="mt-2 space-y-1 px-1 pt-1 border-t border-[#E6DDD0]/40 dark:border-[#2D2825]/40 max-h-60 overflow-y-auto scrollbar-hide">
-                {conversations.length === 0 ? (
-                  <p className="px-2 py-1.5 text-[11px] text-[#8C7B70] italic">No saved history.</p>
-                ) : (
-                  conversations.map((item) => {
-                    const isActive = activeSessionId === item.id;
+            {/* Conversation list — only visible when sidebar is expanded */}
+            <div className="group-data-[state=collapsed]/sidebar:hidden flex-1 overflow-hidden flex flex-col min-h-0">
+              {showHistoryMenu && (
+                <div className="flex-1 overflow-y-auto scrollbar-hide mt-0.5">
+                  {conversations.length === 0 ? (
+                    <p className="px-2.5 py-2 text-[11px] text-[#8C7B70] italic">No saved history.</p>
+                  ) : (() => {
+                    const now = Date.now();
+                    const groups = [
+                      { label: "Today",     items: conversations.filter(s => now - s.updatedAt < 86_400_000) },
+                      { label: "Yesterday", items: conversations.filter(s => { const d = now - s.updatedAt; return d >= 86_400_000 && d < 172_800_000; }) },
+                      { label: "This Week", items: conversations.filter(s => { const d = now - s.updatedAt; return d >= 172_800_000 && d < 604_800_000; }) },
+                      { label: "Older",     items: conversations.filter(s => now - s.updatedAt >= 604_800_000) },
+                    ].filter(g => g.items.length > 0);
+
                     return (
-                      <div
-                        key={item.id}
-                        onClick={() => selectConversation(item)}
-                        className={`group w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
-                          isActive
-                            ? "bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] font-bold"
-                            : "text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF]/50 dark:hover:bg-[#2C2824]/50"
-                        }`}
-                      >
-                        <span className="truncate pr-1">{item.title}</span>
-                        <button
-                          onClick={(e) => deleteConversation(item.id, e)}
-                          className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-red-500 transition-all shrink-0"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                      <div className="space-y-3 pb-2">
+                        {groups.map(({ label, items }) => (
+                          <div key={label}>
+                            <p className="px-2.5 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-widest text-[#8C7B70]/60 dark:text-[#A89F91]/60">
+                              {label}
+                            </p>
+                            {items.map((item) => {
+                              const isActive = activeSessionId === item.id;
+                              return (
+                                <div
+                                  key={item.id}
+                                  onClick={() => selectConversation(item)}
+                                  className={`group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-all ${
+                                    isActive
+                                      ? "bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] font-semibold"
+                                      : "text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF]/50 dark:hover:bg-[#2C2824]/50"
+                                  }`}
+                                >
+                                  <span className="truncate pr-1 leading-snug">{item.title}</span>
+                                  <button
+                                    onClick={(e) => deleteConversation(item.id, e)}
+                                    className="opacity-0 group-hover/item:opacity-60 hover:!opacity-100 p-0.5 hover:text-red-500 transition-all shrink-0"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
                       </div>
                     );
-                  })
-                )}
-              </div>
-            )}
+                  })()}
+                </div>
+              )}
+            </div>
           </AnimatedSidebarContent>
 
           <AnimatedSidebarFooter>
