@@ -342,7 +342,7 @@ export default function LandingPage() {
       </section>
 
       {/* Geeta & Veducation Source Knowledge Base Section */}
-      <section id="sources" className="py-20 px-6 max-w-6xl mx-auto w-full border-t border-[#E8E1D7] dark:border-[#38332E]">
+      <section id="resources" className="py-20 px-6 max-w-6xl mx-auto w-full border-t border-[#E8E1D7] dark:border-[#38332E]">
         <div className="text-center max-w-3xl mx-auto mb-10">
           <span className="text-xs font-sans font-semibold tracking-widest text-[#C25E38] dark:text-[#E06D43] uppercase block mb-2">
             Priority Knowledge Base

@@ -2,7 +2,7 @@ import logging
 import asyncio
 import re
 from typing import Dict, Any, List
-from api.services.dataset_cache import search_all_datasets, search_verses, search_boss_context
+from api.services.dataset_cache import search_all_datasets, search_verses, search_boss_context, search_boss_items
 from api.services.web_search import search_web_async
 from api.services.prompt_builder import (
     SCRIPTURE_SYSTEM_PROMPT,
@@ -38,6 +38,25 @@ def sanitize_response_tone(text: str) -> str:
     cleaned = re.sub(r'^###+\s*', '', cleaned, flags=re.MULTILINE)
     cleaned = re.sub(r'\n\s*\n\s*\n+', '\n\n', cleaned)
     return cleaned.strip()
+
+
+def trim_to_full_sentence(text: str, max_chars: int = 1200) -> str:
+    """Trims text up to max_chars, ensuring it ends on a complete sentence boundary (. ! ?)."""
+    if not text:
+        return ""
+    s = text.strip()
+    if len(s) <= max_chars:
+        return s
+
+    truncated = s[:max_chars]
+    last_punct = max(truncated.rfind('.'), truncated.rfind('!'), truncated.rfind('?'))
+    if last_punct > 100:
+        return truncated[:last_punct + 1].strip()
+
+    last_space = truncated.rfind(' ')
+    if last_space > 0:
+        return truncated[:last_space].strip() + "..."
+    return truncated.strip() + "..."
 
 
 async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
@@ -79,6 +98,7 @@ async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
     # ── Step 1d: Build scripture citations from verse results ─────────────────
     scripture_citations = []
     for v in matched_verses:
+        eng_text = v.get("english", "")
         scripture_citations.append({
             "type": "scripture",
             "priority": 1,
@@ -87,19 +107,22 @@ async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
             "chapter": v.get("chapter", ""),
             "verse": v.get("verse", ""),
             "citation": v.get("citation", ""),
-            "sanskrit": v.get("sanskrit", "")[:250],
-            "translation": v.get("english", "")[:250],
+            "sanskrit": v.get("sanskrit", ""),
+            "translation": eng_text,
+            "snippet": trim_to_full_sentence(eng_text, 450),
             "score": 100,
         })
     # Also include page-level citations as fallback
     for item in retrieved_items:
+        eng_text = item.get("english") or item.get("text", "")
         scripture_citations.append({
             "type": "scripture",
             "priority": item["priority"],
             "source": item["source"],
             "page": item["page"],
-            "sanskrit": item.get("original", "")[:250] if item.get("original") else "",
-            "translation": (item.get("english") or item.get("text", ""))[:250],
+            "sanskrit": item.get("original", "") if item.get("original") else "",
+            "translation": eng_text,
+            "snippet": trim_to_full_sentence(eng_text, 450),
             "score": item["score"]
         })
 
@@ -127,24 +150,44 @@ async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
             "priority": 1,
             "source": item.get("source", "Web Search"),
             "title": item.get("title", ""),
-            "snippet": item.get("snippet", ""),
+            "snippet": trim_to_full_sentence(item.get("snippet", ""), 350),
             "url": item.get("url", ""),
             "score": 95
         })
 
-    # Add BOSS as a named resource citation if it contributed context
-    if boss_context:
+    # Add BOSS as named resource citations with actual retrieved book page numbers & excerpts
+    boss_items = search_boss_items(question, top_k=2)
+    if boss_items:
+        for b_item in reversed(boss_items):
+            b_text = str(b_item.get("text", "")).strip()
+            if b_text:
+                scripture_citations.insert(0, {
+                    "type": "scripture",
+                    "priority": 1,
+                    "source": "Basics of Sanatan Sanskriti (BOSS)",
+                    "page": b_item.get("page", 1),
+                    "chapter": "Basics of Sanatan Sanskriti",
+                    "verse": "",
+                    "citation": f"BOSS Page {b_item.get('page', 1)}",
+                    "sanskrit": "",
+                    "translation": b_text,
+                    "snippet": trim_to_full_sentence(b_text, 600),
+                    "score": 95,
+                })
+    elif boss_context:
+        boss_excerpt = boss_context[:400].strip() + ("..." if len(boss_context) > 400 else "")
         scripture_citations.insert(0, {
             "type": "scripture",
-            "priority": 0,
+            "priority": 1,
             "source": "Basics of Sanatan Sanskriti (BOSS)",
-            "page": 0,
-            "chapter": "",
+            "page": 1,
+            "chapter": "Basics of Sanatan Sanskriti",
             "verse": "",
             "citation": "BOSS — Sanatan Sanskriti Foundation",
             "sanskrit": "",
-            "translation": "Foundational knowledge of Soul, God, Dharma, Karma, Yoga, Cosmos and Time.",
-            "score": 90,
+            "translation": boss_excerpt,
+            "snippet": boss_excerpt,
+            "score": 95,
         })
 
     # ── Step 4: Judge evaluation ──────────────────────────────────────────────

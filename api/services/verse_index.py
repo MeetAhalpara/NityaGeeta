@@ -102,8 +102,14 @@ SYN: Dict[str, List[str]] = {
     "rejected":["alone","abandoned","refuge","forsaken","friend","acceptance"],
     "isolation":["alone","lonely","solitary","refuge","friend","desolate"],
     "family":["kin","relations","kula","relative","dear","loved","kinsmen"],
-    "relationship":["friend","love","attachment","bondage","devotion","companion"],
+    "partner":["spouse","husband","wife","companion","friend","relationship","attachment"],
+    "relationship":["friend","love","attachment","bondage","devotion","companion","partner"],
     "love":["devotion","attachment","dear","affection","bhakti","compassion"],
+    "giving":["charity","dana","selfless","offering","sacrifice","yajna","expectation","return"],
+    "granted":["expectation","fruit","reward","recognition","unappreciated","attachment","detachment"],
+    "taken":["granted","expectation","unappreciated","attachment"],
+    "business":["enterprise","undertaking","work","trade","occupation","venture","livelihood"],
+    "terrified":["fear","dread","terror","anxiety","hesitation","courage","fearless"],
     "friendship":["friend","companion","dear","wisher","devotion"],
     "betrayal":["trust","faith","friend","duty","dharma","enemy","deceit"],
     "divorce":["family","duty","dharma","attachment","detachment","relations"],
@@ -296,6 +302,7 @@ def _from_p3(pages: List[Dict]) -> List[Dict[str,Any]]:
                 "rich_text": rich,
                 "keywords": _tokenize(rich),
                 "source": "Gita Sadhak Sanjeevani",
+                "priority": 3,
                 "page": page,
             })
     return results
@@ -469,11 +476,11 @@ def search_verses(query: str, top_k: int = 3) -> List[Dict[str,Any]]:
             kw_count = _VERSES[idx]["keywords"].count(word)
             src_boost = 1.2 if _VERSES[idx].get("source") == "Gita Sadhak Sanjeevani" else 1.0
             if word in primary_set:
-                scores[idx] += kw_count * 3.0 * src_boost
+                scores[idx] += kw_count * 6.0 * src_boost
             elif word in expanded_set:
-                scores[idx] += kw_count * 1.5 * src_boost
+                scores[idx] += kw_count * 1.0 * src_boost
             else:
-                scores[idx] += kw_count * 0.8 * src_boost   # stem-fallback hit
+                scores[idx] += kw_count * 0.3 * src_boost   # stem-fallback hit
             hits[idx].add(word)
 
     # Step 5 — coherence bonus

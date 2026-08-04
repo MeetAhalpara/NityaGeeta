@@ -71,10 +71,20 @@ const handler = NextAuth({
           
           if (res.ok) {
             const data = await res.json();
-            // If user exists, set flag for session/jwt callbacks
             if (data.exists) {
               user._exists = true;
-              // Don't redirect here - let the profile page handle it
+            } else {
+              // Auto-register Google user in PostgreSQL
+              await fetch(`${BACKEND_URL}/api/v1/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: user.email,
+                  full_name: user.name || "Google User",
+                  avatar_url: user.image || "",
+                }),
+              }).catch(() => null);
+              user._exists = true;
             }
           }
         } catch (e) {

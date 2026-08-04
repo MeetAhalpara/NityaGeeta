@@ -181,6 +181,18 @@ build_verse_index(_datasets)
 logger.info(f"Verse index ready with {get_verse_index_size()} shlokas.")
 
 # Re-export search_verses so callers only need to import from dataset_cache
+def unwrap_ocr_paragraphs(text: str) -> str:
+    """Unwraps artificial single OCR line breaks into continuous paragraph lines."""
+    if not text:
+        return ""
+    s = text.replace("\r\n", "\n")
+    s = re.sub(r'\n\s*\n+', ' __PARA__ ', s)
+    s = s.replace('\n', ' ')
+    s = re.sub(r'\s*__PARA__\s*', '\n\n', s)
+    s = re.sub(r' {2,}', ' ', s)
+    return s.strip()
+
+
 def search_boss_context(query: str, top_k: int = 3, max_chars_per_page: int = 600) -> str:
     """
     Search the BOSS (Basics of Sanatan Sanskriti) book for the most relevant pages
@@ -214,11 +226,38 @@ def search_boss_context(query: str, top_k: int = 3, max_chars_per_page: int = 60
     parts = []
     for item in top_pages:
         page_num = item.get("page", 0)
-        text = str(item.get("text", "")).strip()[:max_chars_per_page]
+        raw_t = unwrap_ocr_paragraphs(str(item.get("text", "")))
+        text = raw_t[:max_chars_per_page]
         parts.append(f"[BOSS Page {page_num}]\n{text}")
 
     return "\n\n".join(parts)
 
 
-__all__ = ["search_all_datasets", "search_verses", "search_boss_context", "get_page", "search_dataset"]
+def search_boss_items(query: str, top_k: int = 3) -> List[Dict[str, Any]]:
+    """Search the BOSS book and return raw matched item dicts with page and text."""
+    boss_pages = _datasets.get("alt_boss_ocr", [])
+    if not boss_pages:
+        return []
+
+    raw_terms = re.findall(r'\w+', query.lower())
+    keywords = [t for t in raw_terms if t not in STOP_WORDS and len(t) >= 3]
+    if not keywords:
+        return []
+
+    scored = []
+    for item in boss_pages:
+        text = str(item.get("text", "")).lower()
+        if any(kw in text for kw in ["prateeik prajapati", "isbn", "all rights reserved"]):
+            continue
+        score = sum(text.count(kw) for kw in keywords)
+        if score > 0:
+            unwrapped_item = dict(item)
+            unwrapped_item["text"] = unwrap_ocr_paragraphs(str(item.get("text", "")))
+            scored.append((score, unwrapped_item))
+
+    scored.sort(key=lambda x: -x[0])
+    return [item for _, item in scored[:top_k]]
+
+
+__all__ = ["search_all_datasets", "search_verses", "search_boss_context", "search_boss_items", "get_page", "search_dataset"]
 

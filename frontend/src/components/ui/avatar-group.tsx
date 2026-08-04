@@ -26,20 +26,48 @@ function cleanScriptureText(text: string | undefined): string {
   if (!text) return "";
   let cleaned = text;
 
-  // Remove solitary page numbers and Devnagari digits at start/isolated lines (e.g., "394", "३९४")
-  cleaned = cleaned.replace(/^(?:\d+|[०-९]+)\s*$/gm, "");
-  // Remove isolated asterisks
-  cleaned = cleaned.replace(/^\s*\*\s*$/gm, "");
-  // Remove book header lines like "* Srimad Bhagavad Gita *", "श्रीमद्भगवद्गीता"
-  cleaned = cleaned.replace(/^\s*\*?\s*(?:Srimad Bhagavad Gita|श्रीमद्भगवद्गीता)\s*\*?\s*$/gmi, "");
-  // Remove chapter heading lines if isolated
-  cleaned = cleaned.replace(/^\s*\[?\s*(?:Chapter|अध्याय)\s*\d+[\]\s]*$/gmi, "");
+  // Remove top-level header line at the start of text (e.g., "BASICS OF COSMOS • 165", "* Srimad Bhagavad Gita *")
+  cleaned = cleaned.replace(/^(?:\*?\s*Srimad Bhagavad Gita\s*\*?|श्रीमद्भगवद्गीता|BASICS OF [A-Z\s]+)\s*(?:[•·\-\|]\s*\d+)?\s*\n?/i, "");
+  
+  // Remove standalone bullet page markers like "• 165" at start of lines
+  cleaned = cleaned.replace(/^\s*[•·\-\|]\s*\d+\s*$/gm, "");
+
+  // Normalize line endings
+  cleaned = cleaned.replace(/\r\n/g, "\n");
+
+  // Protect true paragraph breaks (double newlines)
+  cleaned = cleaned.replace(/\n\s*\n+/g, " __PARA_BREAK__ ");
+
+  // Unwrap artificial OCR single line breaks inside sentences/paragraphs into spaces
+  cleaned = cleaned.replace(/\n/g, " ");
+
+  // Restore paragraph breaks
+  cleaned = cleaned.replace(/\s*__PARA_BREAK__\s*/g, "\n\n");
+
+  // Collapse multiple spaces
+  cleaned = cleaned.replace(/ {2,}/g, " ");
+
   // Remove leading/trailing quotation marks & extra whitespace
   cleaned = cleaned.replace(/^["'\s]+|["'\s]+$/g, "");
-  // Collapse multiple blank lines
-  cleaned = cleaned.replace(/\n\s*\n\s*\n+/g, "\n\n");
   
   return cleaned.trim();
+}
+
+function trimToCompleteSentence(text: string | undefined, maxLen: number = 280): string {
+  if (!text) return "";
+  const cleaned = cleanScriptureText(text);
+  if (cleaned.length <= maxLen) return cleaned;
+  
+  const truncated = cleaned.slice(0, maxLen);
+  const lastPunct = Math.max(truncated.lastIndexOf('.'), truncated.lastIndexOf('!'), truncated.lastIndexOf('?'));
+  if (lastPunct > 50) {
+    return truncated.slice(0, lastPunct + 1).trim();
+  }
+  const lastSpace = truncated.lastIndexOf(' ');
+  if (lastSpace > 0) {
+    return truncated.slice(0, lastSpace).trim() + "...";
+  }
+  return truncated.trim() + "...";
 }
 
 export function SourcesBubble({ citations, className }: SourcesBubbleProps) {
@@ -142,7 +170,8 @@ export function SourcesBubble({ citations, className }: SourcesBubbleProps) {
                 }
 
                 // Canonical Scripture Book Card with Page number
-                const cleanedCardSnippet = cleanScriptureText(item.translation || item.sanskrit);
+                const rawSnippetText = item.translation || item.sanskrit || item.snippet;
+                const cleanedCardSnippet = trimToCompleteSentence(rawSnippetText, 240);
 
                 return (
                   <div
@@ -155,15 +184,15 @@ export function SourcesBubble({ citations, className }: SourcesBubbleProps) {
                         <BookOpen className="w-3 h-3 text-[#C25E38] shrink-0" />
                         [Priority {item.priority || 1}] {item.source}
                       </span>
-                      {item.page && (
+                      {item.page && item.page > 0 ? (
                         <span className="px-1.5 py-0.5 rounded bg-[#C25E38]/10 text-[#C25E38] font-bold text-[10px] shrink-0">
                           Page {item.page}
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     <p className="font-serif italic text-xs text-[#5C4F45] dark:text-[#D4C7B8] line-clamp-2 leading-snug">
-                      "{cleanedCardSnippet || `Scripture Page ${item.page}`}"
+                      "{cleanedCardSnippet || (item.page ? `Scripture Page ${item.page}` : `Canonical Scripture Resource`)}"
                     </p>
                   </div>
                 );
@@ -226,13 +255,13 @@ export function SourcesBubble({ citations, className }: SourcesBubbleProps) {
               )}
 
               {/* ENGLISH TRANSLATION & COMMENTARY */}
-              {activePageModal.translation && (
+              {(activePageModal.translation || activePageModal.snippet) && (
                 <div className="p-4 rounded-xl bg-[#F4EFE6] dark:bg-[#12100F] border border-[#E6DDD0]/60 dark:border-[#2D2825]/60 space-y-1.5">
                   <span className="text-[10px] font-mono uppercase font-bold text-[#8C7B70] tracking-wider">
-                    English Translation & Commentary
+                    Retrieved Text Passage & Commentary
                   </span>
                   <div className="font-serif italic text-sm sm:text-base text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto p-1 scrollbar-hide">
-                    "{cleanScriptureText(activePageModal.translation)}"
+                    "{cleanScriptureText(activePageModal.translation || activePageModal.snippet)}"
                   </div>
                 </div>
               )}

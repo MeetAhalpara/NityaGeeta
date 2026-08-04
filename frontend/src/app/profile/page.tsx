@@ -86,8 +86,7 @@ export default function ProfilePage() {
   // Show loading state while checking authentication
   const [isChecking, setIsChecking] = useState(true);
 
-  // Step 0: Check if user already exists and redirect to home immediately
-  // This handles both the Google OAuth flow and direct navigation
+  // Step 0: Check authentication
   useEffect(() => {
     if (status === "loading") return;
     
@@ -97,29 +96,8 @@ export default function ProfilePage() {
       return;
     }
     
-    // Authenticated - check if user exists
+    // Authenticated - allow user to view/edit their profile
     if (status === "authenticated" && session?.user?.email) {
-      // Check if session indicates user already exists (from Google OAuth callback)
-      const userExists = (session.user as Record<string, unknown>)._exists;
-      
-      if (userExists) {
-        // User exists in database, redirect to home immediately
-        router.replace("/");
-        return;
-      }
-      
-      // Also check localStorage for completed profile
-      const storageKey = `nityageeta_profile_${session.user.email}`;
-      const stored = localStorage.getItem(storageKey);
-      const profile = stored ? JSON.parse(stored) : null;
-      
-      if (profile?.isProfileComplete) {
-        // User has completed profile locally, redirect to home
-        router.replace("/");
-        return;
-      }
-      
-      // User doesn't exist and hasn't completed profile - allow to stay
       setIsChecking(false);
     }
   }, [status, session, router]);
@@ -149,8 +127,7 @@ export default function ProfilePage() {
     }
   }, [session?.user?.email, session?.user?.name, session?.user?.image]);
 
-  // Step 2: Check DB in background to determine new vs returning user.
-  // This is a fallback if the session flag wasn't set during OAuth
+  // Step 2: Check DB in background to register user in PostgreSQL if new.
   useEffect(() => {
     if (!session?.user?.email) return;
     if (status !== "authenticated") return;
@@ -158,34 +135,26 @@ export default function ProfilePage() {
     let cancelled = false;
 
     const checkAndLoadUser = async () => {
-      // If localStorage already has a completed profile, trust it — no need to
-      // show the new-user setup flow even if the DB check lags or fails.
+      // Check if localStorage has profile
       const storageKey = `nityageeta_profile_${session.user.email}`;
       const stored = localStorage.getItem(storageKey);
       const storedProfile = stored ? JSON.parse(stored) : null;
-      if (storedProfile?.isProfileComplete) {
-        // Profile complete in localStorage, redirect to home
-        router.replace("/");
-        return;
-      }
 
       try {
         const result = await lookupAccountByEmail(session.user.email);
         if (cancelled) return;
 
-        if (result.exists) {
-          // User already has an account — send them straight to the landing page.
-          router.replace("/");
-          return;
+        if (result.exists || storedProfile?.isProfileComplete) {
+          setIsFirstTime(false);
+          setNotice(null);
         } else {
-          // Genuinely new user — no DB record and no completed local profile.
-          setIsFirstTime(true);
-          setNotice("Seems like you're new here start from here.");
+          // Genuinely first time without any stored profile or DB entry
+          setIsFirstTime(false); // keep standard Edit Profile view
+          setNotice(null);
         }
       } catch (error) {
         if (cancelled) return;
-        const message = error instanceof Error ? error.message : "Could not reach the server.";
-        setNotice(`⚠ ${message} Your changes will be saved locally.`);
+        setNotice(null);
       }
     };
 
@@ -194,7 +163,7 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [session?.user?.email, status, router]);
+  }, [session?.user?.email, status]);
 
   const handleChange = (field: keyof ProfileData, value: string) => {
     setProfile((prev) => ({ ...prev, [field]: value }));

@@ -90,65 +90,23 @@ function CascadePhrase({ phrase, reduce, shimmerDuration }: PhraseProps) {
   );
 }
 
+import { TextBlink } from "@/components/loading-ui/text-blink";
+
 export function ReasoningText({
   phrases = DEFAULT_PHRASES,
-  variant = "cascade",
-  interval = 1800,
-  shimmerDuration = 2.2,
-  indicator,
   className = "",
 }: ReasoningTextProps) {
-  const reduce = useReducedMotion() ?? false;
-  const [index, setIndex] = useState(0);
   const statusId = useId();
   const safePhrases = phrases.length > 0 ? phrases : DEFAULT_PHRASES;
-  const phrase = safePhrases[index % safePhrases.length];
-  const longestPhrase = safePhrases.reduce((longest, current) =>
-    current.length > longest.length ? current : longest
-  );
-  const phraseProps = { phrase, reduce, shimmerDuration };
-
-  useEffect(() => {
-    if (safePhrases.length < 2) return;
-
-    const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % safePhrases.length);
-    }, Math.max(600, interval));
-
-    return () => window.clearInterval(timer);
-  }, [interval, safePhrases.length]);
+  const phrase = safePhrases[0] || "NityaGeeta is thinking";
 
   return (
-    <>
-      <style>{TEXT_SHIMMER_KEYFRAMES}</style>
-      <span
-        role="status"
-        aria-live="polite"
-        aria-labelledby={statusId}
-        className={`inline-flex items-center gap-2 text.xs sm:text-sm font-medium text-[#8C7B70] dark:text-[#A89F91] ${className}`}
-      >
-        <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center">
-          {indicator ?? (
-            <Loader
-              variant="ascii-line"
-              size={14}
-              speed={0.8}
-              label="Reasoning"
-            />
-          )}
-        </span>
-
-        <span aria-hidden="true" className="grid overflow-hidden text-left font-mono">
-          <span className="invisible col-start-1 row-start-1 whitespace-nowrap">
-            {longestPhrase}…
-          </span>
-          <CascadePhrase {...phraseProps} />
-        </span>
-
-        <span id={statusId} className="sr-only">
-          {phrase}
-        </span>
-      </span>
-    </>
+    <TextBlink
+      as="span"
+      className={`text-xs sm:text-sm font-medium text-[#8C7B70] dark:text-[#A89F91] ${className}`}
+      minOpacity={0.45}
+    >
+      {phrase}…
+    </TextBlink>
   );
 }
