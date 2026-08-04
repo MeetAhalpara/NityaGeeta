@@ -44,6 +44,9 @@ jobs:
   frontend-checks:
     name: ⚛️ Frontend (Next.js 15 & React 19)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
 
     steps:
       - name: 📥 Checkout Repository
@@ -57,17 +60,14 @@ jobs:
           cache-dependency-path: frontend/package.json
 
       - name: 📦 Install Frontend Dependencies
-        cwd: frontend
         run: |
           npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
       - name: 📐 TypeScript Type Check
-        cwd: frontend
         run: |
           npx tsc --noEmit
 
       - name: 🏗️ Build Next.js Production Bundle
-        cwd: frontend
         env:
           NEXT_PUBLIC_AUTH_API_BASE: http://localhost:8000
           NEXTAUTH_SECRET: ci-dummy-nextauth-secret-for-build-verification
