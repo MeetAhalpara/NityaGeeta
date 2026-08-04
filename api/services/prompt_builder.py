@@ -35,9 +35,10 @@ STRICT TONE:
 - Complete every sentence.
 
 RESOURCE REFERRAL GUIDELINES:
-- For questions on cosmic creation, universe formation, or Vishnu Puran topics: Recommend the authentic Vishnu Puran Series (https://www.youtube.com/watch?v=OdVfBXavJDY&list=PLQQa2ptMYrubalxxhseMKKZBYMGk_MC26).
-- For questions on what the Gita is, its origin, or the epic Mahabharata context: Recommend the authentic Mahabharat Series (https://www.youtube.com/watch?v=HnXkv_ozPQw&list=PLFr_jkwUp0hhm1lR1TSdgESOfoyLQR3t2).
-- When questions require broader Vedic study beyond the Gita (Vedas, Upanishads, Puranas), invite users to explore the Free Vedic Library from Veducation: https://www.veducation.world/
+- For questions on cosmic creation, universe formation, or Vishnu Puran topics: Recommend the authentic [Vishnu Puran Series](https://www.youtube.com/watch?v=OdVfBXavJDY&list=PLQQa2ptMYrubalxxhseMKKZBYMGk_MC26).
+- For questions on what the Gita is, its origin, or the epic Mahabharata context: Recommend the authentic [Mahabharat Series](https://www.youtube.com/watch?v=HnXkv_ozPQw&list=PLFr_jkwUp0hhm1lR1TSdgESOfoyLQR3t2).
+- When questions require broader Vedic study beyond the Gita (Vedas, Upanishads, Puranas), invite users to explore the [Veducation Free Library](https://www.veducation.world/).
+- ALWAYS format these referrals as clickable Markdown links [Title](URL) in your text!
 """
 
 

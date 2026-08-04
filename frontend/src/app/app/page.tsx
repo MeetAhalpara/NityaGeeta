@@ -806,19 +806,29 @@ export default function AppMainPage() {
                                     <span>1. Multiple Brain Perspectives</span>
                                   </button>
 
-                                  <button
-                                    onClick={() => setThinkingTab("resources")}
-                                    className={`flex items-center gap-1.5 text-xs font-semibold transition-all ${
-                                      thinkingTab === "resources"
-                                        ? "text-[#C25E38] dark:text-[#E06D43] border-b-2 border-[#C25E38] pb-1"
-                                        : "text-[#8C7B70] hover:text-[#2D2622]"
-                                    }`}
-                                  >
-                                    <Globe className="w-3.5 h-3.5" />
-                                    <span>
-                                      2. Live Web Resources ({msg.web_citations?.length || msg.citations?.filter(c => c.type === "web" || c.url)?.length || 0})
-                                    </span>
-                                  </button>
+                                  {/* TAB 2 HEADER */}
+                                  {(() => {
+                                    const webCitations = msg.web_citations?.length 
+                                      ? msg.web_citations 
+                                      : msg.citations?.filter(c => c.type === "web" || Boolean(c.url)) || [];
+                                    return (
+                                      <>
+                                        <button
+                                          onClick={() => setThinkingTab("resources")}
+                                          className={`flex items-center gap-1.5 text-xs font-semibold transition-all ${
+                                            thinkingTab === "resources"
+                                              ? "text-[#C25E38] dark:text-[#E06D43] border-b-2 border-[#C25E38] pb-1"
+                                              : "text-[#8C7B70] hover:text-[#2D2622]"
+                                          }`}
+                                        >
+                                          <Globe className="w-3.5 h-3.5" />
+                                          <span>
+                                            2. Live Web Resources ({webCitations.length})
+                                          </span>
+                                        </button>
+                                      </>
+                                    );
+                                  })()}
                                 </div>
 
 
@@ -846,7 +856,7 @@ export default function AppMainPage() {
                                             }`}
                                           >
                                             <span>{cand.model_name}</span>
-                                            <span className="text-[10px] opacity-75">({cand.score}/100)</span>
+                                            <span className="text-[10px] opacity-75">({cand.score ?? msg.scorecards?.find(s => s.model_name === cand.model_name)?.score ?? 90}/100)</span>
                                           </button>
                                         );
                                       })}
@@ -870,44 +880,46 @@ export default function AppMainPage() {
                                   </div>
                                 )}
 
-                                {/* TAB 2 CONTENT: LIVE WEB & SCRIPTURE RESOURCES */}
-                                {thinkingTab === "resources" && (
-                                  <div className="space-y-3">
-                                    {(!msg.citations || msg.citations.length === 0) ? (
-                                      <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] italic">No web resource citations retrieved for this response.</p>
-                                    ) : (
-                                      msg.citations.map((cit, cIdx) => {
-                                        const isWeb = cit.type === "web" || cit.url;
-                                        const domain = cit.url ? new URL(cit.url).hostname.replace('www.', '') : (cit.source || 'web resource');
-                                        return (
-                                          <div key={cIdx} className="p-3 rounded-lg bg-[#EFE9DF]/50 dark:bg-[#262320]/50 border border-[#E6DDD0] dark:border-[#38332E] flex items-start gap-2.5 text-xs">
-                                            <div className="p-1.5 rounded-md bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] shrink-0 mt-0.5">
-                                              {isWeb ? <Globe className="w-3.5 h-3.5" /> : <BookOpen className="w-3.5 h-3.5" />}
-                                            </div>
-                                            <div className="min-w-0 flex-1 space-y-1">
-                                              {cit.url ? (
-                                                <a
-                                                  href={cit.url}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="font-sans font-semibold text-[#2D2622] dark:text-[#F5F2EB] hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-colors flex items-center gap-1"
-                                                >
-                                                  <span>{cit.title || domain}</span>
-                                                  <ExternalLink className="w-3 h-3 inline-block shrink-0" />
-                                                </a>
-                                              ) : (
-                                                <p className="font-sans font-semibold text-[#2D2622] dark:text-[#F5F2EB]">{cit.title || cit.source}</p>
-                                              )}
-                                              {cit.snippet && (
-                                                <p className="font-sans text-[#5C4F45] dark:text-[#D4C7B8] text-xs leading-relaxed">{cit.snippet}</p>
-                                              )}
-                                            </div>
-                                          </div>
-                                        );
-                                      })
-                                    )}
-                                  </div>
-                                )}
+                                {/* TAB 2 CONTENT: LIVE EXTERNAL WEB RESOURCES ONLY */}
+                                {thinkingTab === "resources" && (() => {
+                                  const webCitations = msg.web_citations?.length 
+                                    ? msg.web_citations 
+                                    : msg.citations?.filter(c => c.type === "web" || Boolean(c.url)) || [];
+                                  
+                                  return (
+                                    <div className="space-y-3">
+                                      {webCitations.length === 0 ? (
+                                        <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] italic p-2">No external live web links retrieved for this response.</p>
+                                      ) : (
+                                        webCitations.map((cit, cIdx) => {
+                                          const domain = cit.url ? new URL(cit.url).hostname.replace('www.', '') : (cit.source || 'Web Resource');
+                                          return (
+                                            <a
+                                              key={cIdx}
+                                              href={cit.url || "#"}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="p-3 rounded-lg bg-[#EFE9DF]/50 dark:bg-[#262320]/50 border border-[#E6DDD0] dark:border-[#38332E] hover:border-[#C25E38]/50 transition-all flex items-start gap-2.5 text-xs block group"
+                                            >
+                                              <div className="p-1.5 rounded-md bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] shrink-0 mt-0.5">
+                                                <Globe className="w-3.5 h-3.5" />
+                                              </div>
+                                              <div className="min-w-0 flex-1 space-y-1">
+                                                <div className="font-sans font-semibold text-[#2D2622] dark:text-[#F5F2EB] group-hover:text-[#C25E38] dark:group-hover:text-[#E06D43] transition-colors flex items-center gap-1 justify-between">
+                                                  <span className="truncate">{cit.title || domain}</span>
+                                                  <ExternalLink className="w-3 h-3 shrink-0 text-[#C25E38]" />
+                                                </div>
+                                                {cit.snippet && (
+                                                  <p className="font-sans text-[#5C4F45] dark:text-[#D4C7B8] text-xs leading-relaxed line-clamp-2">{cit.snippet}</p>
+                                                )}
+                                              </div>
+                                            </a>
+                                          );
+                                        })
+                                      )}
+                                    </div>
+                                  );
+                                })()}
 
 
                               </div>

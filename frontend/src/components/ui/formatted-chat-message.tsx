@@ -232,6 +232,16 @@ export function FormattedChatMessage({ content, className = "" }: FormattedChatM
                   ),
                   ul: ({ children }) => <ul className="list-disc pl-5 my-2 space-y-1">{children}</ul>,
                   ol: ({ children }) => <ol className="list-decimal pl-5 my-2 space-y-1">{children}</ol>,
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold text-[#C25E38] dark:text-[#E06D43] underline underline-offset-2 hover:opacity-80 transition-opacity inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <GitaTextNode nodeKey={`a-${index}`}>{children}</GitaTextNode>
+                    </a>
+                  ),
                 }}
               >
                 {sec.content}

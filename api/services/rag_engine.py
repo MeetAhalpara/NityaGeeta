@@ -37,6 +37,39 @@ def sanitize_response_tone(text: str) -> str:
     # Strip markdown hashes and symbol noise
     cleaned = re.sub(r'^###+\s*', '', cleaned, flags=re.MULTILINE)
     cleaned = re.sub(r'\n\s*\n\s*\n+', '\n\n', cleaned)
+
+    # Auto-linkify referral terms if the AI model output plain text instead of Markdown links
+    vishnu_url = "https://www.youtube.com/watch?v=OdVfBXavJDY&list=PLQQa2ptMYrubalxxhseMKKZBYMGk_MC26"
+    mahabharat_url = "https://www.youtube.com/watch?v=HnXkv_ozPQw&list=PLFr_jkwUp0hhm1lR1TSdgESOfoyLQR3t2"
+    veducation_url = "https://www.veducation.world/"
+
+    # Linkify Vishnu Puran mentions if not already inside a markdown link
+    if vishnu_url not in cleaned:
+        cleaned = re.sub(
+            r'(?i)(?<!\[)\b(Vishnu\s+Pura?a?n[as]?(?:\s+Series)?)\b(?!\]|\()',
+            rf'[\1]({vishnu_url})',
+            cleaned
+        )
+
+    # Linkify Mahabharat mentions if not already inside a markdown link
+    if mahabharat_url not in cleaned:
+        cleaned = re.sub(
+            r'(?i)(?<!\[)\b(Mahabharat[a]?(?:\s+Series)?)\b(?!\]|\()',
+            rf'[\1]({mahabharat_url})',
+            cleaned
+        )
+
+    # Linkify Veducation mentions if not already inside a markdown link
+    if veducation_url not in cleaned:
+        cleaned = re.sub(
+            r'(?i)(?<!\[)\b(Veducation(?:\s+Free(?:\s+Vedic)?\s+Library)?)\b(?!\]|\()',
+            rf'[\1]({veducation_url})',
+            cleaned
+        )
+
+    # Clean up any nested bold-bracket artifacts like **[Title](url)** to [Title](url)
+    cleaned = re.sub(r'\*\*\[(.*?)\]\((.*?)\)\*\*', r'[\1](\2)', cleaned)
+
     return cleaned.strip()
 
 
@@ -198,6 +231,13 @@ async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
     )
 
     winning_model_name = judge_result.get("winning_model", "Groq Llama 3.3 70B")
+
+    # Attach Judge scorecard scores directly to candidate_responses
+    scorecards = judge_result.get("scorecards", [])
+    score_map = {card.get("model_name"): card.get("score", 90) for card in scorecards}
+    for cand in candidate_responses:
+        m_name = cand.get("model_name")
+        cand["score"] = score_map.get(m_name, 90)
 
     winning_answer_text = ""
     for cand in candidate_responses:
