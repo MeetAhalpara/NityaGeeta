@@ -126,7 +126,7 @@ export const SharedLayoutBg = forwardRef<HTMLElement, SharedLayoutBgProps>(
 
     return as === "ul" ? (
       <motion.ul
-        {...(props as HTMLMotionProps<"ul">)}
+        {...(props as unknown as HTMLMotionProps<"ul">)}
         ref={forwardedRef as Ref<HTMLUListElement>}
         layoutRoot
         onMouseLeave={handleMouseLeave}
@@ -136,7 +136,7 @@ export const SharedLayoutBg = forwardRef<HTMLElement, SharedLayoutBgProps>(
       </motion.ul>
     ) : (
       <motion.div
-        {...(props as HTMLMotionProps<"div">)}
+        {...(props as unknown as HTMLMotionProps<"div">)}
         ref={forwardedRef as Ref<HTMLDivElement>}
         layoutRoot
         onMouseLeave={handleMouseLeave}

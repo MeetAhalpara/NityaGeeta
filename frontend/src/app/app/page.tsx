@@ -76,6 +76,7 @@ interface ScorecardItem {
 interface CandidateItem {
   model_name: string;
   response: string;
+  score?: number;
 }
 
 interface Message {
