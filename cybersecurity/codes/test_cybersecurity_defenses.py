@@ -13,6 +13,7 @@ Tests:
 
 import os
 import sys
+import re
 import json
 import urllib.request
 import urllib.error
@@ -329,7 +330,7 @@ class CybersecurityTestSuite:
         ]
         missing = [h for h in mandatory_headers if h not in content]
 
-        has_csp_worker = "worker-src" in content and "cdnjs.cloudflare.com" in content
+        has_csp_worker = bool(re.search(r"worker-src[^;]*cdnjs\.cloudflare\.com", content))
         has_frame_deny = "SAMEORIGIN" in content
 
         passed = (len(missing) == 0) and has_csp_worker and has_frame_deny
@@ -419,7 +420,7 @@ class CybersecurityTestSuite:
         with open(proxy_path, "r", encoding="utf-8") as f:
             code = f.read()
 
-        has_upstream_isolation = "storage.googleapis.com" in code
+        has_upstream_isolation = bool(re.search(r"storage\.googleapis\.com", code))
         has_timeout_guard = "AbortController" in code and "timeoutMs" in code
 
         passed = has_upstream_isolation and has_timeout_guard

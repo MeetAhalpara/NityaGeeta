@@ -4,7 +4,10 @@ from google import genai
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
-print(f"Using API Key: {api_key[:10]}...{api_key[-5:] if api_key else ''}")
+if not api_key:
+    print("Warning: GEMINI_API_KEY is not set.")
+else:
+    print("GEMINI_API_KEY is configured.")
 
 client = genai.Client(api_key=api_key)
 
