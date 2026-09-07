@@ -13,14 +13,32 @@ const MAX_CACHE_SIZE_BYTES = 64 * 1024 * 1024; // 64 MB max in-memory cache
 let currentCacheSizeBytes = 0;
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes TTL
 
+const TRUSTED_STORAGE_ORIGIN = "https://storage.googleapis.com";
+const TRUSTED_NITYA_ORIGIN = "https://nityageeta.com";
+const TRUSTED_HOSTS = new Set(["storage.googleapis.com", "nityageeta.com"]);
+
 async function fetchWithTimeout(
   url: string,
   headers: Record<string, string>,
   clientSignal?: AbortSignal | null,
-  timeoutMs = 18000
+  timeoutMs = 18000,
+  method = "GET"
 ): Promise<Response> {
   if (clientSignal?.aborted) {
     throw new Error("Client aborted");
+  }
+
+  // Enforce outbound destination boundary via parsed hostname (prevents SSRF & substring bypass)
+  try {
+    const targetParsed = new URL(url);
+    const isTrustedProtocol = targetParsed.protocol === "https:";
+    const isTrustedHost = TRUSTED_HOSTS.has(targetParsed.hostname.toLowerCase());
+    const isTrustedPort = targetParsed.port === "" || targetParsed.port === "443";
+    if (!isTrustedProtocol || !isTrustedHost || !isTrustedPort) {
+      throw new Error("Unauthorized outbound destination");
+    }
+  } catch {
+    throw new Error("Unauthorized outbound destination");
   }
 
   const controller = new AbortController();
@@ -33,6 +51,7 @@ async function fetchWithTimeout(
 
   try {
     const res = await fetch(url, {
+      method,
       headers,
       signal: controller.signal,
     });
@@ -42,6 +61,56 @@ async function fetchWithTimeout(
     if (clientSignal) {
       clientSignal.removeEventListener("abort", onAbort);
     }
+  }
+}
+
+/**
+ * Resolves and reconstructs a safe upstream URL.
+ * Strictly binds the outbound target to trusted, server-controlled origins
+ * and sanitizes the pathname to prevent path traversal, ensuring no user-controlled
+ * host is ever passed to outbound fetch (eliminates SSRF CWE-918).
+ */
+function getSafeUpstreamUrl(urlStr: string): string | null {
+  const validation = validateSafePdfUrl(urlStr);
+  if (!validation.valid) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(urlStr);
+    const hostname = parsed.hostname.toLowerCase();
+
+    let safeOrigin = "";
+    let safePath = parsed.pathname;
+
+    if (hostname === "storage.googleapis.com") {
+      safeOrigin = TRUSTED_STORAGE_ORIGIN;
+    } else if (hostname.endsWith(".storage.googleapis.com")) {
+      const bucket = hostname.slice(0, -".storage.googleapis.com".length);
+      if (!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(bucket)) {
+        return null;
+      }
+      safeOrigin = TRUSTED_STORAGE_ORIGIN;
+      safePath = `/${bucket}${parsed.pathname}`;
+    } else if (hostname === "nityageeta.com" || hostname.endsWith(".nityageeta.com")) {
+      safeOrigin = TRUSTED_NITYA_ORIGIN;
+    } else {
+      return null;
+    }
+
+    // Path traversal mitigation: strictly reject any traversal attempts
+    if (safePath.includes("..") || safePath.includes("%2e") || safePath.includes("%2E")) {
+      return null;
+    }
+    const cleanPath = safePath.replace(/\/+/g, "/");
+    const targetUrl = new URL(cleanPath, safeOrigin);
+    if (parsed.search) {
+      targetUrl.search = parsed.search;
+    }
+
+    return targetUrl.toString();
+  } catch {
+    return null;
   }
 }
 
@@ -121,9 +190,14 @@ export async function GET(request: NextRequest) {
     return new NextResponse(urlValidation.reason || "Forbidden target URL", { status: 403 });
   }
 
+  const safeTargetUrl = getSafeUpstreamUrl(pdfUrl);
+  if (!safeTargetUrl) {
+    return new NextResponse("Forbidden target URL", { status: 403 });
+  }
+
   try {
     const rangeHeader = request.headers.get("range");
-    const cacheKey = `${pdfUrl}::${rangeHeader || "full"}`;
+    const cacheKey = `${safeTargetUrl}::${rangeHeader || "full"}`;
 
     // 1. Check in-memory chunk cache
     const cached = CHUNK_CACHE.get(cacheKey);
@@ -152,7 +226,7 @@ export async function GET(request: NextRequest) {
 
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        upstreamResponse = await fetchWithTimeout(pdfUrl, fetchHeaders, request.signal, 18000);
+        upstreamResponse = await fetchWithTimeout(safeTargetUrl, fetchHeaders, request.signal, 18000);
         if (upstreamResponse.ok || upstreamResponse.status === 206) {
           break;
         }
@@ -247,11 +321,19 @@ export async function HEAD(request: NextRequest) {
     return new NextResponse(null, { status: 403 });
   }
 
+  const safeTargetUrl = getSafeUpstreamUrl(pdfUrl);
+  if (!safeTargetUrl) {
+    return new NextResponse(null, { status: 403 });
+  }
+
   try {
-    const upstreamResponse = await fetch(pdfUrl, {
-      method: "HEAD",
-      headers: { "User-Agent": "NityaGeeta-Manuscript-Reader/1.0" },
-    });
+    const upstreamResponse = await fetchWithTimeout(
+      safeTargetUrl,
+      { "User-Agent": "NityaGeeta-Manuscript-Reader/1.0" },
+      request.signal,
+      18000,
+      "HEAD"
+    );
 
     const responseHeaders = new Headers();
     responseHeaders.set("Content-Type", upstreamResponse.headers.get("content-type") || "application/pdf");

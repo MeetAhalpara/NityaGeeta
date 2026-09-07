@@ -19,6 +19,26 @@ export interface CitationItem {
   priority?: number;
 }
 
+function getSafeCitationUrl(rawUrl?: string): { url: string; isExternal: boolean } {
+  if (!rawUrl) return { url: "/sources", isExternal: false };
+  try {
+    const parsed = new URL(rawUrl);
+    const isHttp = parsed.protocol === "http:" || parsed.protocol === "https:";
+    const isGoogleStorage =
+      parsed.hostname === "storage.googleapis.com" ||
+      parsed.hostname.endsWith(".storage.googleapis.com");
+    if (isHttp && !isGoogleStorage) {
+      return {
+        url: parsed.origin + parsed.pathname + parsed.search + parsed.hash,
+        isExternal: true,
+      };
+    }
+  } catch {
+    // Malformed URL
+  }
+  return { url: "/sources", isExternal: false };
+}
+
 interface CitationProps {
   citationId: string;
   index: number;
@@ -108,25 +128,20 @@ export function Citation({
               </span>
             )}
 
-            {citation.url && (
-              <a
-                href={
-                  citation.url.startsWith("http") && !citation.url.includes("storage.googleapis.com")
-                    ? citation.url
-                    : "/sources"
-                }
-                target={
-                  citation.url.startsWith("http") && !citation.url.includes("storage.googleapis.com")
-                    ? "_blank"
-                    : "_self"
-                }
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C25E38] dark:text-[#E06D43] hover:underline"
-              >
-                <span>{citation.domain ? `Source: ${citation.domain}` : "View in Vedic Library"}</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            )}
+            {citation.url && (() => {
+              const { url: safeUrl, isExternal } = getSafeCitationUrl(citation.url);
+              return (
+                <a
+                  href={safeUrl}
+                  target={isExternal ? "_blank" : "_self"}
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C25E38] dark:text-[#E06D43] hover:underline"
+                >
+                  <span>{citation.domain ? `Source: ${citation.domain}` : "View in Vedic Library"}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              );
+            })()}
           </motion.span>
         )}
       </AnimatePresence>
@@ -237,41 +252,22 @@ export function Citations({
                     )}
                   </div>
 
-                  {cite.url && (
-                    <div className="pt-2 border-t border-[#DFD5C6]/40 dark:border-[#38332E]/40 flex justify-end">
-                      {(() => {
-                        const safeUrl = (() => {
-                          if (!cite.url) return "/sources";
-                          try {
-                            const parsed = new URL(cite.url);
-                            if (
-                              (parsed.protocol === "http:" || parsed.protocol === "https:") &&
-                              !parsed.hostname.includes("storage.googleapis.com")
-                            ) {
-                              return parsed.origin + parsed.pathname + parsed.search + parsed.hash;
-                            }
-                          } catch {
-                            // Invalid URL
-                          }
-                          return "/sources";
-                        })();
-
-                        const isExternal = safeUrl.startsWith("http");
-
-                        return (
-                          <a
-                            href={safeUrl}
-                            target={isExternal ? "_blank" : "_self"}
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C25E38] dark:text-[#E06D43] hover:underline"
-                          >
-                            <span>{cite.domain ? `Source: ${cite.domain}` : "Open in Vedic Library"}</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        );
-                      })()}
-                    </div>
-                  )}
+                  {cite.url && (() => {
+                    const { url: safeUrl, isExternal } = getSafeCitationUrl(cite.url);
+                    return (
+                      <div className="pt-2 border-t border-[#DFD5C6]/40 dark:border-[#38332E]/40 flex justify-end">
+                        <a
+                          href={safeUrl}
+                          target={isExternal ? "_blank" : "_self"}
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C25E38] dark:text-[#E06D43] hover:underline"
+                        >
+                          <span>{cite.domain ? `Source: ${cite.domain}` : "Open in Vedic Library"}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
