@@ -75,11 +75,11 @@ def test_sources_supporting_citations_alignment():
     assert "https://www.pib.gov.in/PressReleasePage.aspx?PRID=1933252" in content or "PRID=1933252" in content, (
         "Missing PIB Gandhi Peace Prize official Government of India citation (PRID 1933252) for geeta-1"
     )
-    assert "https://gitapress.org" in content, "Missing official Gitapress.org repository link"
+    assert bool(re.search(r"https://gitapress\.org", content)), "Missing official Gitapress.org repository link"
 
     # geeta-2: SUNY Press + Harvard Library Hollis
     assert "https://sunypress.edu/Books/T/The-Bhagavad-Gita" in content, "Missing SUNY Press catalog URL"
-    assert "hollis.harvard.edu" in content, "Missing Harvard Hollis Library record for Sargeant"
+    assert bool(re.search(r"hollis\.harvard\.edu", content)), "Missing Harvard Hollis Library record for Sargeant"
 
     # geeta-3: Sringeri Sharada Peetham unbroken Adi Shankara lineage
     assert "https://sringeri.net/history/sri-adi-shankaracharya/works-of-sri-adi-shankaracharya" in content, (
@@ -135,7 +135,7 @@ def test_architecture_citations_and_stopwatch():
     assert "https://arxiv.org/abs/2309.01219" in content, "Missing LLM Hallucination Survey (arXiv:2309.01219)"
 
     # Citation [2]: Gita Press official & SUNY Press (archive.org REMOVED)
-    assert "https://gitapress.org" in content, "Missing Gitapress official portal in Architecture Citation [2]"
+    assert bool(re.search(r"https://gitapress\.org", content)), "Missing Gitapress official portal in Architecture Citation [2]"
     assert "https://sunypress.edu/Books/T/The-Bhagavad-Gita" in content, "Missing SUNY Press URL in Citation [2]"
     assert "https://archive.org/details/shreemed-bhagwat-gita-20220406_20220406_0356" not in content, (
         "Target archive.org URL still present in architecture/page.tsx"
