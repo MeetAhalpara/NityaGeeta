@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 1870",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start -p 1870",
     "lint": "next lint"
   },
