@@ -65,10 +65,59 @@ async function fetchWithTimeout(
 }
 
 /**
- * Resolves and reconstructs a safe upstream URL.
- * Strictly binds the outbound target to trusted, server-controlled origins
- * and sanitizes the pathname to prevent path traversal, ensuring no user-controlled
- * host is ever passed to outbound fetch (eliminates SSRF CWE-918).
+ * Fixed registry of canonical Vedic manuscript URLs in Google Cloud Storage.
+ * Using a server-controlled allowlist dictionary ensures that the URL passed to fetch()
+ * is ALWAYS a static string constant and never constructed from user input,
+ * permanently resolving Server-Side Request Forgery (SSRF CWE-918).
+ */
+const TRUSTED_MANUSCRIPT_REGISTRY: Record<string, string> = {
+  // Canonical URLs
+  "https://storage.googleapis.com/nityageeta-library/Srimad%20Bhagavad%20Gita%20Press%20Gorakhpur.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Srimad%20Bhagavad%20Gita%20Press%20Gorakhpur.pdf",
+  "https://storage.googleapis.com/nityageeta-library/The%20Bhagavad%20Gita%20Winthrop%20Sargeant%20(Word-for-Word%20English).pdf":
+    "https://storage.googleapis.com/nityageeta-library/The%20Bhagavad%20Gita%20Winthrop%20Sargeant%20(Word-for-Word%20English).pdf",
+  "https://storage.googleapis.com/nityageeta-library/Bhagavad%20Gita%20with%20the%20Commentary%20of%20Adi%20Shankaracharya.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Bhagavad%20Gita%20with%20the%20Commentary%20of%20Adi%20Shankaracharya.pdf",
+  "https://storage.googleapis.com/nityageeta-library/Gita-Sadhak-Sanjevani-English.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Gita-Sadhak-Sanjevani-English.pdf",
+  "https://storage.googleapis.com/nityageeta-library/BOSS.pdf":
+    "https://storage.googleapis.com/nityageeta-library/BOSS.pdf",
+  "https://storage.googleapis.com/nityageeta-library/Vedic%20Dincharya.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Vedic%20Dincharya.pdf",
+  "https://storage.googleapis.com/nityageeta-library/Brahmacharya-the-Ultimate-Action-Book-for-Brahmacharya.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Brahmacharya-the-Ultimate-Action-Book-for-Brahmacharya.pdf",
+
+  // Normalized decoded filenames
+  "srimad bhagavad gita press gorakhpur.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Srimad%20Bhagavad%20Gita%20Press%20Gorakhpur.pdf",
+  "the bhagavad gita winthrop sargeant (word-for-word english).pdf":
+    "https://storage.googleapis.com/nityageeta-library/The%20Bhagavad%20Gita%20Winthrop%20Sargeant%20(Word-for-Word%20English).pdf",
+  "bhagavad gita with the commentary of adi shankaracharya.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Bhagavad%20Gita%20with%20the%20Commentary%20of%20Adi%20Shankaracharya.pdf",
+  "gita-sadhak-sanjevani-english.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Gita-Sadhak-Sanjevani-English.pdf",
+  "boss.pdf":
+    "https://storage.googleapis.com/nityageeta-library/BOSS.pdf",
+  "vedic dincharya.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Vedic%20Dincharya.pdf",
+  "brahmacharya-the-ultimate-action-book-for-brahmacharya.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Brahmacharya-the-Ultimate-Action-Book-for-Brahmacharya.pdf",
+
+  // URL-encoded filenames
+  "srimad%20bhagavad%20gita%20press%20gorakhpur.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Srimad%20Bhagavad%20Gita%20Press%20Gorakhpur.pdf",
+  "the%20bhagavad%20gita%20winthrop%20sargeant%20(word-for-word%20english).pdf":
+    "https://storage.googleapis.com/nityageeta-library/The%20Bhagavad%20Gita%20Winthrop%20Sargeant%20(Word-for-Word%20English).pdf",
+  "bhagavad%20gita%20with%20the%20commentary%20of%20adi%20shankaracharya.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Bhagavad%20Gita%20with%20the%20Commentary%20of%20Adi%20Shankaracharya.pdf",
+  "vedic%20dincharya.pdf":
+    "https://storage.googleapis.com/nityageeta-library/Vedic%20Dincharya.pdf",
+};
+
+/**
+ * Resolves an incoming request to a strictly server-controlled target URL.
+ * Every returned string is selected from the compile-time TRUSTED_MANUSCRIPT_REGISTRY,
+ * completely severing tainted dataflow to fetch() (SSRF CWE-918).
  */
 function getSafeUpstreamUrl(urlStr: string): string | null {
   const validation = validateSafePdfUrl(urlStr);
@@ -76,42 +125,37 @@ function getSafeUpstreamUrl(urlStr: string): string | null {
     return null;
   }
 
+  // 1. Direct match on full URL
+  if (Object.prototype.hasOwnProperty.call(TRUSTED_MANUSCRIPT_REGISTRY, urlStr)) {
+    return TRUSTED_MANUSCRIPT_REGISTRY[urlStr];
+  }
+
+  // 2. Direct match on decoded URL
+  try {
+    const decodedUrl = decodeURI(urlStr);
+    if (Object.prototype.hasOwnProperty.call(TRUSTED_MANUSCRIPT_REGISTRY, decodedUrl)) {
+      return TRUSTED_MANUSCRIPT_REGISTRY[decodedUrl];
+    }
+  } catch {
+    // Ignore URI decode errors
+  }
+
+  // 3. Lookup by normalized filename
   try {
     const parsed = new URL(urlStr);
-    const hostname = parsed.hostname.toLowerCase();
-
-    let safeOrigin = "";
-    let safePath = parsed.pathname;
-
-    if (hostname === "storage.googleapis.com") {
-      safeOrigin = TRUSTED_STORAGE_ORIGIN;
-    } else if (hostname.endsWith(".storage.googleapis.com")) {
-      const bucket = hostname.slice(0, -".storage.googleapis.com".length);
-      if (!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(bucket)) {
-        return null;
-      }
-      safeOrigin = TRUSTED_STORAGE_ORIGIN;
-      safePath = `/${bucket}${parsed.pathname}`;
-    } else if (hostname === "nityageeta.com" || hostname.endsWith(".nityageeta.com")) {
-      safeOrigin = TRUSTED_NITYA_ORIGIN;
-    } else {
-      return null;
+    const rawFile = (parsed.pathname.split("/").pop() || "").trim().toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(TRUSTED_MANUSCRIPT_REGISTRY, rawFile)) {
+      return TRUSTED_MANUSCRIPT_REGISTRY[rawFile];
     }
-
-    // Path traversal mitigation: strictly reject any traversal attempts
-    if (safePath.includes("..") || safePath.includes("%2e") || safePath.includes("%2E")) {
-      return null;
+    const decodedFile = decodeURIComponent(rawFile);
+    if (Object.prototype.hasOwnProperty.call(TRUSTED_MANUSCRIPT_REGISTRY, decodedFile)) {
+      return TRUSTED_MANUSCRIPT_REGISTRY[decodedFile];
     }
-    const cleanPath = safePath.replace(/\/+/g, "/");
-    const targetUrl = new URL(cleanPath, safeOrigin);
-    if (parsed.search) {
-      targetUrl.search = parsed.search;
-    }
-
-    return targetUrl.toString();
   } catch {
     return null;
   }
+
+  return null;
 }
 
 /**
