@@ -15,25 +15,26 @@ const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes TTL
 
 const TRUSTED_STORAGE_ORIGIN = "https://storage.googleapis.com";
 const TRUSTED_NITYA_ORIGIN = "https://nityageeta.com";
+const TRUSTED_HOSTS = new Set(["storage.googleapis.com", "nityageeta.com"]);
 
 async function fetchWithTimeout(
   url: string,
   headers: Record<string, string>,
   clientSignal?: AbortSignal | null,
-  timeoutMs = 18000
+  timeoutMs = 18000,
+  method = "GET"
 ): Promise<Response> {
   if (clientSignal?.aborted) {
     throw new Error("Client aborted");
   }
 
-  // Enforce outbound destination boundary via parsed hostname (prevents substring bypass)
+  // Enforce outbound destination boundary via parsed hostname (prevents SSRF & substring bypass)
   try {
     const targetParsed = new URL(url);
-    const targetHost = targetParsed.hostname.toLowerCase();
-    if (
-      targetParsed.protocol !== "https:" ||
-      (targetHost !== "storage.googleapis.com" && targetHost !== "nityageeta.com")
-    ) {
+    const isTrustedProtocol = targetParsed.protocol === "https:";
+    const isTrustedHost = TRUSTED_HOSTS.has(targetParsed.hostname.toLowerCase());
+    const isTrustedPort = targetParsed.port === "" || targetParsed.port === "443";
+    if (!isTrustedProtocol || !isTrustedHost || !isTrustedPort) {
       throw new Error("Unauthorized outbound destination");
     }
   } catch {
@@ -50,6 +51,7 @@ async function fetchWithTimeout(
 
   try {
     const res = await fetch(url, {
+      method,
       headers,
       signal: controller.signal,
     });
@@ -96,8 +98,11 @@ function getSafeUpstreamUrl(urlStr: string): string | null {
       return null;
     }
 
-    // Path traversal mitigation: eliminate '..' segments
-    const cleanPath = safePath.replace(/\.\./g, "").replace(/\/+/g, "/");
+    // Path traversal mitigation: strictly reject any traversal attempts
+    if (safePath.includes("..") || safePath.includes("%2e") || safePath.includes("%2E")) {
+      return null;
+    }
+    const cleanPath = safePath.replace(/\/+/g, "/");
     const targetUrl = new URL(cleanPath, safeOrigin);
     if (parsed.search) {
       targetUrl.search = parsed.search;
@@ -322,10 +327,13 @@ export async function HEAD(request: NextRequest) {
   }
 
   try {
-    const upstreamResponse = await fetch(safeTargetUrl, {
-      method: "HEAD",
-      headers: { "User-Agent": "NityaGeeta-Manuscript-Reader/1.0" },
-    });
+    const upstreamResponse = await fetchWithTimeout(
+      safeTargetUrl,
+      { "User-Agent": "NityaGeeta-Manuscript-Reader/1.0" },
+      request.signal,
+      18000,
+      "HEAD"
+    );
 
     const responseHeaders = new Headers();
     responseHeaders.set("Content-Type", upstreamResponse.headers.get("content-type") || "application/pdf");
