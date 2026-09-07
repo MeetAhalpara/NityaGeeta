@@ -35,34 +35,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic Schemas for validation
+# Pydantic Schemas for validation with strict bounds (Memory Exhaustion & DoS defense)
 class ChatRequest(BaseModel):
-    question: str = Field(..., min_length=3, description="The query question from the user")
+    question: str = Field(..., min_length=3, max_length=2000, description="The query question from the user")
 
 class SearchRequest(BaseModel):
-    query: str = Field(..., min_length=2, description="The search term")
+    query: str = Field(..., min_length=2, max_length=200, description="The search term")
     limit: Optional[int] = Field(5, ge=1, le=20, description="Max search results to return")
 
 class LookupRequest(BaseModel):
-    email: str = Field(..., description="Email to check in database")
+    email: str = Field(..., min_length=3, max_length=254, description="Email to check in database")
 
 class RegisterRequest(BaseModel):
-    email: str = Field(..., description="User email address")
-    full_name: Optional[str] = Field(None, description="Full display name")
-    avatar_url: Optional[str] = Field(None, description="Avatar image URL")
-    password: Optional[str] = Field(None, description="Optional manual login password")
+    email: str = Field(..., min_length=3, max_length=254, description="User email address")
+    full_name: Optional[str] = Field(None, max_length=100, description="Full display name")
+    avatar_url: Optional[str] = Field(None, max_length=500, description="Avatar image URL")
+    password: Optional[str] = Field(None, max_length=128, description="Optional manual login password")
 
 class LoginRequest(BaseModel):
-    email: str = Field(..., description="Login email address")
-    password: str = Field(..., description="Clear text password")
+    email: str = Field(..., min_length=3, max_length=254, description="Login email address")
+    password: str = Field(..., min_length=1, max_length=128, description="Clear text password")
 
 class GoogleSetupRequest(BaseModel):
-    email: str = Field(..., description="Email address to update")
-    first_name: str = Field(..., description="First Name")
-    last_name: str = Field(..., description="Last Name")
-    password: str = Field(..., description="Mandatory login password")
-    age: Optional[str] = Field(None, description="Age")
-    preferred_language: Optional[str] = Field(None, description="Preferred display language")
+    email: str = Field(..., min_length=3, max_length=254, description="Email address to update")
+    first_name: str = Field(..., min_length=1, max_length=100, description="First Name")
+    last_name: str = Field(..., min_length=1, max_length=100, description="Last Name")
+    password: str = Field(..., min_length=6, max_length=128, description="Mandatory login password")
+    age: Optional[str] = Field(None, max_length=3, description="Age")
+    preferred_language: Optional[str] = Field(None, max_length=10, description="Preferred display language")
 
 
 @app.get("/health")
@@ -321,17 +321,26 @@ async def google_setup_endpoint(request: GoogleSetupRequest):
 # =============================================================================
 
 import json as _json
+import uuid as _uuid
 from typing import Any as _Any
 
+def is_valid_uuid(val: str) -> bool:
+    """Validates if string conforms to standard UUID format."""
+    try:
+        _uuid.UUID(str(val))
+        return True
+    except (ValueError, AttributeError, TypeError):
+        return False
+
 class SessionSaveRequest(BaseModel):
-    session_id: str = Field(..., description="UUID of the conversation session")
-    user_email: str = Field(..., description="User email for DB lookup")
-    title: str = Field(..., description="Session title from first message")
-    messages: list = Field(..., description="Full message array")
+    session_id: str = Field(..., min_length=10, max_length=64, description="UUID of the conversation session")
+    user_email: str = Field(..., min_length=3, max_length=254, description="User email for DB lookup")
+    title: str = Field(..., max_length=120, description="Session title from first message")
+    messages: list = Field(..., max_length=200, description="Full message array")
 
 
 class SessionListRequest(BaseModel):
-    user_email: str = Field(..., description="User email to fetch sessions for")
+    user_email: str = Field(..., min_length=3, max_length=254, description="User email to fetch sessions for")
 
 
 @app.post("/api/v1/sessions/save")
@@ -340,6 +349,9 @@ async def save_session_endpoint(request: SessionSaveRequest):
     Upserts a conversation session + all messages to PostgreSQL.
     Called fire-and-forget from the frontend on each message.
     """
+    if not is_valid_uuid(request.session_id):
+        return {"success": False, "reason": "Invalid session_id UUID format"}
+
     conn = None
     try:
         conn = get_db_connection()
@@ -372,9 +384,9 @@ async def save_session_endpoint(request: SessionSaveRequest):
         )
 
         msg_count = 0
-        for msg in request.messages:
+        for msg in request.messages[:150]:
             role = "user" if msg.get("sender") == "user" else "assistant"
-            content = msg.get("text", "")
+            content = str(msg.get("text", ""))[:8000]
             if not content:
                 continue
             cur.execute(
@@ -460,6 +472,9 @@ async def get_session_messages_endpoint(session_id: str):
     Returns all messages for a given session UUID.
     Used to restore a conversation from DB when localStorage is cold.
     """
+    if not is_valid_uuid(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session ID format. Must be a valid UUID.")
+
     conn = None
     try:
         conn = get_db_connection()
@@ -497,6 +512,9 @@ async def get_session_messages_endpoint(session_id: str):
 @app.delete("/api/v1/sessions/{session_id}")
 async def delete_session_endpoint(session_id: str, user_email: str):
     """Deletes a conversation and all its messages."""
+    if not is_valid_uuid(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session ID format. Must be a valid UUID.")
+
     conn = None
     try:
         conn = get_db_connection()

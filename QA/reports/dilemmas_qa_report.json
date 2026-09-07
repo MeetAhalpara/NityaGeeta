@@ -1,0 +1,177 @@
+{
+  "timestamp": "2026-09-04T19:02:15.649306",
+  "target_url": "http://localhost:1870/dilemmas",
+  "framework": "Multi-Scenario Resilience (Synthetic, Lateral, High-Context, Systemic Risk-Mitigation)",
+  "total": 16,
+  "passed": 16,
+  "failed": 0,
+  "alignment_passed": true,
+  "results": [
+    {
+      "test_id": "TC-DIL-HP-001",
+      "environment": "Happy",
+      "pillar": "High-Context Elegance",
+      "name": "Dilemmas Hero Atmosphere & Brand Voice Integrity (No dashes, no 'we', uses 'one')",
+      "status": "PASS",
+      "details": "Failed brand voice or sentence continuity check in dilemmas page"
+    },
+    {
+      "test_id": "TC-DIL-HP-002",
+      "environment": "Happy",
+      "pillar": "Lateral Interaction Design",
+      "name": "Symmetrical Search Match Count Pill with Instant Reset Action",
+      "status": "PASS",
+      "details": "Missing match count text or clear action in search pill"
+    },
+    {
+      "test_id": "TC-DIL-HP-003",
+      "environment": "Happy",
+      "pillar": "Holistic Structural Simplicity",
+      "name": "18-Chapter Canonical Directory Table Displays Clean Single-Digit Numbers",
+      "status": "PASS",
+      "details": "Directory table still contains redundant 'Chapter 01' prefix"
+    },
+    {
+      "test_id": "TC-DIL-HP-004",
+      "environment": "Happy",
+      "pillar": "Synthetic Sacred Ground Truth",
+      "name": "Authentic Devanagari Sanskrit & Roman IAST Transliteration Rendered on Cards",
+      "status": "PASS",
+      "details": "Missing item.verseSanskrit or item.verseTransliteration on dilemma cards"
+    },
+    {
+      "test_id": "TC-DIL-HP-005",
+      "environment": "Happy",
+      "pillar": "Lateral (Adaptive) Immediate Help",
+      "name": "1-Click AI Guidance Action Trigger with Contextual Prompt Pre-Fill",
+      "status": "PASS",
+      "details": "Missing 'Ask AI for Guidance' or prompt pre-fill binding"
+    },
+    {
+      "test_id": "TC-DIL-BP-001",
+      "environment": "Bad",
+      "pillar": "Lateral Error Resilience",
+      "name": "Malformed Search Query Handling & Token Splitting (Safe Against Regex Crashes)",
+      "status": "PASS",
+      "details": "Missing safe token splitting or empty state in dilemmas search"
+    },
+    {
+      "test_id": "TC-DIL-BP-002",
+      "environment": "Bad",
+      "pillar": "Systemic Risk-Mitigation",
+      "name": "URL Chapter Parameter Boundary Sanitization (1 <= chapter <= 18 Enforced)",
+      "status": "PASS",
+      "details": "Missing 'parsed >= 1 && parsed <= 18' boundary check in dilemmas page"
+    },
+    {
+      "test_id": "TC-DIL-BP-003",
+      "environment": "Bad",
+      "pillar": "High-Context Empathy",
+      "name": "Conversational NLP Stop-Words & Typo Normalization (Handles 'consmic', 'exaustion')",
+      "status": "PASS",
+      "details": "Missing TYPO_MAP or STOP_WORDS in dilemmas search engine"
+    },
+    {
+      "test_id": "TC-DIL-BP-004",
+      "environment": "Bad",
+      "pillar": "Lateral State Poise",
+      "name": "Category Filter Determinism Across All 6 Thematic Areas (Zero Race Conditions)",
+      "status": "PASS",
+      "details": "One or more category identifiers missing from dilemmas state"
+    },
+    {
+      "test_id": "TC-DIL-RP-001",
+      "environment": "Raining",
+      "pillar": "Socio-Centric Universal Accessibility",
+      "name": "Responsive Dilemma Card Stacking for 320px Mobile Screens (Zero Horizontal Overflow)",
+      "status": "PASS",
+      "details": "Missing single-column responsive grid on mobile screens"
+    },
+    {
+      "test_id": "TC-DIL-RP-002",
+      "environment": "Raining",
+      "pillar": "High-Context Dignity",
+      "name": "Transliteration Text Clamping & Visual Rhythm Across All Screen Dimensions",
+      "status": "PASS",
+      "details": "Missing item.verseTransliteration styling"
+    },
+    {
+      "test_id": "TC-DIL-RP-003",
+      "environment": "Raining",
+      "pillar": "Adaptive Structural Resilience",
+      "name": "Graceful Animation Degradation Under CPU Constraints (Non-Blocking Transitions)",
+      "status": "PASS",
+      "details": "Missing smooth transitions on interactive cards"
+    },
+    {
+      "test_id": "TC-DIL-RP-004",
+      "environment": "Raining",
+      "pillar": "Systemic Memory Preservation",
+      "name": "Client-Side Dilemma State Retention Through Intermittent Connection Drops",
+      "status": "PASS",
+      "details": "State is not cleanly encapsulated in component memory"
+    },
+    {
+      "test_id": "TC-DIL-WP-001",
+      "environment": "Worse",
+      "pillar": "Systemic Risk-Mitigation (Self-Contained Client)",
+      "name": "100% Client-Side Dilemma Exploration Independence When Backend API Is Offline",
+      "status": "PASS",
+      "details": "Found blocking API call in dilemmas page load or missing imported master dataset"
+    },
+    {
+      "test_id": "TC-DIL-WP-002",
+      "environment": "Worse",
+      "pillar": "Sacred Trust & Canonical Incorruptibility",
+      "name": "Zero Scriptural Hallucination Gate (50 Authentic Devanagari Verses, Zero Mock Texts)",
+      "status": "PASS",
+      "details": "Found placeholder text or insufficient Sanskrit verses in gitaDilemmas.ts"
+    },
+    {
+      "test_id": "TC-DIL-WP-003",
+      "environment": "Worse",
+      "pillar": "Live Endpoint Resilience",
+      "name": "Live HTTP Server Response for http://localhost:1870/dilemmas (HTTP 200 OK)",
+      "status": "PASS",
+      "details": "Expected status 200, got: 200"
+    }
+  ],
+  "alignment_results": [
+    {
+      "id": "TC-DIL-SRH-001",
+      "query": "I am feeling burnt out and overwhelmed at work, which shloka guides my mind?",
+      "status": "ALIGNED",
+      "top_match": "Ch 1.30 - Moral Paralysis, Burnout & Dropping One's Tools"
+    },
+    {
+      "id": "TC-DIL-SRH-002",
+      "query": "How to deal with acute anxiety, trembling body, and panic attacks?",
+      "status": "ALIGNED",
+      "top_match": "Ch 1.28 - Somatic Symptoms of Severe Panic & Anxiety Attacks"
+    },
+    {
+      "id": "TC-DIL-SRH-003",
+      "query": "Can I be ambitious in business while practicing detachment from outcomes?",
+      "status": "ALIGNED",
+      "top_match": "Ch 2.47 - Corporate Burnout & Outcome Anxiety"
+    },
+    {
+      "id": "TC-DIL-SRH-004",
+      "query": "How to manage family duty and moral conflict without breaking relationships?",
+      "status": "ALIGNED",
+      "top_match": "Ch 2.31 - Whistleblowing vs Protecting a Dishonest Colleague"
+    },
+    {
+      "id": "TC-DIL-SRH-005",
+      "query": "Fear of death and understanding what happens to soul after dying",
+      "status": "ALIGNED",
+      "top_match": "Ch 2.20 - Fear of Biological Extinction & Existential Dread of Death"
+    },
+    {
+      "id": "TC-DIL-SRH-006",
+      "query": "tell me about exaustion and burn out from endless hustle",
+      "status": "ALIGNED",
+      "top_match": "Ch 1.30 - Moral Paralysis, Burnout & Dropping One's Tools"
+    }
+  ]
+}

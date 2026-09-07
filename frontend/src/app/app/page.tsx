@@ -45,6 +45,8 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ReasoningText } from "@/components/agents/loading-states/reasoning-text";
 import { SourcesBubble } from "@/components/ui/avatar-group";
 import { FormattedChatMessage } from "@/components/ui/formatted-chat-message";
+import { AgentActivity, type AgentActivityItem } from "@/components/agents/agent-activity";
+import { Citations, Citation } from "@/components/agents/citations";
 
 
 
@@ -193,11 +195,17 @@ export default function AppMainPage() {
         }
       }
 
-      // No session in URL (e.g. /app after clicking +) — reset to blank if not submitting
+      // No session in URL (e.g. /app after clicking +) — reset to blank or prefill from URL query
       if (!urlSessionId && !loading) {
         setActiveSessionId(null);
         setMessages([]);
-        setQuery("");
+        if (typeof window !== "undefined") {
+          const urlParams = new URLSearchParams(window.location.search);
+          const initialQ = urlParams.get("q") || urlParams.get("prompt") || "";
+          setQuery(initialQ);
+        } else {
+          setQuery("");
+        }
         setExpandedThinkingId(null);
       }
     } catch (e) {
@@ -412,13 +420,28 @@ export default function AppMainPage() {
         setActiveCandidateTab(0);
         updateSessionState(finalMessages, messageText, targetSessionId);
       } else {
-        const statusNote = res ? ` (HTTP ${res.status})` : " — server unreachable";
+        const statusNote = res ? ` (HTTP ${res.status})` : " (server offline / unreachable)";
         const errMessages = [
           ...nextMessages,
           {
             id: (Date.now() + 1).toString(),
             sender: "bot" as const,
-            text: `The NityaGeeta server is currently offline${statusNote}. Please start the API with:\n\n\`\`\`\nuvicorn api.main:app --host 0.0.0.0 --port 8000 --reload\n\`\`\`\n\nThen try your question again.`,
+            text: `### NityaGeeta Knowledge Engine Reconnecting
+
+The scriptural intelligence service is temporarily unreachable${statusNote}. Your question has been saved in this session.
+
+Please click **Retry Question** below or try again in a moment.
+
+---
+
+**Developer Diagnostics:**  
+The FastAPI backend service is not active on \`localhost:8000\`.
+
+To start the backend in your terminal from the project root:
+\`\`\`powershell
+.\\.venv\\Scripts\\python.exe -m uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
+\`\`\`
+*Or simply run \`powershell .\\start_backend.ps1\` to launch automatically.*`,
           },
         ];
         setMessages(errMessages);
@@ -431,7 +454,21 @@ export default function AppMainPage() {
         {
           id: (Date.now() + 1).toString(),
           sender: "bot" as const,
-          text: "Something went wrong reaching the server. Please make sure the API is running on port 8000 and try again.",
+          text: `### NityaGeeta Connection Interrupted
+
+Unable to complete dialogue reasoning with the scripture knowledge engine. Your inquiry has been saved.
+
+Please click **Retry Question** below to reconnect.
+
+---
+
+**Developer Diagnostics:**  
+Connection to \`http://localhost:8000\` was interrupted or timed out.
+
+Start or verify the backend server:
+\`\`\`powershell
+.\\.venv\\Scripts\\python.exe -m uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
+\`\`\``,
         },
       ];
       setMessages(errMessages);
@@ -655,62 +692,78 @@ export default function AppMainPage() {
           </AnimatedSidebarContent>
 
           <AnimatedSidebarFooter className="relative">
-            {/* Animated Profile Dropdown Menu */}
+            {/* Animated Profile Dropdown Menu with Aceternity Notch Spring Physics */}
             <AnimatePresence>
               {showProfileMenu && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="absolute bottom-14 left-2 z-50 min-w-[200px] group-data-[state=collapsed]/sidebar:hidden rounded-2xl bg-[#FAF7F2] dark:bg-[#262320] border border-[#E6DDD0] dark:border-[#38332E] shadow-2xl p-1.5 space-y-1 text-xs"
+                  initial={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)", transition: { duration: 0.12 } }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  style={{ transformOrigin: "bottom left" }}
+                  className="absolute bottom-14 left-2 z-50 min-w-[210px] group-data-[state=collapsed]/sidebar:hidden rounded-2xl bg-[#FAF7F2]/95 dark:bg-[#262320]/95 backdrop-blur-2xl border border-[#DFD5C6] dark:border-[#38332E] shadow-[0_16px_48px_-12px_rgba(0,0,0,0.35)] p-2 space-y-1 text-xs overflow-hidden"
                 >
-                  <div className="px-3 py-2 border-b border-[#E6DDD0]/60 dark:border-[#38332E]/60 mb-1">
-                    <p className="font-bold text-[#2D2622] dark:text-[#F5F2EB] truncate">{userName}</p>
+                  <div className="px-3 py-2.5 border-b border-[#E6DDD0]/60 dark:border-[#38332E]/60 mb-1">
+                    <p className="font-bold text-[#2D2622] dark:text-[#F5F2EB] truncate text-sm">{userName}</p>
                     <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] truncate font-mono">{session?.user?.email || "Seeker Account"}</p>
                   </div>
 
-                  <button
-                    onClick={() => { setShowProfileMenu(false); router.push("/"); }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A] hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-all font-medium"
+                  <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: {},
+                      visible: { transition: { staggerChildren: 0.045, delayChildren: 0.05 } },
+                    }}
+                    className="space-y-1"
                   >
-                    <Home className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
-                    <span>Home</span>
-                  </button>
+                    {[
+                      { label: "Home", icon: Home, action: () => { setShowProfileMenu(false); router.push("/"); } },
+                      { label: "Resources", icon: BookOpen, action: () => { setShowProfileMenu(false); router.push("/#resources"); } },
+                      { label: "Profile", icon: User, action: () => { setShowProfileMenu(false); router.push("/profile"); } },
+                      { label: "Support", icon: HelpCircle, action: () => { setShowProfileMenu(false); router.push("/#support"); } },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <motion.button
+                          key={item.label}
+                          variants={{
+                            hidden: { opacity: 0, y: -8, filter: "blur(4px)" },
+                            visible: {
+                              opacity: 1,
+                              y: 0,
+                              filter: "blur(0px)",
+                              transition: { type: "spring", stiffness: 420, damping: 30 },
+                            },
+                          }}
+                          onClick={item.action}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A] hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-all font-medium cursor-pointer"
+                        >
+                          <Icon className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
+                          <span>{item.label}</span>
+                        </motion.button>
+                      );
+                    })}
 
-                  <button
-                    onClick={() => { setShowProfileMenu(false); router.push("/#resources"); }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A] hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-all font-medium"
-                  >
-                    <BookOpen className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
-                    <span>Resources</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setShowProfileMenu(false); router.push("/profile"); }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A] hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-all font-medium"
-                  >
-                    <User className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
-                    <span>Profile</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setShowProfileMenu(false); router.push("/#support"); }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A] hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-all font-medium"
-                  >
-                    <HelpCircle className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
-                    <span>Support</span>
-                  </button>
-
-                  <div className="pt-1 border-t border-[#E6DDD0]/60 dark:border-[#38332E]/60">
-                    <button
-                      onClick={() => signOut({ callbackUrl: "/" })}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all font-semibold"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Log out</span>
-                    </button>
-                  </div>
+                    <div className="pt-1 border-t border-[#E6DDD0]/60 dark:border-[#38332E]/60">
+                      <motion.button
+                        variants={{
+                          hidden: { opacity: 0, y: -6, filter: "blur(4px)" },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            filter: "blur(0px)",
+                            transition: { type: "spring", stiffness: 420, damping: 30 },
+                          },
+                        }}
+                        onClick={() => signOut({ callbackUrl: "/" })}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all font-semibold cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Log out</span>
+                      </motion.button>
+                    </div>
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -963,9 +1016,26 @@ export default function AppMainPage() {
 
 
 
-                        {/* PERPLEXITY-STYLE AVATAR GROUP / SOURCES BUBBLE AT THE BOTTOM */}
+                        {/* CITATIONS & SOURCES DRAWER */}
                         {msg.citations && msg.citations.length > 0 && (
-                          <SourcesBubble citations={msg.citations} />
+                          <div className="pt-2">
+                            <Citations
+                              idPrefix={`msg-${msg.id}`}
+                              citations={msg.citations.map((c, i) => ({
+                                id: `cite-${msg.id}-${i}`,
+                                title: c.title || c.source || `Scriptural Reference ${i + 1}`,
+                                domain: c.url
+                                  ? new URL(c.url).hostname.replace(/^www\./, "")
+                                  : "nityageeta.org",
+                                url: c.url,
+                                chapter: c.chapter,
+                                verse: c.verse,
+                                page: c.page,
+                                quote: c.translation || c.snippet || c.sanskrit,
+                              }))}
+                              defaultOpen={false}
+                            />
+                          </div>
                         )}
 
                       </div>
@@ -977,8 +1047,16 @@ export default function AppMainPage() {
               
               {loading && (
                 <div className="flex justify-start w-full">
-                  <div className="bg-[#F4EFE6]/40 dark:bg-[#12100F]/40 border-l-[3px] border-[#C25E38] dark:border-[#E06D43] p-4 rounded-r-2xl rounded-bl-none flex items-center space-x-3 text-[#8C7B70] dark:text-[#A89F91]">
-                    <ReasoningText variant="cascade" interval={1800} />
+                  <div className="w-full max-w-2xl bg-[#F4EFE6]/40 dark:bg-[#12100F]/40 border-l-[3px] border-[#C25E38] dark:border-[#E06D43] p-4 rounded-r-2xl rounded-bl-none">
+                    <AgentActivity
+                      status="working"
+                      contentType="step"
+                      items={[
+                        { id: "s1", type: "step", label: "Consulting Sadhaka-Sanjivani & Vedic corpus", status: "complete" },
+                        { id: "s2", type: "step", label: "Synthesizing consensus across Multi-LLM Council (Gemini, DeepSeek, Claude, Llama)", status: "active", meta: "5 models" },
+                        { id: "s3", type: "step", label: "Verifying canonical verse citations & commentary accuracy", status: "pending" }
+                      ]}
+                    />
                   </div>
                 </div>
               )}

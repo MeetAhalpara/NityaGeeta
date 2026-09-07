@@ -1,0 +1,136 @@
+{
+  "timestamp": "2026-09-04T19:02:45.050646",
+  "backend_url": "http://localhost:8000",
+  "frontend_url": "http://localhost:1870",
+  "total": 18,
+  "passed": 18,
+  "failed": 0,
+  "results": [
+    {
+      "test_id": "TC-API-SYS-001",
+      "category": "System",
+      "name": "GET /health status response and JSON schema contract",
+      "status": "PASS",
+      "details": "Status: 200, Body: {'status': 'healthy', 'service': 'NityaGeeta API'}"
+    },
+    {
+      "test_id": "TC-API-SYS-002",
+      "category": "System",
+      "name": "GET /invalid-route returns HTTP 404 Not Found",
+      "status": "PASS",
+      "details": "Status: 404"
+    },
+    {
+      "test_id": "TC-API-SRH-001",
+      "category": "Search API",
+      "name": "POST /api/v1/search valid query contract and result pagination",
+      "status": "PASS",
+      "details": "Status: 200, Count: 3"
+    },
+    {
+      "test_id": "TC-API-SRH-002",
+      "category": "Search API",
+      "name": "POST /api/v1/search min_length boundary rejection (HTTP 422)",
+      "status": "PASS",
+      "details": "Status: 422"
+    },
+    {
+      "test_id": "TC-API-SRH-003",
+      "category": "Scripture API",
+      "name": "GET /api/v1/pages/47 canonical page retrieval and schema contract",
+      "status": "PASS",
+      "details": "Status: 200"
+    },
+    {
+      "test_id": "TC-API-SRH-004",
+      "category": "Scripture API",
+      "name": "GET /api/v1/pages/999999 out-of-bounds error handling (HTTP 404)",
+      "status": "PASS",
+      "details": "Status: 404"
+    },
+    {
+      "test_id": "TC-API-PDF-001",
+      "category": "PDF API",
+      "name": "GET /api/v1/pdf/p1_gita_press binary stream response (application/pdf)",
+      "status": "PASS",
+      "details": "Status: 200, Type: application/pdf, Size: 8469916 bytes"
+    },
+    {
+      "test_id": "TC-API-PDF-002",
+      "category": "PDF API",
+      "name": "Next.js /api/pdf-proxy unwhitelisted URL rejection (HTTP 403)",
+      "status": "PASS",
+      "details": "Returned Status: 403"
+    },
+    {
+      "test_id": "TC-API-AUTH-001",
+      "category": "Auth API",
+      "name": "POST /api/v1/auth/lookup schema response contract",
+      "status": "PASS",
+      "details": "Status: 200, Body: {'exists': False, 'message': 'User not found.'}"
+    },
+    {
+      "test_id": "TC-API-AUTH-002",
+      "category": "Auth API",
+      "name": "POST /api/v1/auth/lookup email min_length validation (HTTP 422)",
+      "status": "PASS",
+      "details": "Status: 422"
+    },
+    {
+      "test_id": "TC-API-AUTH-003",
+      "category": "Auth API",
+      "name": "POST /api/v1/auth/login required credentials enforcement (HTTP 422)",
+      "status": "PASS",
+      "details": "Status: 422"
+    },
+    {
+      "test_id": "TC-API-SES-001",
+      "category": "Session API",
+      "name": "POST /api/v1/sessions/save conversation persistence contract",
+      "status": "PASS",
+      "details": "Status: 200, Response: {'success': False, 'reason': 'User not found'}"
+    },
+    {
+      "test_id": "TC-API-SES-002",
+      "category": "Session API",
+      "name": "POST /api/v1/sessions/save non-UUID rejection without DB crash",
+      "status": "PASS",
+      "details": "Response: {'success': False, 'reason': 'Invalid session_id UUID format'}"
+    },
+    {
+      "test_id": "TC-API-SES-003",
+      "category": "Session API",
+      "name": "POST /api/v1/sessions/list schema contract and array serialization",
+      "status": "PASS",
+      "details": "Status: 200, Count: 0"
+    },
+    {
+      "test_id": "TC-API-SES-004",
+      "category": "Session API",
+      "name": "GET /api/v1/sessions/{id}/messages non-UUID format guard (HTTP 400)",
+      "status": "PASS",
+      "details": "Status: 400"
+    },
+    {
+      "test_id": "TC-API-SES-005",
+      "category": "Session API",
+      "name": "DELETE /api/v1/sessions/{id} non-UUID parameter guard (HTTP 400)",
+      "status": "PASS",
+      "details": "Status: 400"
+    },
+    {
+      "test_id": "TC-API-CHAT-001",
+      "category": "Chat API",
+      "name": "POST /api/v1/chat empty body rejection (HTTP 422)",
+      "status": "PASS",
+      "details": "Status: 422"
+    },
+    {
+      "test_id": "TC-API-CHAT-002",
+      "category": "Chat API",
+      "name": "POST /api/v1/chat min_length boundary rejection (HTTP 422)",
+      "status": "PASS",
+      "details": "Status: 422"
+    }
+  ]
+}

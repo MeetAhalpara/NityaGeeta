@@ -1,0 +1,164 @@
+{
+  "timestamp": "2026-09-04T19:02:15.163365",
+  "target_url": "http://localhost:1870/sources",
+  "framework": "Multi-Scenario Resilience (Synthetic, Lateral, High-Context, Systemic Risk-Mitigation)",
+  "total": 17,
+  "passed": 17,
+  "failed": 0,
+  "environment_summary": {
+    "Happy": {
+      "pass": 5,
+      "fail": 0
+    },
+    "Bad": {
+      "pass": 4,
+      "fail": 0
+    },
+    "Raining": {
+      "pass": 4,
+      "fail": 0
+    },
+    "Worse": {
+      "pass": 4,
+      "fail": 0
+    }
+  },
+  "results": [
+    {
+      "test_id": "TC-HP-001",
+      "environment": "Happy",
+      "pillar": "High-Context Thinking",
+      "name": "Initial Page Atmosphere & Brand Voice Integrity (No dashes, no 'we', uses 'one')",
+      "status": "PASS",
+      "details": "Failed brand voice or sentence continuity check in sources or dilemmas hero"
+    },
+    {
+      "test_id": "TC-HP-002",
+      "environment": "Happy",
+      "pillar": "Holistic Cognitive Economy",
+      "name": "Default Collapsed State of 4 Primary Canonical Editions",
+      "status": "PASS",
+      "details": "State is not null or missing one of the 4 canonical editions"
+    },
+    {
+      "test_id": "TC-HP-003",
+      "environment": "Happy",
+      "pillar": "Synthetic (Both-And) Architecture",
+      "name": "In-App PDF Manuscript Reader with Background Scroll Lock",
+      "status": "PASS",
+      "details": "PdfManuscriptReader or scroll-lock handler missing from sources page"
+    },
+    {
+      "test_id": "TC-HP-004",
+      "environment": "Happy",
+      "pillar": "Systemic Risk-Mitigation",
+      "name": "Peer-Verified Audit Scoring Modal (100/100, Academic Links, Zero '1,296' Mentions)",
+      "status": "PASS",
+      "details": "Residual '1,296' found or audit modal citations missing"
+    },
+    {
+      "test_id": "TC-HP-005",
+      "environment": "Happy",
+      "pillar": "Holistic Interconnection",
+      "name": "18-Chapter Thematic Index & Direct Deep-Linking to Dilemmas Engine",
+      "status": "PASS",
+      "details": "Missing /dilemmas?chapter= deep-link bindings in sources table"
+    },
+    {
+      "test_id": "TC-BP-001",
+      "environment": "Bad",
+      "pillar": "Lateral (Adaptive) Error Handling",
+      "name": "Malformed Search Query Handling & Safe Substring Matching (No Regex Crashes)",
+      "status": "PASS",
+      "details": "Search filter does not use safe token splitting or lacks clear empty state"
+    },
+    {
+      "test_id": "TC-BP-002",
+      "environment": "Bad",
+      "pillar": "Systemic Risk-Mitigation",
+      "name": "Out-of-Range Chapter Parameter Sanitization (1 <= chapter <= 18 Enforced)",
+      "status": "PASS",
+      "details": "Missing boundary validation 'parsed >= 1 && parsed <= 18' in page.tsx"
+    },
+    {
+      "test_id": "TC-BP-003",
+      "environment": "Bad",
+      "pillar": "High-Context Linguistic Resilience",
+      "name": "Phonetic Sanskrit Transliteration Tolerance via Comprehensive Keywords",
+      "status": "PASS",
+      "details": "Missing common phonetic synonyms in book keywords"
+    },
+    {
+      "test_id": "TC-BP-004",
+      "environment": "Bad",
+      "pillar": "Lateral State Poise",
+      "name": "Multi-Tab State Determinism Across All 5 Category Views",
+      "status": "PASS",
+      "details": "One or more tab identifiers missing from state definition"
+    },
+    {
+      "test_id": "TC-RP-001",
+      "environment": "Raining",
+      "pillar": "Lateral (Adaptive) Adaptive Workaround",
+      "name": "PDF Storage Timeout & Immediate Fallback to Direct Store Links and Summaries",
+      "status": "PASS",
+      "details": "Missing PDF loading state or direct storeUrl fallback"
+    },
+    {
+      "test_id": "TC-RP-002",
+      "environment": "Raining",
+      "pillar": "Socio-Centric Universal Accessibility",
+      "name": "Responsive Layout Integrity for Low-Spec Mobile Screens (320px Safe)",
+      "status": "PASS",
+      "details": "Missing responsive flex-col sm:flex-row or single-column mobile grids"
+    },
+    {
+      "test_id": "TC-RP-003",
+      "environment": "Raining",
+      "pillar": "Adaptive Structural Resilience",
+      "name": "Graceful Animation Degradation Under CPU Constraints (Non-Blocking Transitions)",
+      "status": "PASS",
+      "details": "Missing lightweight CSS transition durations on interactive elements"
+    },
+    {
+      "test_id": "TC-RP-004",
+      "environment": "Raining",
+      "pillar": "Systemic Memory Preservation",
+      "name": "Client-Side State Retention Through Intermittent Connection Drops",
+      "status": "PASS",
+      "details": "Search or tab state is not cleanly encapsulated in component memory"
+    },
+    {
+      "test_id": "TC-WP-001",
+      "environment": "Worse",
+      "pillar": "Systemic Risk-Mitigation (Self-Contained Client)",
+      "name": "100% Client-Side Library Navigation Independence When Backend API Is Offline",
+      "status": "PASS",
+      "details": "Found blocking API call in sources page load or missing inlined canonical metadata"
+    },
+    {
+      "test_id": "TC-WP-002",
+      "environment": "Worse",
+      "pillar": "Sacred Trust & Canonical Incorruptibility",
+      "name": "Zero Scriptural Hallucination Gate (Authentic Devanagari & Zero Mock Verses)",
+      "status": "PASS",
+      "details": "Found placeholder text or missing Sanskrit fields in gitaDilemmas.ts"
+    },
+    {
+      "test_id": "TC-WP-003",
+      "environment": "Worse",
+      "pillar": "Lateral Commercial & Scholarly Redundancy",
+      "name": "Institutional Redundancy: Verified Publisher Acquisition Links for Every Book",
+      "status": "PASS",
+      "details": "Missing authentic storeUrl fallback on one or more books"
+    },
+    {
+      "test_id": "TC-WP-004",
+      "environment": "Worse",
+      "pillar": "Live Endpoint Resilience",
+      "name": "Live HTTP Server Response for http://localhost:1870/sources (HTTP 200 OK)",
+      "status": "PASS",
+      "details": "Expected status 200, got: 200"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-09-04T19:02:14.846637",
+  "total": 8,
+  "passed": 8,
+  "failed": 0,
+  "results": [
+    {
+      "test_id": "TC-SRC-001",
+      "name": "Sources: Book 1 default collapsed on initial load",
+      "status": "PASS",
+      "details": "expandedSourceId state must default to null"
+    },
+    {
+      "test_id": "TC-SRC-007",
+      "name": "Sources: Subtitle text omits '(Veducation.world)' across Veducation series",
+      "status": "PASS",
+      "details": "Found residual '(Veducation.world)' in veducationSeries metadata"
+    },
+    {
+      "test_id": "TC-SRC-004",
+      "name": "Sources: Vedic Dincharya & Brahmacharya show Beta Translation in Progress notice",
+      "status": "PASS",
+      "details": "Missing translationNotice for ved-2 or ved-3"
+    },
+    {
+      "test_id": "TC-SRC-005",
+      "name": "Sources: 5-in-1 Master Bundle formatted as '1. BookName' with only FREE Bonus kept",
+      "status": "PASS",
+      "details": "Bundle formatting or pricing assertion failed"
+    },
+    {
+      "test_id": "TC-SRC-006",
+      "name": "Sources: Redundant overview and why-included blocks hidden for 5-in-1 bundle",
+      "status": "PASS",
+      "details": "Expected {!source.bundleBooks && (...)} wrapping overview boxes"
+    },
+    {
+      "test_id": "TC-DIL-001",
+      "name": "Dilemmas: Search bar displays real-time match pill and X icon button",
+      "status": "PASS",
+      "details": "Missing match count text or X icon in search pill"
+    },
+    {
+      "test_id": "TC-DIL-003",
+      "name": "Dilemmas: 18-Chapter directory table displays clean numbers (1, 2, 3...) under Chapter",
+      "status": "PASS",
+      "details": "Table still contains redundant 'Chapter 01' text under Chapter column"
+    },
+    {
+      "test_id": "TC-COR-001",
+      "name": "Corpus: Canonical tally of 18 chapters and 701 verses (canonical 700 / 701 with Ch 13.1)",
+      "status": "PASS",
+      "details": "Counted 18 chapters and 701 verses"
+    }
+  ]
+}

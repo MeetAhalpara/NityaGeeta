@@ -7,11 +7,13 @@ import { cn } from "@/lib/utils";
 
 export type TransitionVariant =
   | "circle"
+  | "circle-blur"
   | "square"
   | "triangle"
   | "diamond"
   | "hexagon"
   | "rectangle"
+  | "blinds"
   | "star";
 
 interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"button"> {
@@ -54,6 +56,7 @@ function getThemeTransitionClipPaths(
 
   switch (variant) {
     case "circle":
+    case "circle-blur":
       return [
         `circle(0% at ${point(cx, cy)})`,
         `circle(${toRadius(maxRadius)} at ${point(cx, cy)})`,
@@ -149,7 +152,7 @@ function getThemeTransitionClipPaths(
 
 export const AnimatedThemeToggler = ({
   className,
-  duration = 350,
+  duration = 950,
   variant,
   fromCenter = false,
   theme,
@@ -260,17 +263,39 @@ export const AnimatedThemeToggler = ({
     if (ready && typeof ready.then === "function") {
       ready
         .then(() => {
+          const isBlurVariant = shape === "circle-blur" || shape === "circle";
+
+          // Animate incoming theme view with gentle expanding circular wave and gradual soft blur
           document.documentElement.animate(
             {
               clipPath,
+              filter: isBlurVariant
+                ? ["blur(18px)", "blur(12px)", "blur(5px)", "blur(0px)"]
+                : undefined,
             },
             {
               duration,
-              easing: shape === "star" ? "linear" : "ease-in-out",
+              easing: "cubic-bezier(0.25, 1, 0.4, 1)",
               fill: "forwards",
               pseudoElement: "::view-transition-new(root)",
             }
-          )
+          );
+
+          if (isBlurVariant) {
+            // Gradually blur out outgoing theme view for an ultra-smooth dreamy dissolve
+            document.documentElement.animate(
+              {
+                filter: ["blur(0px)", "blur(6px)", "blur(14px)"],
+                opacity: [1, 0.95, 0.85],
+              },
+              {
+                duration: duration * 0.95,
+                easing: "cubic-bezier(0.25, 1, 0.4, 1)",
+                fill: "forwards",
+                pseudoElement: "::view-transition-old(root)",
+              }
+            );
+          }
         })
         .catch(() => {});
     }
@@ -298,3 +323,6 @@ export const AnimatedThemeToggler = ({
     </button>
   );
 };
+
+export const ThemeToggle = AnimatedThemeToggler;
+export type ThemeVariant = TransitionVariant;

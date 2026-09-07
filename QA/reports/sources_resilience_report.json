@@ -1,0 +1,92 @@
+{
+  "timestamp": "2026-09-02T23:24:03.780831",
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "results": [
+    {
+      "climate": "HAPPY",
+      "test_id": "TC-HAP-001",
+      "name": "4 Canonical Commentaries Presence & Hierarchy",
+      "status": "PASS",
+      "details": "All 4 canonical editions must be defined in geetaEditions"
+    },
+    {
+      "climate": "HAPPY",
+      "test_id": "TC-HAP-002",
+      "name": "4 Veducation Series Books Presence",
+      "status": "PASS",
+      "details": "All 4 Veducation titles must be defined in veducationSeries"
+    },
+    {
+      "climate": "HAPPY",
+      "test_id": "TC-HAP-003",
+      "name": "Default Collapsed State (Zero Initial Clutter)",
+      "status": "PASS",
+      "details": "expandedSourceId state must default to null"
+    },
+    {
+      "climate": "HAPPY",
+      "test_id": "TC-HAP-004",
+      "name": "Complete 18-Chapter Thematic Index Presence",
+      "status": "PASS",
+      "details": "Must include complete 18 chapters coverage"
+    },
+    {
+      "climate": "BAD",
+      "test_id": "TC-BAD-001",
+      "name": "Zero '1,296-Page' References in Sources Code",
+      "status": "PASS",
+      "details": "All 1,296 page references must be completely purged"
+    },
+    {
+      "climate": "BAD",
+      "test_id": "TC-BAD-002",
+      "name": "Search Empty State with Auto-Recovery Chips",
+      "status": "PASS",
+      "details": "Must display recovery chips and clear button when search produces 0 matches"
+    },
+    {
+      "climate": "BAD",
+      "test_id": "TC-BAD-003",
+      "name": "Beta Translation Notice for In-Progress Editions",
+      "status": "PASS",
+      "details": "Must guard Vedic Dincharya and Brahmacharya with translation notice"
+    },
+    {
+      "climate": "RAINING",
+      "test_id": "TC-RAI-001",
+      "name": "Body Scroll-Lock & Unset Cleanup Safety",
+      "status": "PASS",
+      "details": "Must cleanly release body scroll lock when modal closes"
+    },
+    {
+      "climate": "RAINING",
+      "test_id": "TC-RAI-002",
+      "name": "PDF In-App Viewer Streaming Spinner Guard",
+      "status": "PASS",
+      "details": "Must set isPdfLoading to true when opening PDF to reassure user on slow 3G"
+    },
+    {
+      "climate": "WORSE",
+      "test_id": "TC-WOR-001",
+      "name": "Backend Decoupled Architecture (Offline Autonomy)",
+      "status": "PASS",
+      "details": "Page metadata must be statically bundled so it functions when API server is down"
+    },
+    {
+      "climate": "WORSE",
+      "test_id": "TC-WOR-002",
+      "name": "Null-Safe PDF Handler Guard",
+      "status": "PASS",
+      "details": "handleOpenPdf must guard against null URLs to prevent runtime crashes"
+    },
+    {
+      "climate": "WORSE",
+      "test_id": "TC-WOR-003",
+      "name": "Multi-Tier Secondary Store Fallbacks (Plan C)",
+      "status": "PASS",
+      "details": "Found 8 external publisher fallback links (expected at least 6)"
+    }
+  ]
+}

@@ -253,6 +253,14 @@ export function SmoothCursor({
       if (!isTrackablePointer(e.pointerType)) {
         return;
       }
+
+      // If mouse is touching the right scrollbar track or screen boundaries, hide custom cursor
+      const clientWidth = document.documentElement.clientWidth;
+      if (e.clientX >= clientWidth - 14 || e.clientX <= 2 || e.clientY <= 2 || e.clientY >= window.innerHeight - 2) {
+        setIsVisible(false);
+        return;
+      }
+
       setIsVisible(true);
       const currentPos = { x: e.clientX, y: e.clientY };
       updateVelocity(currentPos);
@@ -304,12 +312,36 @@ export function SmoothCursor({
     };
 
     document.body.style.cursor = "none";
+    
+    const handleMouseLeave = () => {
+      setIsVisible(false);
+    };
+
+    const handleWindowBlur = () => {
+      setIsVisible(false);
+    };
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const clientWidth = document.documentElement.clientWidth;
+      if (e.clientX >= clientWidth - 18) {
+        setIsVisible(false);
+      }
+    };
+
     window.addEventListener("pointermove", throttledPointerMove, {
       passive: true,
     });
+    window.addEventListener("pointerdown", handlePointerDown, {
+      passive: true,
+    });
+    document.addEventListener("mouseleave", handleMouseLeave);
+    window.addEventListener("blur", handleWindowBlur);
 
     return () => {
       window.removeEventListener("pointermove", throttledPointerMove);
+      window.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("mouseleave", handleMouseLeave);
+      window.removeEventListener("blur", handleWindowBlur);
       document.body.style.cursor = "auto";
       if (rafId) cancelAnimationFrame(rafId);
       if (timeout !== null) {
