@@ -26,8 +26,17 @@ async function fetchWithTimeout(
     throw new Error("Client aborted");
   }
 
-  // Enforce outbound destination boundary
-  if (!url.startsWith(TRUSTED_STORAGE_ORIGIN) && !url.startsWith(TRUSTED_NITYA_ORIGIN)) {
+  // Enforce outbound destination boundary via parsed hostname (prevents substring bypass)
+  try {
+    const targetParsed = new URL(url);
+    const targetHost = targetParsed.hostname.toLowerCase();
+    if (
+      targetParsed.protocol !== "https:" ||
+      (targetHost !== "storage.googleapis.com" && targetHost !== "nityageeta.com")
+    ) {
+      throw new Error("Unauthorized outbound destination");
+    }
+  } catch {
     throw new Error("Unauthorized outbound destination");
   }
 
