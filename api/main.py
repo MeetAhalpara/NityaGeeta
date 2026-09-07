@@ -410,7 +410,7 @@ async def save_session_endpoint(request: SessionSaveRequest):
 
     except Exception as e:
         logger.error(f"Session save error: {e}")
-        return {"success": False, "reason": str(e)}
+        return {"success": False, "reason": "Failed to save session due to an internal server error."}
     finally:
         if conn:
             conn.close()
@@ -534,7 +534,7 @@ async def delete_session_endpoint(session_id: str, user_email: str):
         raise
     except Exception as e:
         logger.error(f"Session delete error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error occurred while deleting session.")
     finally:
         if conn:
             conn.close()

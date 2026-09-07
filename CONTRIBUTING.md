@@ -102,7 +102,6 @@ python QA/test_new_dilemma_search.py
 ## Questions & Community
 
 Have questions or want to discuss an idea before writing code?
-* Open a [GitHub Discussion](https://github.com/MeetAhalpara/NityaGeeta/discussions)
-* Reach out via our [Contact Portal](https://nityageeta.org/contact) or email [contact@nityageeta.org](mailto:contact@nityageeta.org)
+* Open an issue or discussion on [GitHub](https://github.com/MeetAhalpara/NityaGeeta).
 
 *Hari Om Tat Sat.*

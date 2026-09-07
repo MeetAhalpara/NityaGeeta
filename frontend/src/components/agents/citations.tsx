@@ -239,23 +239,37 @@ export function Citations({
 
                   {cite.url && (
                     <div className="pt-2 border-t border-[#DFD5C6]/40 dark:border-[#38332E]/40 flex justify-end">
-                      <a
-                        href={
-                          cite.url.startsWith("http") && !cite.url.includes("storage.googleapis.com")
-                            ? cite.url
-                            : "/sources"
-                        }
-                        target={
-                          cite.url.startsWith("http") && !cite.url.includes("storage.googleapis.com")
-                            ? "_blank"
-                            : "_self"
-                        }
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C25E38] dark:text-[#E06D43] hover:underline"
-                      >
-                        <span>{cite.domain ? `Source: ${cite.domain}` : "Open in Vedic Library"}</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                      {(() => {
+                        const safeUrl = (() => {
+                          if (!cite.url) return "/sources";
+                          try {
+                            const parsed = new URL(cite.url);
+                            if (
+                              (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+                              !parsed.hostname.includes("storage.googleapis.com")
+                            ) {
+                              return parsed.origin + parsed.pathname + parsed.search + parsed.hash;
+                            }
+                          } catch {
+                            // Invalid URL
+                          }
+                          return "/sources";
+                        })();
+
+                        const isExternal = safeUrl.startsWith("http");
+
+                        return (
+                          <a
+                            href={safeUrl}
+                            target={isExternal ? "_blank" : "_self"}
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C25E38] dark:text-[#E06D43] hover:underline"
+                          >
+                            <span>{cite.domain ? `Source: ${cite.domain}` : "Open in Vedic Library"}</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

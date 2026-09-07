@@ -20,8 +20,7 @@ Security patches and vulnerability updates are actively maintained on the follow
 
 If you discover a security vulnerability or weakness within NityaGeeta, please **DO NOT open a public GitHub issue**. Instead, follow our responsible disclosure procedure:
 
-1. **Private Email**: Send an email directly to the maintainers at **[security@nityageeta.org](mailto:security@nityageeta.org)** (or **[contact@nityageeta.org](mailto:contact@nityageeta.org)**).
-2. **GitHub Security Advisory**: Alternatively, submit a private advisory through the [GitHub Advisory Tab](https://github.com/MeetAhalpara/NityaGeeta/security/advisories/new).
+* **GitHub Security Advisory**: Submit a private advisory through the [GitHub Advisory Tab](https://github.com/MeetAhalpara/NityaGeeta/security/advisories/new) or contact the project maintainer directly via GitHub.
 
 ### What to Include in Your Report
 Please provide as much detail as possible to help us triage and reproduce the issue:

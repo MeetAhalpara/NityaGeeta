@@ -44,11 +44,7 @@ This Code of Conduct applies within all community spaces (GitHub repositories, i
 
 ## Enforcement & Reporting
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainers at:
-* **Email**: [contact@nityageeta.org](mailto:contact@nityageeta.org)
-* **Website Portal**: [NityaGeeta Contact & Feedback](https://nityageeta.org/contact)
-
-All complaints will be reviewed and investigated promptly and fairly. All community leaders are obligated to respect the privacy and security of the reporter of any incident.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported directly to the project maintainers via GitHub. All complaints will be reviewed and investigated promptly and fairly. All community leaders are obligated to respect the privacy and security of the reporter of any incident.
 
 ---
 

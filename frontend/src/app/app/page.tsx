@@ -945,11 +945,31 @@ Start or verify the backend server:
                                         <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] italic p-2">No external live web links retrieved for this response.</p>
                                       ) : (
                                         webCitations.map((cit, cIdx) => {
-                                          const domain = cit.url ? new URL(cit.url).hostname.replace('www.', '') : (cit.source || 'Web Resource');
+                                          const safeUrl = (() => {
+                                            if (!cit.url) return "#";
+                                            try {
+                                              const parsed = new URL(cit.url);
+                                              if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+                                                return parsed.origin + parsed.pathname + parsed.search + parsed.hash;
+                                              }
+                                            } catch {
+                                              // Invalid URL
+                                            }
+                                            return "#";
+                                          })();
+
+                                          const domain = (() => {
+                                            try {
+                                              return cit.url ? new URL(cit.url).hostname.replace('www.', '') : (cit.source || 'Web Resource');
+                                            } catch {
+                                              return cit.source || 'Web Resource';
+                                            }
+                                          })();
+
                                           return (
                                             <a
                                               key={cIdx}
-                                              href={cit.url || "#"}
+                                              href={safeUrl}
                                               target="_blank"
                                               rel="noopener noreferrer"
                                               className="p-3 rounded-lg bg-[#EFE9DF]/50 dark:bg-[#262320]/50 border border-[#E6DDD0] dark:border-[#38332E] hover:border-[#C25E38]/50 transition-all flex items-start gap-2.5 text-xs block group"

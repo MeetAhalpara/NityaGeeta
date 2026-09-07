@@ -80,7 +80,7 @@ function parseMessageContent(rawText: string): ParsedSection[] {
 
       const sanskritLines: string[] = [];
       while (i < lines.length && isPureDevanagariVerseLine(lines[i])) {
-        const clean = lines[i].replace(/\s*\([a-zA-gāīūṛṁḥṭḍṇśṣñ\s']+\)/gi, "").trim();
+        const clean = lines[i].replace(/\s*\([a-zA-Zāīūṛṁḥṭḍṇśṣñ\s']+\)/gi, "").trim();
         if (clean && !isOcrNoiseLine(clean)) sanskritLines.push(clean);
         i++;
       }
