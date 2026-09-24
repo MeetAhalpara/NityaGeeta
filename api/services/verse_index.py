@@ -15,9 +15,10 @@ search_verses(query, top_k):
 """
 
 import re
+import math
 import logging
 from collections import defaultdict
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any, Set, Tuple, Optional
 
 logger = logging.getLogger("nityageeta.verse_index")
 
@@ -45,8 +46,57 @@ STOP = {
 
 # ── Global state ──────────────────────────────────────────────────────────────
 _VERSES: List[Dict[str,Any]] = []
-_INV: Dict[str, List[int]] = defaultdict(list)   # word → [verse indices]
-_VOCAB: Set[str] = set()                          # all unique words in corpus
+_VERSE_MAP: Dict[str, Dict[str, Any]] = {}       # "chapter.verse" -> verse dict
+_INV: Dict[str, List[int]] = defaultdict(list)   # word -> [verse indices]
+_VOCAB: Set[str] = set()                         # all unique words in corpus
+_DOC_LENS: List[int] = []                        # document lengths for BM25
+_AVG_DOC_LEN: float = 0.0                        # average doc length
+_IDF: Dict[str, float] = {}                      # Robertson-Spärck Jones IDF
+
+# ── Deterministic Citation Parsing ────────────────────────────────────────────
+def parse_verse_citation(text: str) -> Optional[Tuple[str, str]]:
+    """
+    Extracts (chapter, verse) tuple if the query explicitly cites a Gita shloka.
+    Handles forms like:
+      - 'BG 2.47', 'BG 2:47', 'BG 2-47'
+      - 'Bhagavad Gita 18.66', 'Gita 18.66'
+      - 'Chapter 2 Verse 47', 'Chapter 2, Verse 47'
+      - '2.47 karma' or standalone '2.47'
+    Returns (chapter_str, verse_str) or None.
+    """
+    if not text:
+        return None
+
+    # Pattern 1: Explicit BG / Gita / Chapter prefix
+    explicit_pat = re.search(
+        r'(?:(?:bg|gita|bhagavad\s*gita|chapter|chap\.?|ch\.?)\s*)'
+        r'(\b\d{1,2}\b)[\s\.\:\,\-v]+(?:verse|shloka|sloka)?\s*(\b\d{1,3}\b)',
+        text, re.IGNORECASE
+    )
+    if explicit_pat:
+        ch, v = explicit_pat.group(1), explicit_pat.group(2)
+        if 1 <= int(ch) <= 18 and 1 <= int(v) <= 78:
+            return (str(int(ch)), str(int(v)))
+        return None
+
+    # Pattern 2: "Chapter X Verse Y"
+    ch_v_pat = re.search(
+        r'chapter\s*(\b\d{1,2}\b)\s*(?:,\s*)?(?:verse|shloka|sloka)\s*(\b\d{1,3}\b)',
+        text, re.IGNORECASE
+    )
+    if ch_v_pat:
+        ch, v = ch_v_pat.group(1), ch_v_pat.group(2)
+        if 1 <= int(ch) <= 18 and 1 <= int(v) <= 78:
+            return (str(int(ch)), str(int(v)))
+        return None
+
+    # Pattern 3: Standard numeric citation "X.Y" or "X:Y" (e.g., "2.47", "18:66")
+    for m in re.finditer(r'\b(\d{1,2})\s*[\.\:]\s*(\d{1,3})\b', text):
+        ch, v = m.group(1), m.group(2)
+        if 1 <= int(ch) <= 18 and 1 <= int(v) <= 78:
+            return (str(int(ch)), str(int(v)))
+
+    return None
 
 # ── Synonym map (covers every major Gita theme) ───────────────────────────────
 SYN: Dict[str, List[str]] = {
@@ -313,13 +363,25 @@ def _from_p3(pages: List[Dict]) -> List[Dict[str,Any]]:
 def _from_orig_eng(pages: List[Dict], source_name: str) -> List[Dict[str,Any]]:
     results = []
     ch_re = re.compile(r"\[?(?:Chapter|Chap\.?)\s+(\d+)", re.I)
+    word_to_num = {
+        "first": "1", "second": "2", "third": "3", "fourth": "4", "fifth": "5", "sixth": "6",
+        "seventh": "7", "eighth": "8", "ninth": "9", "tenth": "10",
+        "eleventh": "11", "twelfth": "12", "thirteenth": "13", "fourteenth": "14",
+        "fifteenth": "15", "sixteenth": "16", "seventeenth": "17", "eighteenth": "18"
+    }
+    current_ch = "1"
 
     for item in pages:
         orig = str(item.get("original",""))
-        eng  = str(item.get("english",""))
+        eng  = str(item.get("english","") or item.get("text",""))
         page = item.get("page", 0)
-        if _VEND not in orig: continue
-        if len(re.findall(r"[\u0900-\u097f]", orig)) < 20: continue
+        if _VEND not in orig:
+            # Check if verse markers are in text/eng (e.g. Shankaracharya)
+            if _VEND not in eng:
+                continue
+            orig = eng
+        if len(re.findall(r"[\u0900-\u097f]", orig)) < 15:
+            continue
 
         # Largest Devanagari block with verse marker
         best, best_len = None, 0
@@ -331,12 +393,17 @@ def _from_orig_eng(pages: List[Dict], source_name: str) -> List[Dict[str,Any]]:
 
         if not best: continue
         ch, v = _verse_num(best)
-        if not v:
-            cm = ch_re.search(eng)
-            ch = cm.group(1) if cm else ""
         if not v: continue
-        # Reject entries without a chapter number — they're index/reference pages
-        if not ch: continue
+        if not ch:
+            cm = ch_re.search(eng)
+            if cm:
+                current_ch = cm.group(1)
+            else:
+                cm2 = re.search(r"(?:First|Second|Third|Fourth|Fifth|Sixth|Seventh|Eighth|Ninth|Tenth|Eleventh|Twelfth|Thirteenth|Fourteenth|Fifteenth|Sixteenth|Seventeenth|Eighteenth)\s+Chapter", eng, re.I)
+                if cm2:
+                    w = cm2.group(0).split()[0].lower()
+                    current_ch = word_to_num.get(w, current_ch)
+            ch = current_ch
 
         # First real English sentence from the commentary
         english = ""
@@ -349,23 +416,24 @@ def _from_orig_eng(pages: List[Dict], source_name: str) -> List[Dict[str,Any]]:
             if iast_count >= 4: continue
             # Skip lines starting with "Connection" or "Link" (structural labels)
             if re.match(r"^Connection\b|^Link\b|^Note\b", s, re.I): continue
-            if re.match(r"[A-Z]", s) and len(s) > 30:
-                english = _first_sentence(s[:600]); break
-        if len(english) < 20: continue
-        # Reject entries where english is mostly IAST (no real translation available)
-        if len(re.findall(r"[āīūṛṁḥṭḍṇśṣñ]", english)) >= 5: continue
+            if re.match(r"[A-Z]", s) and len(s) > 25:
+                english = _first_sentence(s[:600])
+                break
+        if len(english) < 15:
+            english = eng[:300].strip()
 
         # Rich text = full english commentary page
-        rich = re.sub(r"[āīūṛṁḥṭḍṇśṣñĀĪŪṚṂḤṬḌṆŚṢÑ]", " ", eng)
+        rich = re.sub(r"[āīūṛṁḥṭḍṇśṣñĀĪŪṚṂḤṬḌṆŚṢÑ\u0900-\u097f]", " ", eng)
 
         sanskrit = _clean_sanskrit(best)
         if not sanskrit: continue
 
         results.append({
-            "chapter": ch or "", "verse": v,
+            "chapter": str(int(ch)) if ch.isdigit() else ch,
+            "verse": str(int(v)) if v.isdigit() else v,
             "citation": f"Chapter {ch}, Verse {v}" if ch else f"Verse {v}",
             "sanskrit": sanskrit,
-            "english":  english,
+            "english":  english[:500],
             "rich_text": rich,
             "keywords": _tokenize(rich),
             "source": source_name,
@@ -380,22 +448,92 @@ def _dedup(verses: List[Dict[str,Any]]) -> List[Dict[str,Any]]:
     seen: Dict[str,Dict] = {}
     for v in verses:
         key = f"{v['chapter']}.{v['verse']}"
-        if key not in seen or PRIO.get(v["source"],9) < PRIO.get(seen[key]["source"],9):
+        if key not in seen or PRIO.get(v.get("source"),9) < PRIO.get(seen[key].get("source"),9):
             seen[key] = v
     return list(seen.values())
 
 
-# ── Build inverted index ──────────────────────────────────────────────────────
+# ── Build inverted index & BM25 structures ────────────────────────────────────
 
 def _build_inverted(verses: List[Dict[str,Any]]) -> None:
-    global _INV, _VOCAB
+    global _INV, _VOCAB, _DOC_LENS, _AVG_DOC_LEN, _IDF, _VERSE_MAP
     _INV = defaultdict(list)
     _VOCAB = set()
+    _DOC_LENS = []
+    _IDF = {}
+    _VERSE_MAP = {}
+
     for idx, v in enumerate(verses):
-        kw_set = set(v.get("keywords",[]))
+        kw_list = v.get("keywords", [])
+        kw_set = set(kw_list)
         _VOCAB.update(kw_set)
+        _DOC_LENS.append(len(kw_list))
         for w in kw_set:
             _INV[w].append(idx)
+
+        # Index canonical chapter.verse for O(1) deterministic retrieval
+        ch = str(v.get("chapter", "")).strip()
+        vs = str(v.get("verse", "")).strip()
+        if ch and vs:
+            ch_clean = str(int(ch)) if ch.isdigit() else ch
+            vs_clean = str(int(vs)) if vs.isdigit() else vs
+            _VERSE_MAP[f"{ch_clean}.{vs_clean}"] = v
+
+    total_docs = len(verses)
+    _AVG_DOC_LEN = float(sum(_DOC_LENS) / total_docs) if total_docs > 0 else 1.0
+
+    # Precalculate Robertson-Spärck Jones IDF for all vocabulary terms
+    for term, doc_indices in _INV.items():
+        doc_freq = len(doc_indices)
+        # Standard BM25 IDF with smoothing to prevent negative weights
+        idf = math.log(((total_docs - doc_freq + 0.5) / (doc_freq + 0.5)) + 1.0)
+        _IDF[term] = max(0.01, idf)
+
+
+# ── BM25Okapi Ranking Engine ──────────────────────────────────────────────────
+
+def bm25_score_verses(
+    query_tokens: List[str],
+    k1: float = 1.5,
+    b: float = 0.75
+) -> Dict[int, float]:
+    """
+    Computes BM25Okapi scores for all candidate verses with document length normalization.
+    """
+    scores: Dict[int, float] = defaultdict(float)
+    if not _AVG_DOC_LEN or not _VERSES:
+        return scores
+
+    for word in query_tokens:
+        idf = _IDF.get(word, 0.0)
+        if idf <= 0.0:
+            continue
+        for idx in _INV.get(word, []):
+            tf = _VERSES[idx]["keywords"].count(word)
+            doc_len = _DOC_LENS[idx]
+            norm_tf = (tf * (k1 + 1.0)) / (tf + k1 * (1.0 - b + b * (doc_len / _AVG_DOC_LEN)))
+            scores[idx] += idf * norm_tf
+
+    return scores
+
+
+# ── Reciprocal Rank Fusion (RRF) ──────────────────────────────────────────────
+
+def reciprocal_rank_fusion(
+    ranked_lists: List[List[Tuple[int, float]]],
+    k: int = 60
+) -> List[Tuple[int, float]]:
+    """
+    Fuses multiple ranked lists using Reciprocal Rank Fusion:
+      RRF_score(d) = sum_m 1 / (k + rank_m(d))
+    k: constant damping factor (standard industry default: 60)
+    """
+    rrf_scores: Dict[int, float] = defaultdict(float)
+    for r_list in ranked_lists:
+        for rank_idx, (doc_idx, _) in enumerate(r_list, start=1):
+            rrf_scores[doc_idx] += 1.0 / (k + rank_idx)
+
+    return sorted(rrf_scores.items(), key=lambda x: -x[1])
 
 
 # ── Public: build ─────────────────────────────────────────────────────────────
@@ -415,44 +553,57 @@ def build_verse_index(datasets: Dict[str, List[Dict]]) -> None:
 
     _VERSES = _dedup(p3 + p1 + p4)
     _build_inverted(_VERSES)
-    logger.info(f"Verse index ready: {len(_VERSES)} unique shlokas | vocab: {len(_VOCAB)} words")
+    logger.info(
+        f"Verse index ready: {len(_VERSES)} unique shlokas | "
+        f"vocab: {len(_VOCAB)} words | direct map: {len(_VERSE_MAP)} verses"
+    )
 
 
 # ── Public: search ────────────────────────────────────────────────────────────
 
-def search_verses(query: str, top_k: int = 3) -> List[Dict[str,Any]]:
+def search_verses_hybrid(query: str, top_k: int = 3) -> List[Dict[str,Any]]:
     """
-    Returns top_k verses most relevant to the query.
-
-    Pipeline:
-      1. Tokenise query
-      2. Expand each token via SYN map  (covers all major Gita themes)
-      3. For unknown tokens → find vocabulary words that share a 4-char stem
-         (automatic fallback — handles any word not in the synonym map)
-      4. Score verses via inverted index
-      5. Coherence bonus for 3+ distinct term hits
+    Hybrid scripture search engine combining:
+      1. Deterministic citation parser (e.g., 'BG 2.47', 'Chapter 18 Verse 66') -> O(1) exact hit.
+      2. BM25Okapi lexical retrieval with doc-length normalization.
+      3. Semantic/synonym-expanded inverted retrieval.
+      4. Reciprocal Rank Fusion (RRF with k=60) merge layer.
     """
     if not _VERSES:
         return []
 
-    # Step 1 — tokenise
+    # ── Path 1: Deterministic Verse Citation Fast-Path ─────────────────────────
+    parsed_citation = parse_verse_citation(query)
+    exact_verse = None
+    if parsed_citation:
+        ch, v = parsed_citation
+        key = f"{int(ch)}.{int(v)}"
+        if key in _VERSE_MAP:
+            exact_verse = dict(_VERSE_MAP[key])
+            exact_verse["retrieval_method"] = "deterministic_citation"
+            exact_verse["rrf_score"] = 1.0
+            exact_verse["bm25_score"] = 100.0
+            exact_verse["confidence"] = 1.0
+            logger.info(f"Deterministic citation match for '{query}': Chapter {ch}, Verse {v}")
+            if top_k <= 1:
+                return [exact_verse]
+
+    # ── Path 2: Hybrid Retrieval (BM25 + Semantic Search + RRF) ───────────────
+    # Tokenize query
     raw = _tokenize(query.replace("-",""))
     if not raw:
-        raw = [w.lower() for w in query.split() if len(w) >= 3]
+        raw = [w.lower() for w in query.split() if len(w) >= 3 and w not in STOP]
 
-    # Step 2 — synonym expansion
     primary:  List[str] = list(set(raw))
     expanded: List[str] = []
     for kw in primary:
         syns = SYN.get(kw, [])
         if not syns:
-            # stem match on synonym keys  (e.g. "anxious" → "anxiety")
             for sk in SYN:
                 if len(kw) >= 5 and (kw.startswith(sk[:5]) or sk.startswith(kw[:5])):
                     syns = SYN[sk]; break
         expanded.extend(syns)
 
-    # Step 3 — corpus stem fallback for any still-unknown token
     all_search = set(primary) | set(expanded)
     for kw in primary:
         if kw not in _VOCAB and len(kw) >= 4:
@@ -462,12 +613,15 @@ def search_verses(query: str, top_k: int = 3) -> List[Dict[str,Any]]:
                     all_search.add(vw)
 
     if not all_search:
-        return []
+        return [exact_verse] if exact_verse else []
 
-    # Step 4 — score via inverted index
-    scores: Dict[int, float]        = defaultdict(float)
-    hits:   Dict[int, Set[str]]     = defaultdict(set)
+    # 1. BM25 scoring
+    bm25_scores = bm25_score_verses(list(primary) + [e for e in expanded if e not in primary])
+    ranked_bm25 = sorted(bm25_scores.items(), key=lambda x: -x[1])
 
+    # 2. Semantic / Synonym scoring
+    semantic_scores: Dict[int, float] = defaultdict(float)
+    hits: Dict[int, Set[str]] = defaultdict(set)
     primary_set  = set(primary)
     expanded_set = set(expanded) - primary_set
 
@@ -476,21 +630,52 @@ def search_verses(query: str, top_k: int = 3) -> List[Dict[str,Any]]:
             kw_count = _VERSES[idx]["keywords"].count(word)
             src_boost = 1.2 if _VERSES[idx].get("source") == "Gita Sadhak Sanjeevani" else 1.0
             if word in primary_set:
-                scores[idx] += kw_count * 6.0 * src_boost
+                semantic_scores[idx] += kw_count * 6.0 * src_boost
             elif word in expanded_set:
-                scores[idx] += kw_count * 1.0 * src_boost
+                semantic_scores[idx] += kw_count * 1.0 * src_boost
             else:
-                scores[idx] += kw_count * 0.3 * src_boost   # stem-fallback hit
+                semantic_scores[idx] += kw_count * 0.3 * src_boost
             hits[idx].add(word)
 
-    # Step 5 — coherence bonus
-    for idx in scores:
+    for idx in semantic_scores:
         if len(hits[idx]) >= 3:
-            scores[idx] += 5.0
+            semantic_scores[idx] += 5.0
 
-    ranked = sorted(scores.items(), key=lambda x: -x[1])
-    return [_VERSES[i] for i, _ in ranked[:top_k]]
+    ranked_semantic = sorted(semantic_scores.items(), key=lambda x: -x[1])
+
+    # 3. Reciprocal Rank Fusion (RRF k=60)
+    fused_ranks = reciprocal_rank_fusion([ranked_bm25[:50], ranked_semantic[:50]], k=60)
+
+    results: List[Dict[str, Any]] = []
+    seen_keys: Set[str] = set()
+
+    # Prepend deterministic match if present
+    if exact_verse:
+        exact_key = f"{exact_verse['chapter']}.{exact_verse['verse']}"
+        results.append(exact_verse)
+        seen_keys.add(exact_key)
+
+    for doc_idx, rrf_score in fused_ranks:
+        v_entry = dict(_VERSES[doc_idx])
+        key = f"{v_entry['chapter']}.{v_entry['verse']}"
+        if key in seen_keys:
+            continue
+        v_entry["retrieval_method"] = "rrf_hybrid"
+        v_entry["rrf_score"] = round(rrf_score, 4)
+        v_entry["bm25_score"] = round(bm25_scores.get(doc_idx, 0.0), 2)
+        v_entry["confidence"] = round(min(1.0, rrf_score * 35.0), 2)
+        results.append(v_entry)
+        seen_keys.add(key)
+        if len(results) >= top_k:
+            break
+
+    return results
+
+
+# Backward compatibility alias
+search_verses = search_verses_hybrid
 
 
 def get_verse_index_size() -> int:
     return len(_VERSES)
+

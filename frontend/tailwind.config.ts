@@ -12,6 +12,27 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        surface: {
+          canvas: "var(--surface-canvas)",
+          elevated: "var(--surface-elevated)",
+          card: "var(--surface-card)",
+          panel: "var(--surface-panel)",
+        },
+        brand: {
+          terracotta: "var(--brand-terracotta)",
+          "terracotta-hover": "var(--brand-terracotta-hover)",
+          "terracotta-subtle": "var(--brand-terracotta-subtle)",
+        },
+        ink: {
+          primary: "var(--ink-primary)",
+          secondary: "var(--ink-secondary)",
+          muted: "var(--ink-muted)",
+          faint: "var(--ink-faint)",
+        },
+        border: {
+          subtle: "var(--border-subtle)",
+          accent: "var(--border-accent)",
+        },
         card: {
           bg: "var(--card-bg)",
           border: "var(--card-border)",
