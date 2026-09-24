@@ -81,8 +81,8 @@ async def chat_endpoint(request: ChatRequest):
         response = await execute_rag_pipeline_async(request.question)
         return response
     except Exception as e:
-        logger.error(f"Error executing chat pipeline: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error executing chat pipeline: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal error occurred.")
 
 @app.post("/api/v1/chat/stream")
 async def chat_stream_post_endpoint(request: ChatRequest):
@@ -128,8 +128,8 @@ async def search_endpoint(request: SearchRequest):
         results = search_dataset(request.query, limit=request.limit)
         return {"results": results}
     except Exception as e:
-        logger.error(f"Error executing search: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error executing search: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal error occurred while executing search.")
 
 from fastapi.responses import FileResponse
 from api.config import BASE_DIR

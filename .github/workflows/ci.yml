@@ -46,7 +46,7 @@ jobs:
 
       - name: Run Full Pytest Suite (Hybrid RAG, Circuit Breaker, SSE Streaming)
         run: |
-          pytest tests/ -v
+          python -m pytest tests/ -v
 
   frontend-checks:
     name: Frontend (Next.js 15 and React 19)

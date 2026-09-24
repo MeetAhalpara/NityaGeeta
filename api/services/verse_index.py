@@ -67,10 +67,10 @@ def parse_verse_citation(text: str) -> Optional[Tuple[str, str]]:
     if not text:
         return None
 
-    # Pattern 1: Explicit BG / Gita / Chapter prefix
+    # Pattern 1: Explicit BG / Gita / Chapter prefix (safe non-backtracking regex)
     explicit_pat = re.search(
-        r'(?:(?:bg|gita|bhagavad\s*gita|chapter|chap\.?|ch\.?)\s*)'
-        r'(\b\d{1,2}\b)[\s\.\:\,\-v]+(?:verse|shloka|sloka)?\s*(\b\d{1,3}\b)',
+        r'\b(?:bg|bhagavad\s+gita|gita|chapter|chap|ch)\.?\s*(\d{1,2})'
+        r'(?:[.:\-,\s]+v\s*|[.:\-,\s]+|[.:\-,\s]*(?:verse|shloka|sloka)\s*)(\d{1,3})\b',
         text, re.IGNORECASE
     )
     if explicit_pat:

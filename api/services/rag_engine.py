@@ -396,5 +396,5 @@ async def stream_rag_pipeline_async(question: str) -> AsyncGenerator[str, None]:
 
     except Exception as exc:
         logger.error(f"Error in stream_rag_pipeline_async: {exc}", exc_info=True)
-        yield f"event: error\ndata: {_json.dumps({'error': str(exc)})}\n\n"
+        yield f"event: error\ndata: {_json.dumps({'error': 'An internal error occurred while processing the stream.'})}\n\n"
 
