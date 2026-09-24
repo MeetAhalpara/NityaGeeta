@@ -44,6 +44,10 @@ jobs:
           print('Synonym dictionary verification passed.')
           "
 
+      - name: Run Full Pytest Suite (Hybrid RAG, Circuit Breaker, SSE Streaming)
+        run: |
+          python -m pytest tests/ -v
+
   frontend-checks:
     name: Frontend (Next.js 15 and React 19)
     runs-on: ubuntu-latest

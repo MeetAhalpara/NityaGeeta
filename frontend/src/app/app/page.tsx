@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
@@ -25,6 +25,10 @@ import {
   Clipboard,
   Sun,
   Moon,
+  SquarePen,
+  Search,
+  PanelLeft,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { RadialContextMenu, RadialMenuItem } from "@/components/ui/radial-context-menu";
@@ -40,6 +44,7 @@ import {
   AnimatedSidebarInset,
   AnimatedSidebarTrigger,
   AnimatedSidebarRail,
+  useAnimatedSidebar,
 } from "@/components/motion/animated-sidebar";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { ReasoningText } from "@/components/agents/loading-states/reasoning-text";
@@ -47,6 +52,9 @@ import { SourcesBubble } from "@/components/ui/avatar-group";
 import { FormattedChatMessage } from "@/components/ui/formatted-chat-message";
 import { AgentActivity, type AgentActivityItem } from "@/components/agents/agent-activity";
 import { Citations, Citation } from "@/components/agents/citations";
+import { EmptyState } from "@/components/ui/empty-state";
+import { TopicBreadcrumb } from "@/components/agents/topic-breadcrumb";
+import { TangentAccordion, type TangentSummaryItem } from "@/components/agents/tangent-accordion";
 
 
 
@@ -136,6 +144,282 @@ async function saveSessionToDb(sessionId: string, userEmail: string, messages: M
     // Silently ignore — localStorage is the primary store, DB is secondary
   }
 }
+function NityaGeetaChatSidebar({
+  conversations,
+  activeSessionId,
+  selectConversation,
+  deleteConversation,
+  createNewDialogue,
+  loading,
+  session,
+  userName,
+  userInitial,
+  theme,
+  setTheme,
+  showProfileMenu,
+  setShowProfileMenu,
+  imageError,
+  setImageError,
+  router,
+}: {
+  conversations: ConversationSession[];
+  activeSessionId: string | null;
+  selectConversation: (item: ConversationSession) => void;
+  deleteConversation: (id: string, e: React.MouseEvent) => void;
+  createNewDialogue: () => void;
+  loading: boolean;
+  session: any;
+  userName: string;
+  userInitial: string;
+  theme: string | undefined;
+  setTheme: (theme: string) => void;
+  showProfileMenu: boolean;
+  setShowProfileMenu: React.Dispatch<React.SetStateAction<boolean>>;
+  imageError: boolean;
+  setImageError: (err: boolean) => void;
+  router: any;
+}) {
+  const { open, setOpen, toggleSidebar } = useAnimatedSidebar();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Filter conversations if searching
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery.trim()) return conversations;
+    const q = searchQuery.toLowerCase();
+    return conversations.filter((c) => c.title.toLowerCase().includes(q));
+  }, [conversations, searchQuery]);
+
+  return (
+    <div className="h-full w-full flex flex-col overflow-hidden select-none bg-[#F4EFE6] dark:bg-[#171717] transition-colors duration-200">
+      {/* ── UNIFIED PERSISTENT HEADER (Height: 48px / h-12) ── */}
+      <div className="h-12 px-2.5 flex items-center justify-between shrink-0 border-b border-[#E6DDD0]/50 dark:border-[#262320] w-full overflow-hidden">
+        {/* Left: Brand Logo & Title */}
+        <div
+          onClick={() => {
+            if (!open) {
+              toggleSidebar();
+            } else {
+              router.push("/");
+            }
+          }}
+          title="NityaGeeta"
+          className="flex items-center gap-2 cursor-pointer group shrink-0"
+        >
+          <div className="size-9 rounded-xl flex items-center justify-center hover:bg-[#E6DDD0]/60 dark:hover:bg-[#212121] transition-colors shrink-0">
+            <img
+              src="/assets/images/icons/NG3.png"
+              alt="NityaGeeta"
+              className="w-6 h-6 object-contain group-hover:scale-105 transition-transform shrink-0"
+            />
+          </div>
+          <span className="group-data-[state=collapsed]/sidebar:hidden font-semibold text-base tracking-tight text-[#2D2622] dark:text-[#ECECEC] hover:opacity-85 transition-opacity whitespace-nowrap pl-0.5">
+            NityaGeeta
+          </span>
+        </div>
+
+        {/* Right: Search & Close (hidden when collapsed) */}
+        <div className="group-data-[state=collapsed]/sidebar:hidden flex items-center gap-1 shrink-0">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsSearching((p) => !p);
+            }}
+            title="Search dialogues"
+            className={`size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#ECECEC] hover:bg-[#E6DDD0]/60 dark:hover:bg-[#212121] transition-colors cursor-pointer ${
+              isSearching ? "text-[#C25E38] dark:text-[#E06D43] bg-[#E6DDD0]/60 dark:bg-[#212121]" : ""
+            }`}
+          >
+            <Search className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleSidebar();
+            }}
+            title="Close sidebar"
+            className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#ECECEC] hover:bg-[#E6DDD0]/60 dark:hover:bg-[#212121] transition-colors cursor-pointer"
+          >
+            <PanelLeft className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── PERSISTENT NEW DIALOGUE BUTTON (Locked Coordinates in Both States) ── */}
+      <div className="px-2.5 pt-2 shrink-0 w-full overflow-hidden">
+        <button
+          onClick={createNewDialogue}
+          disabled={loading}
+          title="New Dialogue"
+          className="w-full h-9 rounded-xl bg-[#EFE9DF]/90 dark:bg-[#212121] hover:bg-[#E6DDD0] dark:hover:bg-[#2a2a2a] text-xs font-semibold text-[#2D2622] dark:text-[#ECECEC] transition-colors shadow-2xs cursor-pointer border border-[#DFD5C6]/60 dark:border-[#38332E]/60 disabled:opacity-50 flex items-center overflow-hidden"
+        >
+          <div className="w-[34px] h-full shrink-0 flex items-center justify-center">
+            <SquarePen className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
+          </div>
+          <span className="group-data-[state=collapsed]/sidebar:hidden whitespace-nowrap pr-3 text-xs font-semibold text-[#2D2622] dark:text-[#ECECEC]">
+            New Dialogue
+          </span>
+        </button>
+      </div>
+
+      {/* ── COLLAPSED MIDDLE: History Button Tightly Stacked Below New Dialogue ── */}
+      <div className="group-data-[state=expanded]/sidebar:hidden px-2.5 pt-2 shrink-0 w-full overflow-hidden">
+        <button
+          onClick={toggleSidebar}
+          title="Recent Dialogues"
+          className="w-full h-9 rounded-xl hover:bg-[#E6DDD0]/60 dark:hover:bg-[#212121] text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#ECECEC] transition-colors cursor-pointer border border-transparent hover:border-[#DFD5C6]/60 dark:hover:border-[#38332E]/60 flex items-center overflow-hidden"
+        >
+          <div className="w-[34px] h-full shrink-0 flex items-center justify-center">
+            <History className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
+          </div>
+        </button>
+      </div>
+
+      {/* Collapsed spacer to push footer to bottom */}
+      <div className="group-data-[state=expanded]/sidebar:hidden flex-1" />
+
+      {/* Expanded view middle content (Search + Grouped Recents, scrollable) */}
+      <div className="group-data-[state=collapsed]/sidebar:hidden flex-1 overflow-y-auto scrollbar-hide px-2.5 pt-2 pb-2.5 space-y-3 min-h-0">
+
+        {/* Search bar when toggled */}
+        {isSearching && (
+          <div className="px-0.5">
+            <div className="relative flex items-center">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 text-[#8C7B70]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Filter dialogues..."
+                autoFocus
+                className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-[#EFE9DF]/80 dark:bg-[#212121] border border-[#DFD5C6] dark:border-[#38332E] text-xs text-[#2D2622] dark:text-[#ECECEC] placeholder-[#8C7B70] focus:outline-none focus:ring-1 focus:ring-[#C25E38]"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#ECECEC]"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Recents Section */}
+        <div>
+          <div className="px-1.5 pb-1 flex items-center justify-between text-[11px] font-semibold text-[#8C7B70] dark:text-[#8E8E8E]">
+            <span className="tracking-wide">Recents</span>
+            {filteredConversations.length > 0 && (
+              <span className="text-[10px] font-mono opacity-60">{filteredConversations.length}</span>
+            )}
+          </div>
+
+          {filteredConversations.length === 0 ? (
+            searchQuery ? (
+              <p className="px-1.5 py-3 text-[11px] text-[#8C7B70] dark:text-[#8E8E8E] italic">
+                No matching dialogues found.
+              </p>
+            ) : (
+              <EmptyState
+                compact
+                icon={<History className="size-4 text-brand-terracotta" />}
+                title="No saved history"
+                description="Your past contemplations and dialogue history will appear here."
+                className="py-4"
+              />
+            )
+          ) : (() => {
+            const now = Date.now();
+            const groups = [
+              { label: "Today", items: filteredConversations.filter((s) => now - s.updatedAt < 86_400_000) },
+              { label: "Yesterday", items: filteredConversations.filter((s) => { const d = now - s.updatedAt; return d >= 86_400_000 && d < 172_800_000; }) },
+              { label: "This Week", items: filteredConversations.filter((s) => { const d = now - s.updatedAt; return d >= 172_800_000 && d < 604_800_000; }) },
+              { label: "Older", items: filteredConversations.filter((s) => now - s.updatedAt >= 604_800_000) },
+            ].filter((g) => g.items.length > 0);
+
+            return (
+              <div className="space-y-2.5 mt-1">
+                {groups.map(({ label, items }) => (
+                  <div key={label}>
+                    <p className="px-1.5 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-[#8C7B70]/60 dark:text-[#8E8E8E]/60">
+                      {label}
+                    </p>
+                    <div className="space-y-0.5">
+                      {items.map((item) => {
+                        const isActive = activeSessionId === item.id;
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => selectConversation(item)}
+                            className={`group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-all ${
+                              isActive
+                                ? "bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] font-medium"
+                                : "text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#E6DDD0]/50 dark:hover:bg-[#212121]"
+                            }`}
+                          >
+                            <span className="truncate pr-1 leading-snug">{item.title}</span>
+                            <button
+                              onClick={(e) => deleteConversation(item.id, e)}
+                              title="Delete dialogue"
+                              className="opacity-0 group-hover/item:opacity-60 hover:!opacity-100 p-0.5 hover:text-red-500 transition-all shrink-0"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+
+      {/* ── UNIFIED PERSISTENT FOOTER ── */}
+      <div className="mt-auto p-2 border-t border-[#E6DDD0]/50 dark:border-[#262320] shrink-0 w-full overflow-hidden">
+        <div className="flex items-center justify-between gap-1.5 w-full">
+          <div
+            onClick={() => setShowProfileMenu((p) => !p)}
+            className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#E6DDD0]/50 dark:hover:bg-[#212121] transition-colors cursor-pointer group flex-1 min-w-0"
+          >
+            {session?.user?.image && !imageError ? (
+              <img
+                src={session.user.image}
+                alt={userName}
+                onError={() => setImageError(true)}
+                className="size-7 rounded-full object-cover shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all"
+              />
+            ) : (
+              <div className="size-7 rounded-full bg-[#525E62] dark:bg-[#3F484A] flex items-center justify-center text-white font-medium text-[11px] shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all">
+                {userInitial}
+              </div>
+            )}
+            <div className="group-data-[state=collapsed]/sidebar:hidden min-w-0 flex-1">
+              <div className="truncate text-xs font-semibold text-[#2D2622] dark:text-[#ECECEC] group-hover:text-[#C25E38] dark:group-hover:text-[#E06D43] transition-colors">
+                {userName}
+              </div>
+              <div className="truncate text-[10px] text-[#8C7B70] dark:text-[#8E8E8E]">
+                {session?.user?.email ? "Seeker Account" : "Free"}
+              </div>
+            </div>
+            <ChevronUp className="group-data-[state=collapsed]/sidebar:hidden w-3.5 h-3.5 text-[#8C7B70] shrink-0" />
+          </div>
+
+          <div className="group-data-[state=collapsed]/sidebar:hidden shrink-0">
+            <AnimatedThemeToggler
+              theme={theme === "dark" ? "dark" : "light"}
+              onThemeChange={(t) => setTheme(t)}
+              className="p-1.5 rounded-lg text-[#8C7B70] hover:text-[#C25E38] dark:hover:text-[#E06D43] shrink-0"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AppMainPage() {
   const { theme, setTheme } = useTheme();
@@ -155,6 +439,26 @@ export default function AppMainPage() {
   const [showHistoryMenu, setShowHistoryMenu] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  // Conversation Stack & Tangent Memory State
+  const [activeTangent, setActiveTangent] = useState<string | null>(null);
+  const [collapsedTangents, setCollapsedTangents] = useState<TangentSummaryItem[]>([]);
+
+  const activeSession = conversations.find((c) => c.id === activeSessionId);
+  const activeTopicName = activeSession?.title || "Spiritual & Daily Guidance";
+
+  const handleReturnToMain = () => {
+    if (activeTangent) {
+      const newSummary: TangentSummaryItem = {
+        id: `tangent-${Date.now()}`,
+        topicName: activeTangent,
+        sutraSummary: `Explored detailed inquiry on ${activeTangent}. Context squashed back to main guidance thread.`,
+        turnCount: 2,
+      };
+      setCollapsedTangents((prev) => [...prev, newSummary]);
+      setActiveTangent(null);
+    }
+  };
 
   // Ref to the input box & scroll anchor
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -232,13 +536,19 @@ export default function AppMainPage() {
     router.prefetch("/signup");
   }, [router]);
 
+  // Security: Preview bypass is strictly gated to development environments
+  const isPreview =
+    process.env.NODE_ENV === "development" &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("preview") === "true";
+
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (status === "unauthenticated" && !isPreview) {
       router.push("/signup");
     }
-  }, [status, router]);
+  }, [status, router, isPreview]);
 
-  if (status === "loading") {
+  if (status === "loading" && !isPreview) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#FAF7F2] dark:bg-[#1A1816]">
         <div className="flex flex-col items-center gap-3">
@@ -249,7 +559,7 @@ export default function AppMainPage() {
     );
   }
 
-  if (status === "unauthenticated") return null;
+  if (status === "unauthenticated" && !isPreview) return null;
 
   const cleanMarkdownText = (raw: string) => {
     if (!raw) return "";
@@ -489,8 +799,8 @@ Start or verify the backend server:
     }
   };
 
-  const userName = session?.user?.name || "User";
-  const userInitial = userName.charAt(0).toUpperCase();
+  const userName = session?.user?.name || (isPreview ? "Meet Ahalpara" : "User");
+  const userInitial = session?.user?.name ? userName.charAt(0).toUpperCase() : "ME";
   // ID of the most recent bot message — only this one gets the animate-in effect
   const latestBotId = [...messages].reverse().find(m => m.sender === "bot")?.id ?? null;
 
@@ -603,217 +913,108 @@ Start or verify the backend server:
       <div className="flex h-screen w-screen overflow-hidden bg-[#FAF7F2] dark:bg-[#1A1816] text-[#2D2622] dark:text-[#F5F2EB] transition-colors duration-200">
         
         {/* SIDEBAR: N logo | [| ] | + | History */}
-        <AnimatedSidebar side="left" variant="sidebar" collapsible="icon">
-          <AnimatedSidebarHeader>
-            <div className="w-full flex items-center justify-start px-2.5 py-1">
-              <Link href="/" title="Go to NityaGeeta Home">
-                <img
-                  src="/assets/images/icons/NG3.png"
-                  alt="NityaGeeta Logo"
-                  className="w-8 h-8 object-contain select-none shrink-0 cursor-pointer hover:scale-105 transition-transform"
-                />
-              </Link>
-            </div>
-          </AnimatedSidebarHeader>
+        {/* SIDEBAR: Exact ChatGPT Layout (Image 1 Collapsed, Image 2 Expanded) */}
+        <AnimatedSidebar side="left" variant="sidebar" collapsible="icon" className="border-r border-[#E6DDD0]/80 dark:border-[#262320]">
+          <NityaGeetaChatSidebar
+            conversations={conversations}
+            activeSessionId={activeSessionId}
+            selectConversation={selectConversation}
+            deleteConversation={deleteConversation}
+            createNewDialogue={createNewDialogue}
+            loading={loading}
+            session={session}
+            userName={userName}
+            userInitial={userInitial}
+            theme={theme}
+            setTheme={(t) => setTheme(t)}
+            showProfileMenu={showProfileMenu}
+            setShowProfileMenu={setShowProfileMenu}
+            imageError={imageError}
+            setImageError={setImageError}
+            router={router}
+          />
+          <AnimatedSidebarRail />
+        </AnimatedSidebar>
 
-          <AnimatedSidebarContent className="px-1.5 py-2 flex flex-col gap-1 overflow-hidden">
-            <div className="w-full flex items-center justify-start">
-              <AnimatedSidebarTrigger showLabel={false} />
-            </div>
-
-            {/* + New Dialogue — always visible (icon when collapsed, icon+label when expanded) */}
-            <AnimatedSidebarMenu>
-              <AnimatedSidebarMenuItem className="w-full">
-                <AnimatedSidebarMenuButton
-                  onSelect={createNewDialogue}
-                  disabled={loading}
-                  icon={<Plus className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />}
-                >
-                  New Dialogue
-                </AnimatedSidebarMenuButton>
-              </AnimatedSidebarMenuItem>
-
-              {/* History icon — always visible, opens library */}
-              <AnimatedSidebarMenuItem className="w-full">
-                <AnimatedSidebarMenuButton
-                  onSelect={() => setShowHistoryMenu((p) => !p)}
-                  closeOnSelect={false}
-                  icon={<History className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />}
-                >
-                  <div className="flex items-center justify-between w-full pr-1">
-                    <span>Recent</span>
-                    <ChevronDown className={`w-3.5 h-3.5 text-[#8C7B70] transition-transform duration-200 ${showHistoryMenu ? "rotate-180" : ""}`} />
-                  </div>
-                </AnimatedSidebarMenuButton>
-              </AnimatedSidebarMenuItem>
-            </AnimatedSidebarMenu>
-
-            {/* Conversation list — only visible when sidebar is expanded */}
-            <div className="group-data-[state=collapsed]/sidebar:hidden flex-1 overflow-hidden flex flex-col min-h-0">
-              {showHistoryMenu && (
-                <div className="flex-1 overflow-y-auto scrollbar-hide mt-0.5">
-                  {conversations.length === 0 ? (
-                    <p className="px-2.5 py-2 text-[11px] text-[#8C7B70] italic">No saved history.</p>
-                  ) : (() => {
-                    const now = Date.now();
-                    const groups = [
-                      { label: "Today",     items: conversations.filter(s => now - s.updatedAt < 86_400_000) },
-                      { label: "Yesterday", items: conversations.filter(s => { const d = now - s.updatedAt; return d >= 86_400_000 && d < 172_800_000; }) },
-                      { label: "This Week", items: conversations.filter(s => { const d = now - s.updatedAt; return d >= 172_800_000 && d < 604_800_000; }) },
-                      { label: "Older",     items: conversations.filter(s => now - s.updatedAt >= 604_800_000) },
-                    ].filter(g => g.items.length > 0);
-
-                    return (
-                      <div className="space-y-3 pb-2">
-                        {groups.map(({ label, items }) => (
-                          <div key={label}>
-                            <p className="px-2.5 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-widest text-[#8C7B70]/60 dark:text-[#A89F91]/60">
-                              {label}
-                            </p>
-                            {items.map((item) => {
-                              const isActive = activeSessionId === item.id;
-                              return (
-                                <div
-                                  key={item.id}
-                                  onClick={() => selectConversation(item)}
-                                  className={`group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-all ${
-                                    isActive
-                                      ? "bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] font-semibold"
-                                      : "text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF]/50 dark:hover:bg-[#2C2824]/50"
-                                  }`}
-                                >
-                                  <span className="truncate pr-1 leading-snug">{item.title}</span>
-                                  <button
-                                    onClick={(e) => deleteConversation(item.id, e)}
-                                    className="opacity-0 group-hover/item:opacity-60 hover:!opacity-100 p-0.5 hover:text-red-500 transition-all shrink-0"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
+        {/* Animated Profile Dropdown Menu - ChatGPT style floating menu */}
+        <AnimatePresence>
+          {showProfileMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-[9998]"
+                onClick={() => setShowProfileMenu(false)}
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 8, transition: { duration: 0.12 } }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                style={{ transformOrigin: "bottom left" }}
+                className="fixed bottom-16 left-3 md:left-4 z-[9999] min-w-[220px] rounded-2xl bg-[#FAF7F2]/95 dark:bg-[#1f1d1b]/95 backdrop-blur-2xl border border-[#DFD5C6] dark:border-[#38332E] shadow-[0_16px_48px_-12px_rgba(0,0,0,0.45)] p-2 space-y-1 text-xs overflow-hidden"
+              >
+                <div className="px-3 py-2.5 border-b border-[#E6DDD0]/60 dark:border-[#38332E]/60 mb-1">
+                  <p className="font-bold text-[#2D2622] dark:text-[#F5F2EB] truncate text-sm">{userName || "Meet Ahalpara"}</p>
+                  <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] truncate font-mono">{session?.user?.email || "Seeker Account"}</p>
                 </div>
-              )}
-            </div>
-          </AnimatedSidebarContent>
 
-          <AnimatedSidebarFooter className="relative">
-            {/* Animated Profile Dropdown Menu with Aceternity Notch Spring Physics */}
-            <AnimatePresence>
-              {showProfileMenu && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, scale: 0.95, filter: "blur(4px)", transition: { duration: 0.12 } }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  style={{ transformOrigin: "bottom left" }}
-                  className="absolute bottom-14 left-2 z-50 min-w-[210px] group-data-[state=collapsed]/sidebar:hidden rounded-2xl bg-[#FAF7F2]/95 dark:bg-[#262320]/95 backdrop-blur-2xl border border-[#DFD5C6] dark:border-[#38332E] shadow-[0_16px_48px_-12px_rgba(0,0,0,0.35)] p-2 space-y-1 text-xs overflow-hidden"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    hidden: {},
+                    visible: { transition: { staggerChildren: 0.04, delayChildren: 0.04 } },
+                  }}
+                  className="space-y-1"
                 >
-                  <div className="px-3 py-2.5 border-b border-[#E6DDD0]/60 dark:border-[#38332E]/60 mb-1">
-                    <p className="font-bold text-[#2D2622] dark:text-[#F5F2EB] truncate text-sm">{userName}</p>
-                    <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] truncate font-mono">{session?.user?.email || "Seeker Account"}</p>
-                  </div>
-
-                  <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={{
-                      hidden: {},
-                      visible: { transition: { staggerChildren: 0.045, delayChildren: 0.05 } },
-                    }}
-                    className="space-y-1"
-                  >
-                    {[
-                      { label: "Home", icon: Home, action: () => { setShowProfileMenu(false); router.push("/"); } },
-                      { label: "Resources", icon: BookOpen, action: () => { setShowProfileMenu(false); router.push("/#resources"); } },
-                      { label: "Profile", icon: User, action: () => { setShowProfileMenu(false); router.push("/profile"); } },
-                      { label: "Support", icon: HelpCircle, action: () => { setShowProfileMenu(false); router.push("/#support"); } },
-                    ].map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <motion.button
-                          key={item.label}
-                          variants={{
-                            hidden: { opacity: 0, y: -8, filter: "blur(4px)" },
-                            visible: {
-                              opacity: 1,
-                              y: 0,
-                              filter: "blur(0px)",
-                              transition: { type: "spring", stiffness: 420, damping: 30 },
-                            },
-                          }}
-                          onClick={item.action}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A] hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-all font-medium cursor-pointer"
-                        >
-                          <Icon className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
-                          <span>{item.label}</span>
-                        </motion.button>
-                      );
-                    })}
-
-                    <div className="pt-1 border-t border-[#E6DDD0]/60 dark:border-[#38332E]/60">
+                  {[
+                    { label: "Home", icon: Home, action: () => { setShowProfileMenu(false); router.push("/"); } },
+                    { label: "Resources", icon: BookOpen, action: () => { setShowProfileMenu(false); router.push("/#resources"); } },
+                    { label: "Profile", icon: User, action: () => { setShowProfileMenu(false); router.push("/profile"); } },
+                    { label: "Support", icon: HelpCircle, action: () => { setShowProfileMenu(false); router.push("/#support"); } },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
                       <motion.button
+                        key={item.label}
                         variants={{
-                          hidden: { opacity: 0, y: -6, filter: "blur(4px)" },
+                          hidden: { opacity: 0, y: -6 },
                           visible: {
                             opacity: 1,
                             y: 0,
-                            filter: "blur(0px)",
-                            transition: { type: "spring", stiffness: 420, damping: 30 },
+                            transition: { duration: 0.18, ease: [0.16, 1, 0.3, 1] },
                           },
                         }}
-                        onClick={() => signOut({ callbackUrl: "/" })}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all font-semibold cursor-pointer"
+                        onClick={item.action}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A] hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-all font-medium cursor-pointer"
                       >
-                        <LogOut className="w-4 h-4" />
-                        <span>Log out</span>
+                        <Icon className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
+                        <span>{item.label}</span>
                       </motion.button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    );
+                  })}
 
-            <div className="flex items-center gap-2 p-1 w-full">
-              <div
-                onClick={(e) => {
-                  if (e.currentTarget.closest('[data-state="collapsed"]')) return;
-                  setShowProfileMenu((p) => !p);
-                }}
-                title="Account Menu"
-                className="flex items-center gap-2.5 p-1 rounded-xl cursor-pointer hover:bg-[#EFE9DF]/60 dark:hover:bg-[#2C2824]/60 transition-all group min-w-0 flex-1"
-              >
-                {session?.user?.image && !imageError ? (
-                  <img
-                    src={session.user.image}
-                    alt={userName}
-                    onError={() => setImageError(true)}
-                    className="w-7 h-7 rounded-full object-cover shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all"
-                  />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#C25E38] to-[#E06D43] flex items-center justify-center text-white font-bold text-[11px] shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all">
-                    {userInitial}
+                  <div className="pt-1 border-t border-[#E6DDD0]/60 dark:border-[#38332E]/60">
+                    <motion.button
+                      variants={{
+                        hidden: { opacity: 0, y: -6 },
+                        visible: {
+                          opacity: 1,
+                          y: 0,
+                          transition: { duration: 0.18, ease: [0.16, 1, 0.3, 1] },
+                        },
+                      }}
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-all font-semibold cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Log out</span>
+                    </motion.button>
                   </div>
-                )}
-                <div className="group-data-[state=collapsed]/sidebar:hidden truncate text-xs font-semibold group-hover:text-[#C25E38] dark:group-hover:text-[#E06D43] transition-colors flex-1">
-                  {userName}
-                </div>
-                <ChevronUp className="group-data-[state=collapsed]/sidebar:hidden w-3.5 h-3.5 text-[#8C7B70] shrink-0" />
-              </div>
-              <AnimatedThemeToggler
-                theme={theme === "dark" ? "dark" : "light"}
-                onThemeChange={(t) => setTheme(t)}
-                className="group-data-[state=collapsed]/sidebar:hidden p-1.5 rounded-lg text-[#8C7B70] hover:text-[#C25E38] dark:hover:text-[#E06D43] shrink-0"
-              />
-            </div>
-          </AnimatedSidebarFooter>
-          <AnimatedSidebarRail />
-        </AnimatedSidebar>
+                </motion.div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {/* MAIN DIALOGUE CORE WITH RADIAL CONTEXT MENU */}
         <RadialContextMenu menuItems={radialMenuItems}>
@@ -824,9 +1025,39 @@ Start or verify the backend server:
               style={{ backgroundImage: "url('/assets/images/ChatBG/BG.png')" }}
             />
 
+            {/* TOP APPLE-STYLE MINIMALIST HEADER */}
+            <header className="relative z-20 w-full flex items-center justify-between px-4 sm:px-6 h-14 border-b border-[#E6DDD0]/40 dark:border-[#2D2825]/40 bg-[#FAF7F2]/80 dark:bg-[#1A1816]/80 backdrop-blur-xl shrink-0">
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <AnimatedSidebarTrigger className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#262320]/60 transition-colors shrink-0" />
+                <TopicBreadcrumb
+                  mainTopic={activeTopicName}
+                  activeTangent={activeTangent}
+                  onPopTangent={handleReturnToMain}
+                  className="max-w-xs sm:max-w-md border-none bg-transparent dark:bg-transparent px-1 py-0 shadow-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => createNewDialogue()}
+                  title="Start fresh dialogue"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#5C4F45] dark:text-[#D4C7B8] hover:text-[#C25E38] dark:hover:text-[#E06D43] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#262320]/60 transition-colors cursor-pointer"
+                >
+                  <SquarePen className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">New Dialogue</span>
+                </button>
+                <AnimatedThemeToggler />
+              </div>
+            </header>
+
             {/* Full-width Scrollable Container: Mouse scrolling works anywhere on the window */}
             <div className="relative z-10 flex-1 overflow-y-auto scrollbar-hide w-full h-full">
-              <div className="px-4 sm:px-8 py-8 space-y-6 flex flex-col w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto min-h-full">
+              <div className="px-4 sm:px-8 py-6 space-y-6 flex flex-col w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto min-h-full">
+
+                {/* SŪTRA COLLAPSED TANGENTS ACCORDION */}
+                {collapsedTangents.length > 0 && (
+                  <TangentAccordion tangents={collapsedTangents} />
+                )}
 
               {messages.length === 0 ? (
                 <div className="flex-1 my-auto" />

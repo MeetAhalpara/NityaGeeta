@@ -27,7 +27,7 @@ import logging
 import asyncio
 import httpx
 from typing import List, Dict, Any, Optional
-from groq import Groq
+from groq import Groq, AsyncGroq
 
 from api.config import (
     GROQ_API_KEYS, DEFAULT_MODEL, FALLBACK_MODEL,
@@ -48,6 +48,7 @@ from api.services.prompt_builder import (
     build_cross_model_synthesis_prompt,
     build_dual_source_synthesis_prompt,
 )
+from api.services.circuit_breaker import groq_breaker, openrouter_breaker, CircuitState
 
 logger = logging.getLogger("nityageeta.llm_client")
 
@@ -61,6 +62,58 @@ def _next_groq_client() -> Groq:
     key = GROQ_API_KEYS[_groq_key_index % len(GROQ_API_KEYS)]
     _groq_key_index += 1
     return Groq(api_key=key)
+
+def _next_async_groq_client() -> AsyncGroq:
+    global _groq_key_index
+    if not GROQ_API_KEYS:
+        raise ValueError("No Groq API keys configured.")
+    key = GROQ_API_KEYS[_groq_key_index % len(GROQ_API_KEYS)]
+    _groq_key_index += 1
+    return AsyncGroq(api_key=key)
+
+async def stream_groq_completion(
+    messages: List[Dict[str, str]],
+    model: str = DEFAULT_MODEL,
+    temperature: float = 0.2,
+    system_prompt: Optional[str] = None,
+    max_tokens: int = 1500,
+):
+    """
+    Yields token strings from Groq streaming completion using AsyncGroq.
+    Fully non-blocking on the event loop, guarded with groq_breaker across stream lifecycle.
+    """
+    built: List[Dict[str, str]] = []
+    if system_prompt:
+        built.append({"role": "system", "content": system_prompt})
+        built += [m for m in messages if m.get("role") != "system"]
+    else:
+        built = list(messages)
+
+    if groq_breaker.state == CircuitState.OPEN:
+        logger.warning("Groq breaker is OPEN: failing fast in stream_groq_completion")
+        yield "The scripture synthesis service is temporarily unavailable. Contemplating sacred verses..."
+        return
+
+    try:
+        client = _next_async_groq_client()
+        stream = await client.chat.completions.create(
+            model=model,
+            messages=built,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True
+        )
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+        # Full stream consumed successfully
+        await groq_breaker._record_success()
+
+    except Exception as exc:
+        await groq_breaker._record_failure(exc)
+        logger.error(f"Error during Groq async stream consumption: {exc}")
+        raise
 
 # keep old name so nothing else breaks
 def get_next_groq_client():
@@ -110,6 +163,12 @@ async def _call_groq(
             logger.warning(f"Groq attempt {attempt+1} failed ({model}): {e}")
             await asyncio.sleep(0.2)
 
+    # Automatic fallback if primary model failed
+    if model != FALLBACK_MODEL:
+        logger.warning(f"Groq {model} failed all attempts — retrying with fallback model {FALLBACK_MODEL}")
+        return await _call_groq(messages, model=FALLBACK_MODEL, temperature=temperature,
+                                system_prompt=system_prompt, max_tokens=max_tokens)
+
     return "Unable to retrieve response from Groq."
 
 
@@ -151,7 +210,7 @@ async def _call_openrouter(
 
     for attempt in range(2):
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=6.0) as client:
                 resp = await client.post(
                     "https://openrouter.ai/api/v1/chat/completions",
                     headers=headers,
@@ -165,9 +224,12 @@ async def _call_openrouter(
                 else:
                     err = resp.json().get("error", {}).get("message", resp.text[:120])
                     logger.warning(f"OpenRouter {model} HTTP {resp.status_code}: {err}")
+                    if resp.status_code in (401, 402, 403):
+                        # Credit expired or auth invalid: do not retry, fall back immediately
+                        break
         except Exception as e:
             logger.warning(f"OpenRouter {model} attempt {attempt+1} failed: {e}")
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(0.2)
 
     # Graceful fallback to Groq so the ensemble always gets 5 answers
     logger.warning(f"OpenRouter {model} failed — falling back to Groq.")

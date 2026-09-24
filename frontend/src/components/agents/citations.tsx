@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { ExternalLink, BookOpen, ChevronDown, Quote, Link2, Sparkles } from "lucide-react";
+import { ExternalLink, BookOpen, ChevronDown, Quote, Link2, Sparkles, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { CitationDisputeModal } from "./dispute-modal";
 
 export interface CitationItem {
   id: string;
@@ -58,6 +59,7 @@ export function Citation({
   className,
 }: CitationProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDisputeOpen, setIsDisputeOpen] = useState(false);
   const elementId = `${idPrefix}-cite-${citationId}-${index}`;
 
   return (
@@ -128,23 +130,44 @@ export function Citation({
               </span>
             )}
 
-            {citation.url && (() => {
-              const { url: safeUrl, isExternal } = getSafeCitationUrl(citation.url);
-              return (
-                <a
-                  href={safeUrl}
-                  target={isExternal ? "_blank" : "_self"}
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C25E38] dark:text-[#E06D43] hover:underline"
-                >
-                  <span>{citation.domain ? `Source: ${citation.domain}` : "View in Vedic Library"}</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              );
-            })()}
+            <span className="pt-2 border-t border-[#DFD5C6]/50 dark:border-[#38332E]/50 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDisputeOpen(true);
+                }}
+                className="inline-flex items-center gap-1 text-[10px] font-bold text-[#8C7B70] hover:text-[#C25E38] dark:text-[#A89F91] dark:hover:text-[#E06D43] transition cursor-pointer"
+              >
+                <ShieldAlert className="w-3 h-3 text-[#C25E38] dark:text-[#E06D43]" />
+                <span>Dispute / Audit</span>
+              </button>
+
+              {citation.url && (() => {
+                const { url: safeUrl, isExternal } = getSafeCitationUrl(citation.url);
+                return (
+                  <a
+                    href={safeUrl}
+                    target={isExternal ? "_blank" : "_self"}
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C25E38] dark:text-[#E06D43] hover:underline"
+                  >
+                    <span>{citation.domain ? `Source` : "View"}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                );
+              })()}
+            </span>
           </motion.span>
         )}
       </AnimatePresence>
+
+      {/* Dispute Modal instance for hover preview */}
+      <CitationDisputeModal
+        isOpen={isDisputeOpen}
+        onClose={() => setIsDisputeOpen(false)}
+        citation={citation}
+      />
     </span>
   );
 }
@@ -166,6 +189,7 @@ export function Citations({
   className,
 }: CitationsProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [disputeCitation, setDisputeCitation] = useState<CitationItem | null>(null);
 
   if (!citations || citations.length === 0) return null;
 
@@ -252,28 +276,45 @@ export function Citations({
                     )}
                   </div>
 
-                  {cite.url && (() => {
-                    const { url: safeUrl, isExternal } = getSafeCitationUrl(cite.url);
-                    return (
-                      <div className="pt-2 border-t border-[#DFD5C6]/40 dark:border-[#38332E]/40 flex justify-end">
+                  <div className="pt-2 border-t border-[#DFD5C6]/40 dark:border-[#38332E]/40 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDisputeCitation(cite)}
+                      className="inline-flex items-center gap-1 text-[10px] font-bold text-[#8C7B70] hover:text-[#C25E38] dark:text-[#A89F91] dark:hover:text-[#E06D43] transition cursor-pointer"
+                    >
+                      <ShieldAlert className="w-3 h-3 text-[#C25E38] dark:text-[#E06D43]" />
+                      <span>Report Discrepancy</span>
+                    </button>
+
+                    {cite.url && (() => {
+                      const { url: safeUrl, isExternal } = getSafeCitationUrl(cite.url);
+                      return (
                         <a
                           href={safeUrl}
                           target={isExternal ? "_blank" : "_self"}
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-[10px] font-bold text-[#C25E38] dark:text-[#E06D43] hover:underline"
                         >
-                          <span>{cite.domain ? `Source: ${cite.domain}` : "Open in Vedic Library"}</span>
+                          <span>{cite.domain ? `Source` : "Open Library"}</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
+                  </div>
                 </div>
               ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Global Dispute Modal Triggered from Bibliography Card */}
+      <CitationDisputeModal
+        isOpen={Boolean(disputeCitation)}
+        onClose={() => setDisputeCitation(null)}
+        citation={disputeCitation}
+      />
     </div>
   );
 }
+

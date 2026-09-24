@@ -63,13 +63,30 @@
   --error-border: rgba(180, 50, 50, 0.2);
   --error-text: #b43232;
   --success-text: #16a34a;
-  --shadow-color: rgba(0, 0, 0, 0.1);
+  /* ── NityaGeeta Semantic Design System Tokens ── */
+  --surface-canvas: #FAF7F2;
+  --surface-elevated: #F4EFE6;
+  --surface-card: #EFE9DF;
+  --surface-panel: #FAF7F2;
+
+  --brand-terracotta: #C25E38;
+  --brand-terracotta-hover: #A84E2D;
+  --brand-terracotta-subtle: rgba(194, 94, 56, 0.12);
+
+  --ink-primary: #2D2622;
+  --ink-secondary: #5C4F45;
+  --ink-muted: #8C7B70;
+  --ink-faint: #A89F91;
+
+  --border-subtle: rgba(230, 221, 208, 0.75);
+  --border-accent: rgba(223, 213, 198, 0.85);
+  --ring-brand: rgba(194, 94, 56, 0.45);
 }
 
 .dark {
   /* Dark Theme */
-  --background: #0a0812;
-  --background-alt: #0f0e1a;
+  --background: #1A1816;
+  --background-alt: #171717;
   
   /* Dark Theme Colors */
   --card-bg: rgba(255, 255, 255, 0.05);
@@ -89,7 +106,7 @@
   --google-btn-bg: rgba(255, 255, 255, 0.07);
   --google-btn-border: rgba(255, 255, 255, 0.15);
   --google-btn-hover: rgba(255, 255, 255, 0.12);
-  --navbar-bg: rgba(10, 8, 18, 0.6);
+  --navbar-bg: rgba(26, 24, 22, 0.8);
   --navbar-border: rgba(212, 168, 71, 0.1);
   --divider: rgba(212, 168, 71, 0.2);
   --glass: rgba(255, 255, 255, 0.05);
@@ -99,6 +116,25 @@
   --error-text: #e08080;
   --success-text: #4ade80;
   --shadow-color: rgba(0, 0, 0, 0.3);
+
+  /* ── NityaGeeta Semantic Design System Tokens ── */
+  --surface-canvas: #1A1816;
+  --surface-elevated: #171717;
+  --surface-card: #212121;
+  --surface-panel: #1A1816;
+
+  --brand-terracotta: #E06D43;
+  --brand-terracotta-hover: #EA7B53;
+  --brand-terracotta-subtle: rgba(224, 109, 67, 0.15);
+
+  --ink-primary: #ECECEC;
+  --ink-secondary: #D4C7B8;
+  --ink-muted: #8E8E8E;
+  --ink-faint: #6E6862;
+
+  --border-subtle: rgba(38, 35, 32, 0.85);
+  --border-accent: rgba(56, 51, 46, 0.85);
+  --ring-brand: rgba(224, 109, 67, 0.5);
 }
 
 *,

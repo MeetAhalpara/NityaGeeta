@@ -70,7 +70,8 @@ def health_check():
     """Simple API health check endpoint."""
     return {"status": "healthy", "service": "NityaGeeta API"}
 
-from api.services.rag_engine import execute_rag_query, execute_rag_pipeline_async
+from fastapi.responses import StreamingResponse
+from api.services.rag_engine import execute_rag_query, execute_rag_pipeline_async, stream_rag_pipeline_async
 
 @app.post("/api/v1/chat")
 async def chat_endpoint(request: ChatRequest):
@@ -80,8 +81,43 @@ async def chat_endpoint(request: ChatRequest):
         response = await execute_rag_pipeline_async(request.question)
         return response
     except Exception as e:
-        logger.error(f"Error executing chat pipeline: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error executing chat pipeline: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal error occurred.")
+
+@app.post("/api/v1/chat/stream")
+async def chat_stream_post_endpoint(request: ChatRequest):
+    """
+    Direct Server-Sent Events (SSE) streaming endpoint via POST.
+    Delivers sub-second Time-To-First-Context with incremental chunked token stream.
+    """
+    logger.info(f"Initiating SSE stream (POST) for query: {request.question[:60]}")
+    return StreamingResponse(
+        stream_rag_pipeline_async(request.question),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+@app.get("/api/v1/chat/stream")
+async def chat_stream_get_endpoint(q: str):
+    """
+    Direct Server-Sent Events (SSE) streaming endpoint via GET (Browser EventSource compatible).
+    """
+    if not q or len(q.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Query parameter 'q' must be at least 2 characters.")
+    logger.info(f"Initiating SSE stream (GET) for query: {q[:60]}")
+    return StreamingResponse(
+        stream_rag_pipeline_async(q.strip()),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 
 @app.post("/api/v1/search")
@@ -92,8 +128,8 @@ async def search_endpoint(request: SearchRequest):
         results = search_dataset(request.query, limit=request.limit)
         return {"results": results}
     except Exception as e:
-        logger.error(f"Error executing search: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error executing search: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal error occurred while executing search.")
 
 from fastapi.responses import FileResponse
 from api.config import BASE_DIR

@@ -43,15 +43,13 @@ const MOBILE_QUERY = "(max-width: 767px)";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 const PANEL_TRANSITION = {
-  duration: 0.36,
-  ease: EASE_DRAWER,
+  duration: 0.28,
+  ease: EASE_OUT,
 } as const;
 
 const SIDEBAR_MORPH_TRANSITION = {
-  type: "spring",
-  stiffness: 380,
-  damping: 28,
-  mass: 0.75,
+  duration: 0.28,
+  ease: EASE_OUT,
 } as const;
 
 const LABEL_ENTER_TRANSITION = {
@@ -283,8 +281,8 @@ export function AnimatedSidebarProvider({
         data-slot="sidebar-wrapper"
         data-state={desktopOpen ? "expanded" : "collapsed"}
         style={{
-          "--sidebar-width": "16rem",
-          "--sidebar-width-icon": "4.25rem",
+          "--sidebar-width": "16.25rem",
+          "--sidebar-width-icon": "3.5rem",
           "--sidebar-width-mobile": "18rem",
           ...style,
         }}
@@ -575,6 +573,7 @@ export const AnimatedSidebarTrigger = forwardRef<
   const panelContext = useContext(AnimatedSidebarPanelContext);
   const expanded = context.isMobile ? context.openMobile : context.open;
   const isCollapsed = panelContext ? panelContext.collapsed : !expanded;
+  const isCompact = !showLabel || isCollapsed;
 
   return (
     <button
@@ -585,7 +584,8 @@ export const AnimatedSidebarTrigger = forwardRef<
         else if (forwardedRef) forwardedRef.current = node;
       }}
       type={type}
-      aria-label={props["aria-label"] ?? "Toggle sidebar"}
+      aria-label={props["aria-label"] ?? (expanded ? "Collapse sidebar" : "Expand sidebar")}
+      title={props.title ?? (expanded ? "Collapse sidebar" : "Expand sidebar")}
       aria-expanded={expanded}
       data-slot="sidebar-trigger"
       data-state={expanded ? "expanded" : "collapsed"}
@@ -594,14 +594,14 @@ export const AnimatedSidebarTrigger = forwardRef<
         if (!event.defaultPrevented) context.toggleSidebar();
       }}
       className={cn(
-        "relative flex shrink-0 items-center gap-2.5 overflow-hidden rounded-xl text-sm font-medium outline-none cursor-pointer select-none transition-all",
-        "text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] hover:bg-[#E6DDD0]/50 dark:hover:bg-[#2D2825]/60",
-        isCollapsed ? "size-9 justify-center px-0 mx-auto" : "h-9 w-full justify-start px-3",
+        "relative flex shrink-0 items-center overflow-hidden rounded-xl text-sm font-medium outline-none cursor-pointer select-none transition-all duration-200",
+        "text-[#8C7B70] hover:text-[#C25E38] dark:hover:text-[#E06D43] hover:bg-[#E6DDD0]/60 dark:hover:bg-[#2D2825]/70 active:scale-95",
+        isCompact ? "size-9 justify-center px-0 mx-auto" : "h-9 w-full justify-start px-3 gap-2.5",
         className,
       )}
     >
       <span className="relative z-10 grid size-5 shrink-0 place-items-center">
-        <PanelLeft className="w-4 h-4 text-[#8C7B70]" />
+        <PanelLeft className={cn("w-4 h-4 transition-all duration-200", !isCollapsed && "text-[#C25E38] dark:text-[#E06D43]")} />
       </span>
       {showLabel && !isCollapsed && (
         <span className="text-xs font-medium truncate">
@@ -1067,19 +1067,17 @@ export function AnimatedSidebarMenuButton({
         initial={false}
         animate={{
           opacity: panel.collapsed ? 0 : 1,
-          x: panel.collapsed ? -4 : 0,
+          x: panel.collapsed ? -6 : 0,
         }}
-        transition={
-          context.reduce
-            ? REDUCED_TRANSITION
-            : panel.collapsed
-              ? LABEL_EXIT_TRANSITION
-              : LABEL_ENTER_TRANSITION
-        }
+        transition={{
+          duration: panel.collapsed ? 0.12 : 0.2,
+          delay: panel.collapsed ? 0 : 0.05,
+          ease: EASE_OUT,
+        }}
         aria-hidden={panel.collapsed}
         className={cn(
-          "relative z-10 min-w-0 flex-1 truncate",
-          panel.collapsed && "pointer-events-none hidden",
+          "relative z-10 min-w-0 flex-1 truncate whitespace-nowrap transition-opacity duration-150",
+          panel.collapsed && "pointer-events-none opacity-0 select-none",
         )}
       >
         {children}
@@ -1108,10 +1106,10 @@ export function AnimatedSidebarMenuButton({
   );
 
   const interactiveClassName = cn(
-    "relative flex min-w-0 items-center gap-2.5 overflow-hidden rounded-xl text-left text-sm font-medium outline-none transition-all",
-    panel.collapsed ? "size-9 justify-center px-0 mx-auto" : "h-9 w-full px-3",
-    "text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] hover:bg-[#E6DDD0]/50 dark:hover:bg-[#2D2825]/60",
-    isActive && "text-[#C25E38] dark:text-[#E06D43] font-semibold",
+    "relative flex min-w-0 items-center gap-2.5 overflow-hidden rounded-xl text-left text-sm font-medium outline-none transition-all duration-200",
+    panel.collapsed ? "size-9 justify-center px-0 mx-auto" : "h-9 w-full px-2.5",
+    "text-[#8C7B70] hover:text-[#C25E38] dark:hover:text-[#E06D43] hover:bg-[#E6DDD0]/60 dark:hover:bg-[#2D2825]/70 active:scale-98",
+    isActive && "text-[#C25E38] dark:text-[#E06D43] font-semibold bg-[#C25E38]/10 dark:bg-[#E06D43]/15",
     disabled && "cursor-not-allowed opacity-40",
     className,
   );

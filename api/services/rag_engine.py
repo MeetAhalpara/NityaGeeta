@@ -17,6 +17,7 @@ from api.services.llm_client import (
     synthesize_dual_source_response,
     expand_query_for_gita
 )
+from api.services.citation_guardrail import CitationGuardrail
 
 logger = logging.getLogger("nityageeta.rag_engine")
 logging.basicConfig(level=logging.INFO)
@@ -263,8 +264,16 @@ async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
         web_results=web_results
     )
 
-    # ── Step 7: Tone sanitization ─────────────────────────────────────────────
-    final_answer = sanitize_response_tone(dual_authorized_answer)
+    # ── Step 7: Tone sanitization & Citation Guardrail Validation ───────────
+    sanitized_answer = sanitize_response_tone(dual_authorized_answer)
+
+    # Validate citations against the retrieved ground-truth verse chunks
+    guardrail_report = CitationGuardrail.validate_citations(
+        response_text=sanitized_answer,
+        retrieved_verses=matched_verses,
+        strict=False
+    )
+    final_answer = guardrail_report.get("sanitized_response", sanitized_answer)
 
     combined_citations = scripture_citations + web_citations
 
@@ -277,7 +286,8 @@ async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
         "candidates": candidate_responses,
         "scripture_citations": scripture_citations,
         "web_citations": web_citations,
-        "citations": combined_citations
+        "citations": combined_citations,
+        "citation_guardrail": guardrail_report
     }
 
 def execute_rag_query(question: str) -> Dict[str, Any]:
@@ -289,4 +299,102 @@ def execute_rag_query(question: str) -> Dict[str, Any]:
         return loop.run_until_complete(execute_rag_pipeline_async(question))
     except Exception:
         return asyncio.run(execute_rag_pipeline_async(question))
+
+
+import json as _json
+from typing import AsyncGenerator
+from api.services.llm_client import stream_groq_completion
+from api.config import DEFAULT_MODEL
+
+async def stream_rag_pipeline_async(question: str) -> AsyncGenerator[str, None]:
+    """
+    Streams Server-Sent Event (SSE) frames for sub-second Time-To-First-Token.
+    Yields:
+      - event: citations (instant retrieval metadata, <300ms)
+      - event: status
+      - event: token (chunked LLM deltas)
+      - event: guardrail (citation validation report)
+      - event: done
+    """
+    try:
+        # Step 1: Instant Hybrid Retrieval (BM25 + RRF + Citation Match)
+        matched_verses = search_verses(question, top_k=3)
+        retrieved_items = search_all_datasets(question, top_per_dataset=1)
+
+        # Build citations payload
+        scripture_citations = []
+        for v in matched_verses:
+            eng_text = v.get("english", "")
+            scripture_citations.append({
+                "type": "scripture",
+                "priority": 1,
+                "source": v.get("source", "Srimad Bhagavad Gita"),
+                "page": v.get("page", 0),
+                "chapter": v.get("chapter", ""),
+                "verse": v.get("verse", ""),
+                "citation": v.get("citation", ""),
+                "sanskrit": v.get("sanskrit", ""),
+                "translation": eng_text,
+                "snippet": trim_to_full_sentence(eng_text, 450),
+                "score": 100,
+                "retrieval_method": v.get("retrieval_method", "rrf_hybrid"),
+            })
+        for item in retrieved_items:
+            eng_text = item.get("english") or item.get("text", "")
+            scripture_citations.append({
+                "type": "scripture",
+                "priority": item["priority"],
+                "source": item["source"],
+                "page": item["page"],
+                "sanskrit": item.get("original", "") if item.get("original") else "",
+                "translation": eng_text,
+                "snippet": trim_to_full_sentence(eng_text, 450),
+                "score": item["score"]
+            })
+
+        # Send citations IMMEDIATELY as the first event frame
+        yield f"event: citations\ndata: {_json.dumps({'citations': scripture_citations, 'count': len(scripture_citations)})}\n\n"
+
+        # Step 2: Build grounded context prompt
+        verse_context_text = build_verse_context_block(matched_verses)
+        page_context_text = build_rag_context_block(retrieved_items)
+        retrieved_context_text = verse_context_text
+        if page_context_text and page_context_text != "No direct scripture context retrieved.":
+            retrieved_context_text += "\n\n--- SUPPLEMENTARY COMMENTARY PAGES ---\n" + page_context_text
+
+        user_prompt = build_scripture_user_prompt(question, retrieved_context_text)
+        messages = [
+            {"role": "system", "content": SCRIPTURE_SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt}
+        ]
+
+        yield f"event: status\ndata: {_json.dumps({'status': 'generating'})}\n\n"
+
+        # Step 3: Stream tokens from LLM
+        tokens = []
+        async for delta in stream_groq_completion(messages, model=DEFAULT_MODEL, temperature=0.2):
+            tokens.append(delta)
+            yield f"event: token\ndata: {_json.dumps({'delta': delta})}\n\n"
+
+        full_answer = "".join(tokens)
+        cleaned_answer = sanitize_response_tone(full_answer)
+
+        # Step 4: Run Citation Validation Guardrail
+        guardrail_report = CitationGuardrail.validate_citations(
+            response_text=cleaned_answer,
+            retrieved_verses=matched_verses,
+            strict=False
+        )
+        yield f"event: guardrail\ndata: {_json.dumps(guardrail_report)}\n\n"
+
+        # If guardrail appended a disclaimer, stream that delta as well
+        if guardrail_report.get("disclaimer"):
+            yield f"event: token\ndata: {_json.dumps({'delta': guardrail_report['disclaimer']})}\n\n"
+
+        # Step 5: Final completion frame
+        yield f"event: done\ndata: {_json.dumps({'complete': True, 'model': DEFAULT_MODEL, 'citations_count': len(scripture_citations)})}\n\n"
+
+    except Exception as exc:
+        logger.error(f"Error in stream_rag_pipeline_async: {exc}", exc_info=True)
+        yield f"event: error\ndata: {_json.dumps({'error': 'An internal error occurred while processing the stream.'})}\n\n"
 
