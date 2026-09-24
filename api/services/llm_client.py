@@ -48,11 +48,46 @@ from api.services.prompt_builder import (
     build_cross_model_synthesis_prompt,
     build_dual_source_synthesis_prompt,
 )
+from api.services.circuit_breaker import groq_breaker, openrouter_breaker
 
 logger = logging.getLogger("nityageeta.llm_client")
 
 # ── Groq key rotation ────────────────────────────────────────────────────────
 _groq_key_index = 0
+
+async def stream_groq_completion(
+    messages: List[Dict[str, str]],
+    model: str = DEFAULT_MODEL,
+    temperature: float = 0.2,
+    system_prompt: Optional[str] = None,
+    max_tokens: int = 1500,
+):
+    """
+    Yields token strings from Groq streaming completion.
+    Guarded with groq_breaker and automatic key rotation.
+    """
+    built: List[Dict[str, str]] = []
+    if system_prompt:
+        built.append({"role": "system", "content": system_prompt})
+        built += [m for m in messages if m.get("role") != "system"]
+    else:
+        built = list(messages)
+
+    def _sync_stream():
+        client = _next_groq_client()
+        return client.chat.completions.create(
+            model=model,
+            messages=built,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True
+        )
+
+    stream = await groq_breaker.call(_sync_stream)
+    for chunk in stream:
+        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+
 
 def _next_groq_client() -> Groq:
     global _groq_key_index
@@ -110,6 +145,12 @@ async def _call_groq(
             logger.warning(f"Groq attempt {attempt+1} failed ({model}): {e}")
             await asyncio.sleep(0.2)
 
+    # Automatic fallback if primary model failed
+    if model != FALLBACK_MODEL:
+        logger.warning(f"Groq {model} failed all attempts — retrying with fallback model {FALLBACK_MODEL}")
+        return await _call_groq(messages, model=FALLBACK_MODEL, temperature=temperature,
+                                system_prompt=system_prompt, max_tokens=max_tokens)
+
     return "Unable to retrieve response from Groq."
 
 
@@ -151,7 +192,7 @@ async def _call_openrouter(
 
     for attempt in range(2):
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=6.0) as client:
                 resp = await client.post(
                     "https://openrouter.ai/api/v1/chat/completions",
                     headers=headers,
@@ -165,9 +206,12 @@ async def _call_openrouter(
                 else:
                     err = resp.json().get("error", {}).get("message", resp.text[:120])
                     logger.warning(f"OpenRouter {model} HTTP {resp.status_code}: {err}")
+                    if resp.status_code in (401, 402, 403):
+                        # Credit expired or auth invalid: do not retry, fall back immediately
+                        break
         except Exception as e:
             logger.warning(f"OpenRouter {model} attempt {attempt+1} failed: {e}")
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(0.2)
 
     # Graceful fallback to Groq so the ensemble always gets 5 answers
     logger.warning(f"OpenRouter {model} failed — falling back to Groq.")

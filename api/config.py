@@ -56,9 +56,9 @@ if not GROQ_API_KEYS:
 # OpenRouter API Key
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 
-# Model Selection Config
-DEFAULT_MODEL  = os.getenv("DEFAULT_MODEL",  "llama-3.3-70b-versatile")
-FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "llama-3.1-8b-instant")
+# Model Selection Config (Updated to active high-performance Groq models)
+DEFAULT_MODEL  = os.getenv("DEFAULT_MODEL",  "groq/compound-mini")
+FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "groq/compound-mini")
 
 # ── OpenRouter model IDs for each Brain ──────────────────────────────────────
 # Each Brain uses a genuinely different model from a different provider/family.
