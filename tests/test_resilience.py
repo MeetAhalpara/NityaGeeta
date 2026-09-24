@@ -127,8 +127,15 @@ def test_circuit_breaker_metrics():
 # =============================================================================
 
 @pytest.mark.asyncio
-async def test_sse_streaming_frames_order():
+async def test_sse_streaming_frames_order(monkeypatch):
     """Verifies stream_rag_pipeline_async yields structured SSE event frames."""
+    async def mock_stream_groq(messages, model=None, temperature=0.2):
+        yield "You have a right to perform your prescribed duties,"
+        yield " but you are not entitled to the fruits of action."
+
+    import api.services.rag_engine as re_module
+    monkeypatch.setattr(re_module, "stream_groq_completion", mock_stream_groq)
+
     gen = stream_rag_pipeline_async("BG 2.47")
 
     received_frames = []
