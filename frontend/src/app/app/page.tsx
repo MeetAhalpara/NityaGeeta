@@ -53,6 +53,8 @@ import { FormattedChatMessage } from "@/components/ui/formatted-chat-message";
 import { AgentActivity, type AgentActivityItem } from "@/components/agents/agent-activity";
 import { Citations, Citation } from "@/components/agents/citations";
 import { EmptyState } from "@/components/ui/empty-state";
+import { TopicBreadcrumb } from "@/components/agents/topic-breadcrumb";
+import { TangentAccordion, type TangentSummaryItem } from "@/components/agents/tangent-accordion";
 
 
 
@@ -437,6 +439,26 @@ export default function AppMainPage() {
   const [showHistoryMenu, setShowHistoryMenu] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  // Conversation Stack & Tangent Memory State
+  const [activeTangent, setActiveTangent] = useState<string | null>(null);
+  const [collapsedTangents, setCollapsedTangents] = useState<TangentSummaryItem[]>([]);
+
+  const activeSession = conversations.find((c) => c.id === activeSessionId);
+  const activeTopicName = activeSession?.title || "Spiritual & Daily Guidance";
+
+  const handleReturnToMain = () => {
+    if (activeTangent) {
+      const newSummary: TangentSummaryItem = {
+        id: `tangent-${Date.now()}`,
+        topicName: activeTangent,
+        sutraSummary: `Explored detailed inquiry on ${activeTangent}. Context squashed back to main guidance thread.`,
+        turnCount: 2,
+      };
+      setCollapsedTangents((prev) => [...prev, newSummary]);
+      setActiveTangent(null);
+    }
+  };
 
   // Ref to the input box & scroll anchor
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -999,9 +1021,39 @@ Start or verify the backend server:
               style={{ backgroundImage: "url('/assets/images/ChatBG/BG.png')" }}
             />
 
+            {/* TOP APPLE-STYLE MINIMALIST HEADER */}
+            <header className="relative z-20 w-full flex items-center justify-between px-4 sm:px-6 h-14 border-b border-[#E6DDD0]/40 dark:border-[#2D2825]/40 bg-[#FAF7F2]/80 dark:bg-[#1A1816]/80 backdrop-blur-xl shrink-0">
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <AnimatedSidebarTrigger className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#262320]/60 transition-colors shrink-0" />
+                <TopicBreadcrumb
+                  mainTopic={activeTopicName}
+                  activeTangent={activeTangent}
+                  onPopTangent={handleReturnToMain}
+                  className="max-w-xs sm:max-w-md border-none bg-transparent dark:bg-transparent px-1 py-0 shadow-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => createNewDialogue()}
+                  title="Start fresh dialogue"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#5C4F45] dark:text-[#D4C7B8] hover:text-[#C25E38] dark:hover:text-[#E06D43] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#262320]/60 transition-colors cursor-pointer"
+                >
+                  <SquarePen className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">New Dialogue</span>
+                </button>
+                <AnimatedThemeToggler />
+              </div>
+            </header>
+
             {/* Full-width Scrollable Container: Mouse scrolling works anywhere on the window */}
             <div className="relative z-10 flex-1 overflow-y-auto scrollbar-hide w-full h-full">
-              <div className="px-4 sm:px-8 py-8 space-y-6 flex flex-col w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto min-h-full">
+              <div className="px-4 sm:px-8 py-6 space-y-6 flex flex-col w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto min-h-full">
+
+                {/* SŪTRA COLLAPSED TANGENTS ACCORDION */}
+                {collapsedTangents.length > 0 && (
+                  <TangentAccordion tangents={collapsedTangents} />
+                )}
 
               {messages.length === 0 ? (
                 <div className="flex-1 my-auto" />
