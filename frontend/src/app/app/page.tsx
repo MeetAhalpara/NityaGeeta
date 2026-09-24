@@ -536,7 +536,11 @@ export default function AppMainPage() {
     router.prefetch("/signup");
   }, [router]);
 
-  const isPreview = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "true";
+  // Security: Preview bypass is strictly gated to development environments
+  const isPreview =
+    process.env.NODE_ENV === "development" &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("preview") === "true";
 
   useEffect(() => {
     if (status === "unauthenticated" && !isPreview) {

@@ -41,6 +41,17 @@ export function CitationDisputeModal({
   const [submittedTicket, setSubmittedTicket] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Close on Escape key press for accessibility
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        handleResetAndClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
   if (!isOpen || !citation) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,8 +107,16 @@ export function CitationDisputeModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleResetAndClose();
+        }}
+      >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dispute-modal-title"
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -111,7 +130,10 @@ export function CitationDisputeModal({
                 <ShieldAlert className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB]">
+                <h3 
+                  id="dispute-modal-title"
+                  className="text-sm font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB]"
+                >
                   Dispute Citation / Source Audit
                 </h3>
                 <p className="text-[11px] text-[#8C7B70] dark:text-[#A89F91]">

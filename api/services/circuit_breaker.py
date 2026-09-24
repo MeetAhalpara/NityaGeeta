@@ -58,18 +58,17 @@ class CircuitBreaker:
         self._state = CircuitState.CLOSED
         self._failure_count = 0
         self._success_count = 0
+        self._half_open_in_flight = False
         self._last_state_change = time.time()
         self._lock = asyncio.Lock()
 
     @property
     def state(self) -> CircuitState:
-        # Check if OPEN duration expired, dynamically transition to HALF_OPEN
+        """Read-only inspection of circuit breaker state."""
         if self._state == CircuitState.OPEN:
             elapsed = time.time() - self._last_state_change
             if elapsed >= self.recovery_timeout:
-                self._state = CircuitState.HALF_OPEN
-                self._success_count = 0
-                logger.info(f"Circuit breaker '{self.name}' transitioned from OPEN -> HALF_OPEN (probe state)")
+                return CircuitState.HALF_OPEN
         return self._state
 
     @property
@@ -83,6 +82,22 @@ class CircuitBreaker:
             return max(0.0, self.recovery_timeout - elapsed)
         return 0.0
 
+    async def _handle_open(
+        self,
+        fallback: Optional[Callable[..., Any]],
+        remaining: float,
+        *args: Any,
+        **kwargs: Any
+    ) -> Any:
+        logger.warning(
+            f"Circuit breaker '{self.name}' is OPEN ({round(remaining, 1)}s remaining). Fast-failing."
+        )
+        if fallback:
+            if asyncio.iscoroutinefunction(fallback):
+                return await fallback(*args, **kwargs)
+            return fallback(*args, **kwargs)
+        raise CircuitBreakerOpenException(self.name, remaining)
+
     async def call(
         self,
         func: Callable[..., Any],
@@ -92,20 +107,28 @@ class CircuitBreaker:
     ) -> Any:
         """
         Executes func(*args, **kwargs) guarded by the circuit breaker.
-        If OPEN, invokes fallback(*args, **kwargs) or raises CircuitBreakerOpenException.
+        Safely acquires lock to test and transition state before executing.
         """
-        current_state = self.state
-
-        if current_state == CircuitState.OPEN:
-            remaining = self.time_until_retry
-            logger.warning(
-                f"Circuit breaker '{self.name}' is OPEN ({round(remaining, 1)}s remaining). Fast-failing."
-            )
-            if fallback:
-                if asyncio.iscoroutinefunction(fallback):
-                    return await fallback(*args, **kwargs)
-                return fallback(*args, **kwargs)
-            raise CircuitBreakerOpenException(self.name, remaining)
+        async with self._lock:
+            now = time.time()
+            if self._state == CircuitState.OPEN:
+                elapsed = now - self._last_state_change
+                if elapsed >= self.recovery_timeout:
+                    # Transition to HALF_OPEN for a single probe request
+                    self._state = CircuitState.HALF_OPEN
+                    self._success_count = 0
+                    self._half_open_in_flight = True
+                    self._last_state_change = now
+                    logger.info(f"Circuit breaker '{self.name}' entered HALF_OPEN (single probe reserved)")
+                else:
+                    remaining = max(0.0, self.recovery_timeout - elapsed)
+                    return await self._handle_open(fallback, remaining, *args, **kwargs)
+            elif self._state == CircuitState.HALF_OPEN:
+                if self._half_open_in_flight:
+                    # Probe already running, fast-fail or fallback other concurrent requests
+                    logger.warning(f"Circuit breaker '{self.name}' probe in-flight. Fast-failing concurrent call.")
+                    return await self._handle_open(fallback, 1.0, *args, **kwargs)
+                self._half_open_in_flight = True
 
         try:
             # Execute the coroutine or sync function
@@ -129,6 +152,7 @@ class CircuitBreaker:
 
     async def _record_success(self) -> None:
         async with self._lock:
+            self._half_open_in_flight = False
             if self._state == CircuitState.HALF_OPEN:
                 self._success_count += 1
                 if self._success_count >= self.half_open_success_threshold:
@@ -142,6 +166,7 @@ class CircuitBreaker:
 
     async def _record_failure(self, exc: Exception) -> None:
         async with self._lock:
+            self._half_open_in_flight = False
             self._failure_count += 1
             logger.warning(
                 f"Circuit breaker '{self.name}' caught failure ({self._failure_count}/{self.failure_threshold}): {exc}"

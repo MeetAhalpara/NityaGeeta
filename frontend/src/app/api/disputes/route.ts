@@ -12,9 +12,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate unique NityaGeeta Governance Ticket ID
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const disputeId = `NG-DISPUTE-${randomSuffix}`;
+    // Generate collision-resistant NityaGeeta Governance Ticket ID
+    const entropy = crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+    const disputeId = `NG-DISPUTE-${Date.now().toString(36).toUpperCase()}-${entropy}`;
 
     const timestamp = new Date().toISOString();
 

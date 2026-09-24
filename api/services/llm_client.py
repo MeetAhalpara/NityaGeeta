@@ -27,7 +27,7 @@ import logging
 import asyncio
 import httpx
 from typing import List, Dict, Any, Optional
-from groq import Groq
+from groq import Groq, AsyncGroq
 
 from api.config import (
     GROQ_API_KEYS, DEFAULT_MODEL, FALLBACK_MODEL,
@@ -48,12 +48,28 @@ from api.services.prompt_builder import (
     build_cross_model_synthesis_prompt,
     build_dual_source_synthesis_prompt,
 )
-from api.services.circuit_breaker import groq_breaker, openrouter_breaker
+from api.services.circuit_breaker import groq_breaker, openrouter_breaker, CircuitState
 
 logger = logging.getLogger("nityageeta.llm_client")
 
 # ── Groq key rotation ────────────────────────────────────────────────────────
 _groq_key_index = 0
+
+def _next_groq_client() -> Groq:
+    global _groq_key_index
+    if not GROQ_API_KEYS:
+        raise ValueError("No Groq API keys configured.")
+    key = GROQ_API_KEYS[_groq_key_index % len(GROQ_API_KEYS)]
+    _groq_key_index += 1
+    return Groq(api_key=key)
+
+def _next_async_groq_client() -> AsyncGroq:
+    global _groq_key_index
+    if not GROQ_API_KEYS:
+        raise ValueError("No Groq API keys configured.")
+    key = GROQ_API_KEYS[_groq_key_index % len(GROQ_API_KEYS)]
+    _groq_key_index += 1
+    return AsyncGroq(api_key=key)
 
 async def stream_groq_completion(
     messages: List[Dict[str, str]],
@@ -63,8 +79,8 @@ async def stream_groq_completion(
     max_tokens: int = 1500,
 ):
     """
-    Yields token strings from Groq streaming completion.
-    Guarded with groq_breaker and automatic key rotation.
+    Yields token strings from Groq streaming completion using AsyncGroq.
+    Fully non-blocking on the event loop, guarded with groq_breaker across stream lifecycle.
     """
     built: List[Dict[str, str]] = []
     if system_prompt:
@@ -73,29 +89,31 @@ async def stream_groq_completion(
     else:
         built = list(messages)
 
-    def _sync_stream():
-        client = _next_groq_client()
-        return client.chat.completions.create(
+    if groq_breaker.state == CircuitState.OPEN:
+        logger.warning("Groq breaker is OPEN: failing fast in stream_groq_completion")
+        yield "The scripture synthesis service is temporarily unavailable. Contemplating sacred verses..."
+        return
+
+    try:
+        client = _next_async_groq_client()
+        stream = await client.chat.completions.create(
             model=model,
             messages=built,
             temperature=temperature,
             max_tokens=max_tokens,
             stream=True
         )
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
 
-    stream = await groq_breaker.call(_sync_stream)
-    for chunk in stream:
-        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
-            yield chunk.choices[0].delta.content
+        # Full stream consumed successfully
+        await groq_breaker._record_success()
 
-
-def _next_groq_client() -> Groq:
-    global _groq_key_index
-    if not GROQ_API_KEYS:
-        raise ValueError("No Groq API keys configured.")
-    key = GROQ_API_KEYS[_groq_key_index % len(GROQ_API_KEYS)]
-    _groq_key_index += 1
-    return Groq(api_key=key)
+    except Exception as exc:
+        await groq_breaker._record_failure(exc)
+        logger.error(f"Error during Groq async stream consumption: {exc}")
+        raise
 
 # keep old name so nothing else breaks
 def get_next_groq_client():
