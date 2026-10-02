@@ -25,6 +25,8 @@ frontend/public/assets
 # Node modules
 frontend/node_modules
 frontend/.next
+frontend/tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # Scratch & Temporary Files
 scratch/
