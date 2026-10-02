@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "lucide-react": "^0.474.0",
+    "lucide-react": "^1.48.0",
     "motion": "^13.4.6",
     "next": "^16.3.7",
     "next-auth": "^4.24.15",
