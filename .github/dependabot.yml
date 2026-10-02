@@ -1,0 +1,24 @@
+# Dependabot configuration for NityaGeeta
+# Automated vulnerability scanning and dependency updates across Python, Node.js, and CI workflows
+version: 2
+updates:
+  # 1. Python Backend Dependencies (root /requirements.txt)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # 2. Next.js 15 Frontend Dependencies (frontend/package.json)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # 3. GitHub Actions CI Workflows (.github/workflows)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
