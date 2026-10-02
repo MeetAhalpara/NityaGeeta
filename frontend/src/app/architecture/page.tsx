@@ -33,6 +33,7 @@ import { Footer } from "@/components/Footer";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { AgentActivity, type AgentActivityItem } from "@/components/agents/agent-activity";
 import { Citations, type CitationItem } from "@/components/agents/citations";
+import { ArchitectureDiagrams } from "@/components/ui/architecture-diagrams";
 
 const ARCHITECTURE_STEPS = [
   {
@@ -243,6 +244,11 @@ export default function ArchitecturePage() {
             <span>Browse 700-Verse Dilemmas</span>
           </button>
         </div>
+      </section>
+
+      {/* ── SYSTEM TOPOLOGY & INTERACTIVE BLUEPRINTS (MERMAID.JS) ── */}
+      <section className="py-8 px-6 max-w-6xl mx-auto w-full">
+        <ArchitectureDiagrams />
       </section>
 
       {/* ── ARCHITECTURAL PILLARS: 4-STAGE GROUNDING PIPELINE ── */}

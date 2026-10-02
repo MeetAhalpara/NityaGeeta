@@ -29,6 +29,8 @@ import {
   Search,
   PanelLeft,
   X,
+  Bookmark,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { RadialContextMenu, RadialMenuItem } from "@/components/ui/radial-context-menu";
@@ -100,6 +102,8 @@ interface Message {
   candidates?: CandidateItem[];
   citations?: CitationItem[];
   web_citations?: CitationItem[];
+  isPinned?: boolean;
+  isStreaming?: boolean;
 }
 
 interface ConversationSession {
@@ -444,6 +448,42 @@ export default function AppMainPage() {
   const [activeTangent, setActiveTangent] = useState<string | null>(null);
   const [collapsedTangents, setCollapsedTangents] = useState<TangentSummaryItem[]>([]);
 
+  // Pinned Messages State
+  const [showPinnedDrawer, setShowPinnedDrawer] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+
+  const pinnedMessages = useMemo(() => messages.filter((m) => m.isPinned), [messages]);
+
+  const togglePinMessage = (messageId: string) => {
+    setMessages((prev) => {
+      const updated = prev.map((m) =>
+        m.id === messageId ? { ...m, isPinned: !m.isPinned } : m
+      );
+      if (activeSessionId) {
+        setConversations((convs) => {
+          const newConvs = convs.map((c) =>
+            c.id === activeSessionId ? { ...c, messages: updated, updatedAt: Date.now() } : c
+          );
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newConvs));
+          } catch (e) {
+            console.error("Failed to persist pinned message:", e);
+          }
+          return newConvs;
+        });
+      }
+      return updated;
+    });
+  };
+
+  const handleCopyMessage = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedMessageId(id);
+    setTimeout(() => {
+      setCopiedMessageId(null);
+    }, 2000);
+  };
+
   const activeSession = conversations.find((c) => c.id === activeSessionId);
   const activeTopicName = activeSession?.title || "Spiritual & Daily Guidance";
 
@@ -709,45 +749,143 @@ export default function AppMainPage() {
 
     try {
       const apiBase = process.env.NEXT_PUBLIC_AUTH_API_BASE || "http://localhost:8000";
-      let res = await fetch(`${apiBase}/api/v1/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: messageText }),
-      }).catch(() => null);
+      let streamSucceeded = false;
 
-      if (!res || !res.ok) {
-        res = await fetch("http://127.0.0.1:8000/api/v1/chat", {
+      // Attempt SSE streaming first for sub-second Time-To-First-Token
+      try {
+        const streamRes = await fetch(`${apiBase}/api/v1/chat/stream`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: messageText }),
         }).catch(() => null);
+
+        if (streamRes && streamRes.ok && streamRes.body) {
+          const reader = streamRes.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let streamDone = false;
+          let accumulatedText = "";
+          let streamCitations: CitationItem[] = [];
+          const streamingBotId = (Date.now() + 1).toString();
+
+          // Optimistically append streaming message container
+          setMessages([
+            ...nextMessages,
+            {
+              id: streamingBotId,
+              sender: "bot",
+              text: "",
+              isStreaming: true,
+              citations: [],
+            },
+          ]);
+
+          let streamBuffer = "";
+          while (!streamDone) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            streamBuffer += decoder.decode(value, { stream: true });
+            const events = streamBuffer.split("\n\n");
+            streamBuffer = events.pop() || "";
+
+            for (const rawEvent of events) {
+              const eventMatch = rawEvent.match(/^event:\s*(\w+)/m);
+              const dataMatch = rawEvent.match(/^data:\s*(.+)$/m);
+              const eventName = eventMatch ? eventMatch[1] : "token";
+              const rawData = dataMatch ? dataMatch[1].trim() : "";
+
+              if (eventName === "citations" && rawData) {
+                try {
+                  const parsed = JSON.parse(rawData);
+                  streamCitations = parsed.citations || [];
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === streamingBotId ? { ...m, citations: streamCitations } : m
+                    )
+                  );
+                } catch {
+                  // Keep citations intact
+                }
+              } else if (eventName === "token" && rawData) {
+                try {
+                  const parsed = JSON.parse(rawData);
+                  if (parsed.delta) {
+                    accumulatedText += parsed.delta;
+                    setMessages((prev) =>
+                      prev.map((m) =>
+                        m.id === streamingBotId
+                          ? { ...m, text: cleanMarkdownText(accumulatedText) }
+                          : m
+                      )
+                    );
+                  }
+                } catch {
+                  // Ignore parse error on partial token
+                }
+              } else if (eventName === "done") {
+                streamDone = true;
+              }
+            }
+          }
+
+          if (accumulatedText.trim().length > 0) {
+            streamSucceeded = true;
+            const completedBotMsg: Message = {
+              id: streamingBotId,
+              sender: "bot",
+              text: cleanMarkdownText(accumulatedText),
+              citations: streamCitations,
+              isStreaming: false,
+            };
+            const finalMessages = [...nextMessages, completedBotMsg];
+            setMessages(finalMessages);
+            updateSessionState(finalMessages, messageText, targetSessionId);
+          }
+        }
+      } catch (streamErr) {
+        console.warn("SSE stream interrupted or unavailable, engaging non-streaming fallback:", streamErr);
       }
 
-      if (res && res.ok) {
-        const data = await res.json();
-        const botMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          sender: "bot",
-          text: cleanMarkdownText(data.answer),
-          winning_model: data.winning_model,
-          best_score: data.best_score,
-          reasoning: data.reasoning,
-          scorecards: data.scorecards || [],
-          candidates: data.candidates || [],
-          citations: data.citations || [],
-        };
-        const finalMessages = [...nextMessages, botMsg];
-        setMessages(finalMessages);
-        setActiveCandidateTab(0);
-        updateSessionState(finalMessages, messageText, targetSessionId);
-      } else {
-        const statusNote = res ? ` (HTTP ${res.status})` : " (server offline / unreachable)";
-        const errMessages = [
-          ...nextMessages,
-          {
+      if (!streamSucceeded) {
+        let res = await fetch(`${apiBase}/api/v1/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: messageText }),
+        }).catch(() => null);
+
+        if (!res || !res.ok) {
+          res = await fetch("http://127.0.0.1:8000/api/v1/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: messageText }),
+          }).catch(() => null);
+        }
+
+        if (res && res.ok) {
+          const data = await res.json();
+          const botMsg: Message = {
             id: (Date.now() + 1).toString(),
-            sender: "bot" as const,
-            text: `### NityaGeeta Knowledge Engine Reconnecting
+            sender: "bot",
+            text: cleanMarkdownText(data.answer),
+            winning_model: data.winning_model,
+            best_score: data.best_score,
+            reasoning: data.reasoning,
+            scorecards: data.scorecards || [],
+            candidates: data.candidates || [],
+            citations: data.citations || [],
+            isStreaming: false,
+          };
+          const finalMessages = [...nextMessages, botMsg];
+          setMessages(finalMessages);
+          setActiveCandidateTab(0);
+          updateSessionState(finalMessages, messageText, targetSessionId);
+        } else {
+          const statusNote = res ? ` (HTTP ${res.status})` : " (server offline / unreachable)";
+          const errMessages = [
+            ...nextMessages,
+            {
+              id: (Date.now() + 1).toString(),
+              sender: "bot" as const,
+              text: `### NityaGeeta Knowledge Engine Reconnecting
 
 The scriptural intelligence service is temporarily unreachable${statusNote}. Your question has been saved in this session.
 
@@ -763,10 +901,11 @@ To start the backend in your terminal from the project root:
 .\\.venv\\Scripts\\python.exe -m uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
 \`\`\`
 *Or simply run \`powershell .\\start_backend.ps1\` to launch automatically.*`,
-          },
-        ];
-        setMessages(errMessages);
-        updateSessionState(errMessages, messageText, targetSessionId);
+            },
+          ];
+          setMessages(errMessages);
+          updateSessionState(errMessages, messageText, targetSessionId);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -1038,6 +1177,16 @@ Start or verify the backend server:
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
+                {pinnedMessages.length > 0 && (
+                  <button
+                    onClick={() => setShowPinnedDrawer(true)}
+                    title="View pinned reflections"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#C25E38]/10 dark:bg-[#E06D43]/15 text-[#C25E38] dark:text-[#E06D43] border border-[#C25E38]/20 hover:bg-[#C25E38]/20 transition-all cursor-pointer"
+                  >
+                    <Bookmark className="w-3.5 h-3.5 fill-[#C25E38] dark:fill-[#E06D43]" />
+                    <span>{pinnedMessages.length} Pinned</span>
+                  </button>
+                )}
                 <button
                   onClick={() => createNewDialogue()}
                   title="Start fresh dialogue"
@@ -1300,6 +1449,48 @@ Start or verify the backend server:
                           </div>
                         )}
 
+                        {/* MESSAGE ACTION BAR: PIN / UNPIN & COPY */}
+                        <div className="flex items-center justify-between pt-3 border-t border-[#E6DDD0]/30 dark:border-[#2D2825]/30">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => togglePinMessage(msg.id)}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                                msg.isPinned
+                                  ? "bg-[#C25E38]/15 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] font-semibold"
+                                  : "text-[#8C7B70] hover:text-[#C25E38] hover:bg-[#EFE9DF]/50 dark:hover:bg-[#262320]/50"
+                              }`}
+                              title={msg.isPinned ? "Unpin this wisdom reflection" : "Pin this wisdom reflection"}
+                            >
+                              <Bookmark className={`w-3.5 h-3.5 ${msg.isPinned ? "fill-current" : ""}`} />
+                              <span>{msg.isPinned ? "Pinned" : "Pin"}</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleCopyMessage(msg.text, msg.id)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] hover:bg-[#EFE9DF]/50 dark:hover:bg-[#262320]/50 transition-all cursor-pointer"
+                              title="Copy response text"
+                            >
+                              {copiedMessageId === msg.id ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                                  <span className="text-green-600 dark:text-green-400">Copied</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3.5 h-3.5" />
+                                  <span>Copy</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          {msg.winning_model && (
+                            <span className="text-[10px] text-[#8C7B70]/70 dark:text-[#A89F91]/70 font-mono">
+                              via {msg.winning_model.replace("groq/", "").replace("-preview", "")}
+                            </span>
+                          )}
+                        </div>
+
                       </div>
                     )}
 
@@ -1332,6 +1523,89 @@ Start or verify the backend server:
             <div className="relative z-10 w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 pb-6 pt-2 flex flex-col gap-3">
               {renderInputBox(false)}
             </div>
+
+            {/* PINNED MESSAGES SLIDE-OVER DRAWER */}
+            <AnimatePresence>
+              {showPinnedDrawer && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setShowPinnedDrawer(false)}
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 cursor-pointer"
+                  />
+                  <motion.div
+                    initial={{ x: "100%" }}
+                    animate={{ x: 0 }}
+                    exit={{ x: "100%" }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="fixed top-0 right-0 h-full w-full max-w-md bg-[#FAF7F2] dark:bg-[#1A1816] shadow-2xl z-50 flex flex-col border-l border-[#E6DDD0]/60 dark:border-[#2D2825]/60"
+                  >
+                    <div className="flex items-center justify-between p-4 border-b border-[#E6DDD0]/60 dark:border-[#2D2825]/60">
+                      <div className="flex items-center gap-2">
+                        <Bookmark className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43] fill-current" />
+                        <h3 className="font-semibold text-sm text-[#2D2622] dark:text-[#F5F2EB]">
+                          Pinned Revelations ({pinnedMessages.length})
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => setShowPinnedDrawer(false)}
+                        className="p-1 rounded-lg hover:bg-[#EFE9DF] dark:hover:bg-[#262320] text-[#8C7B70] transition-colors cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                      {pinnedMessages.length === 0 ? (
+                        <div className="text-center py-12 text-[#8C7B70] text-xs">
+                          <Bookmark className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                          <p>No pinned messages in this dialogue yet.</p>
+                          <p className="mt-1 opacity-70">Click the Pin button on any guidance response to bookmark it here.</p>
+                        </div>
+                      ) : (
+                        pinnedMessages.map((pMsg, idx) => (
+                          <div
+                            key={pMsg.id}
+                            className="p-3.5 rounded-xl bg-white/70 dark:bg-[#221F1C]/70 border border-[#E6DDD0]/70 dark:border-[#2D2825] shadow-xs space-y-2.5"
+                          >
+                            <div className="flex items-center justify-between text-xs text-[#8C7B70]">
+                              <span className="font-semibold text-[#C25E38] dark:text-[#E06D43]">
+                                Item #{idx + 1}
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => handleCopyMessage(pMsg.text, pMsg.id)}
+                                  className="p-1 hover:text-[#2D2622] dark:hover:text-white transition-colors cursor-pointer"
+                                  title="Copy text"
+                                >
+                                  {copiedMessageId === pMsg.id ? (
+                                    <Check className="w-3.5 h-3.5 text-green-600" />
+                                  ) : (
+                                    <Copy className="w-3.5 h-3.5" />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => togglePinMessage(pMsg.id)}
+                                  className="p-1 hover:text-red-500 transition-colors cursor-pointer"
+                                  title="Unpin"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-xs text-[#2D2622] dark:text-[#D4C7B8] leading-relaxed line-clamp-4 font-sans">
+                              {pMsg.text}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
           </AnimatedSidebarInset>
         </RadialContextMenu>
       </div>
