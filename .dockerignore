@@ -1,0 +1,36 @@
+# Git & Version Control
+.git
+.gitignore
+.github
+
+# Python Bytecode & Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+
+# Frontend (built separately in frontend/Dockerfile)
+frontend/
+
+# Local databases & heavy data
+data/postgres/
+data/redis/
+data/raw/
+Files/
+docs/
+scratch/
+Errors/
+.agents/
+.specify/
+.vscode/
+
+# Logs & temporary files
+*.log
+*.tmp
+image*.png
+.DS_Store
+Thumbs.db

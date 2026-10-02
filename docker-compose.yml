@@ -2,7 +2,34 @@ version: '3.8'
 
 services:
   # =============================================================================
-  # Fast-API Production Backend Service
+  # Next.js 16 Production Frontend Service
+  # =============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nityageeta-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - nityageeta-net
+
+  # =============================================================================
+  # FastAPI Production Backend Service (RAG & Multi-LLM Ensemble)
   # =============================================================================
   backend:
     build:
@@ -13,24 +40,29 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - REDIS_URL=redis://redis:6379
       - PORT=8000
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://nityageeta_user:nityageeta_password@postgres:5432/nityageeta_db
+      - WEAVIATE_URL=http://weaviate:8080
     env_file:
-      - .env
+      - path: .env
+        required: false
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
     networks:
       - nityageeta-net
 
   # =============================================================================
-  # In-Memory Cache Service (Redis 7.2)
+  # In-Memory Cache Service (Redis 7.2 - Token & Semantic Query Optimization)
   # =============================================================================
   redis:
     image: redis:7.2-alpine
@@ -49,8 +81,54 @@ services:
     networks:
       - nityageeta-net
 
+  # =============================================================================
+  # Relational Database Service (PostgreSQL 16 - Sessions & Dispute Audits)
+  # =============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: nityageeta-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=nityageeta_user
+      - POSTGRES_PASSWORD=nityageeta_password
+      - POSTGRES_DB=nityageeta_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nityageeta_user -d nityageeta_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nityageeta-net
+
+  # =============================================================================
+  # Vector Database Service (Weaviate 1.25 - Hybrid Vector & Keyword Search)
+  # =============================================================================
+  weaviate:
+    image: semitechnologies/weaviate:1.25.4
+    container_name: nityageeta-weaviate
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      - QUERY_DEFAULTS_LIMIT=25
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+      - PERSISTENCE_DATA_PATH=/var/lib/weaviate
+      - DEFAULT_VECTORIZER_MODULE=none
+      - CLUSTER_HOSTNAME=node1
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    networks:
+      - nityageeta-net
+
 volumes:
   redis_data:
+  postgres_data:
+  weaviate_data:
 
 networks:
   nityageeta-net:
