@@ -2,7 +2,28 @@ version: '3.8'
 
 services:
   # =============================================================================
-  # Fast-API Production Backend Service
+  # Next.js Production Frontend Service
+  # =============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nityageeta-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_TELEMETRY_DISABLED=1
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - nityageeta-net
+
+  # =============================================================================
+  # FastAPI Production Backend Service
   # =============================================================================
   backend:
     build:
@@ -14,18 +35,21 @@ services:
       - "8000:8000"
     environment:
       - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/nityageeta
       - PORT=8000
     env_file:
       - .env
     depends_on:
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
     networks:
       - nityageeta-net
 
@@ -49,8 +73,33 @@ services:
     networks:
       - nityageeta-net
 
+  # =============================================================================
+  # Relational Database Service (PostgreSQL 16)
+  # =============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: nityageeta-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=nityageeta
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nityageeta"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - nityageeta-net
+
 volumes:
   redis_data:
+  pg_data:
 
 networks:
   nityageeta-net:
