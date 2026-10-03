@@ -1,0 +1,48 @@
+# Git & CI/CD
+.git
+.gitignore
+.github
+
+# Virtual Environments & Python Cache
+.venv
+venv
+ENV
+env
+__pycache__
+*.py[cod]
+*$py.class
+.pytest_cache
+.coverage
+htmlcov
+
+# Frontend (containerized separately)
+frontend/
+
+# Local data & databases
+data/postgres/
+data/redis/
+data/raw/
+*.db
+*.sqlite
+
+# Testing, Scratch & Logs
+tests/
+scratch/
+*.tmp
+*.log
+boss_out.txt
+*.docx
+
+# Docs & Private Notes
+docs/
+Q&A.txt
+recovery-codes.txt
+Errors/
+
+# Agent & IDE Configurations
+.agents/
+.claude/
+.claude.json
+.specify/
+.idea/
+.vscode/
