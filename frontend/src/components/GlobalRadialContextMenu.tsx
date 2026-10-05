@@ -80,7 +80,23 @@ export function GlobalRadialContextMenu({ children }: GlobalRadialContextMenuPro
   const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  const [isDark, setIsDark] = useState(false);
+
+  // Strictly sync isDark with the active document theme class at all times
+  useEffect(() => {
+    const updateThemeState = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+    updateThemeState();
+
+    const observer = new MutationObserver(updateThemeState);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, [resolvedTheme]);
 
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -149,7 +165,18 @@ export function GlobalRadialContextMenu({ children }: GlobalRadialContextMenuPro
         id: "theme",
         label: isDark ? "Light Mode" : "Dark Mode",
         icon: isDark ? Sun : Moon,
-        action: () => setTheme(isDark ? "light" : "dark"),
+        action: () => {
+          const nextIsDark = !isDark;
+          setTheme(nextIsDark ? "dark" : "light");
+          if (nextIsDark) {
+            document.documentElement.classList.add("dark");
+            localStorage.setItem("theme", "dark");
+          } else {
+            document.documentElement.classList.remove("dark");
+            localStorage.setItem("theme", "light");
+          }
+          setIsDark(nextIsDark);
+        },
       },
       {
         id: "home",
@@ -174,6 +201,9 @@ export function GlobalRadialContextMenu({ children }: GlobalRadialContextMenuPro
       closeMenu();
       return;
     }
+
+    // Always re-verify document theme when opening menu
+    setIsDark(document.documentElement.classList.contains("dark"));
 
     // Clamp coordinates within window bounds
     const x = Math.min(Math.max(e.clientX, radius + 15), window.innerWidth - radius - 15);

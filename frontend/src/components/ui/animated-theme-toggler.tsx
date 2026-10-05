@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { flushSync } from "react-dom";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 export type TransitionVariant =
@@ -160,9 +161,12 @@ export const AnimatedThemeToggler = ({
   ...props
 }: AnimatedThemeTogglerProps) => {
   const shape = variant ?? "circle";
+  const nextThemes = useTheme();
   const isControlled = theme !== undefined;
   const [internalIsDark, setInternalIsDark] = useState(false);
-  const isDark = isControlled ? theme === "dark" : internalIsDark;
+  const isDark = isControlled
+    ? theme === "dark"
+    : (nextThemes?.resolvedTheme ? nextThemes.resolvedTheme === "dark" : internalIsDark);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isTransitioningRef = useRef(false);
 
@@ -210,12 +214,13 @@ export const AnimatedThemeToggler = ({
 
     const applyTheme = () => {
       const newTheme = !isDark;
-      document.documentElement.classList.toggle("dark");
+      document.documentElement.classList.toggle("dark", newTheme);
       if (isControlled) {
         onThemeChange?.(newTheme ? "dark" : "light");
       } else {
         setInternalIsDark(newTheme);
         localStorage.setItem("theme", newTheme ? "dark" : "light");
+        nextThemes?.setTheme?.(newTheme ? "dark" : "light");
       }
     };
 
