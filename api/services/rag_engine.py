@@ -18,6 +18,7 @@ from api.services.llm_client import (
     expand_query_for_gita
 )
 from api.services.citation_guardrail import CitationGuardrail
+from api.services.telemetry_stream import generate_steve_jobs_followup
 
 logger = logging.getLogger("nityageeta.rag_engine")
 logging.basicConfig(level=logging.INFO)
@@ -276,6 +277,7 @@ async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
     final_answer = guardrail_report.get("sanitized_response", sanitized_answer)
 
     combined_citations = scripture_citations + web_citations
+    steve_jobs_followup = generate_steve_jobs_followup(question, combined_citations)
 
     return {
         "answer": final_answer,
@@ -287,7 +289,8 @@ async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
         "scripture_citations": scripture_citations,
         "web_citations": web_citations,
         "citations": combined_citations,
-        "citation_guardrail": guardrail_report
+        "citation_guardrail": guardrail_report,
+        "steve_jobs_followup": steve_jobs_followup
     }
 
 def execute_rag_query(question: str) -> Dict[str, Any]:
@@ -391,7 +394,11 @@ async def stream_rag_pipeline_async(question: str) -> AsyncGenerator[str, None]:
         if guardrail_report.get("disclaimer"):
             yield f"event: token\ndata: {_json.dumps({'delta': guardrail_report['disclaimer']})}\n\n"
 
-        # Step 5: Final completion frame
+        # Step 5: Stream Steve Jobs Follow-Up Pathways
+        followup_payload = generate_steve_jobs_followup(question, scripture_citations)
+        yield f"event: followup\ndata: {_json.dumps(followup_payload)}\n\n"
+
+        # Step 6: Final completion frame
         yield f"event: done\ndata: {_json.dumps({'complete': True, 'model': DEFAULT_MODEL, 'citations_count': len(scripture_citations)})}\n\n"
 
     except Exception as exc:

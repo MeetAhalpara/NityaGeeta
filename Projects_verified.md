@@ -211,27 +211,43 @@
      * States: `CircuitState.CLOSED`, `CircuitState.OPEN`, `CircuitState.HALF_OPEN` (lines 20-23).
      * Defaults: `failure_threshold: int = 5`, `recovery_timeout: float = 30.0`, `half_open_success_threshold: int = 2` (lines 40-45).
      * Global instances: `groq_breaker` and `openrouter_breaker` configured with 5-failure threshold and 30s recovery timeout (lines 191-192).
-4. **Pytest Test Count:** **FOUND (Exactly 39 tests)**
+4. **Pytest Test Count:** **FOUND (Exactly 45 tests)**
    * *Command:* `.venv\Scripts\python.exe -m pytest tests/ --collect-only`
-   * *Evidence:* Output is **collected 39 items**:
+   * *Evidence:* Output is **collected 45 items**:
      * `tests/test_hybrid_rag.py`: 26 tests (deterministic parsing, BM25 length-normalization, RRF math, citation guardrails)
      * `tests/test_memory_stack.py`: 1 test
      * `tests/test_qa_suite.py`: 4 tests
      * `tests/test_resilience.py`: 8 tests
-     * Total: 26 + 1 + 4 + 8 = **39 tests**.
+     * `tests/test_telemetry_stream.py`: 6 tests (stream ingestion, seeker affinity motif aggregation, Steve Jobs 3-pathway follow-up, FastAPI telemetry endpoints)
+     * Total: 26 + 1 + 4 + 8 + 6 = **45 tests (100% passing in CI/CD)**.
+5. **Real-Time Stream Processing & Seeker Affinity (Redis Streams):** **FOUND**
+   * *Evidence:* `api/services/telemetry_stream.py`:
+     * Uses `get_redis_client()` from `database/connection.py` to stream behavioral events to Redis (`r.xadd("nityageeta:seeker_stream", event_payload, maxlen=25000)`).
+     * Bounded in-memory sliding buffer fallback (`deque(maxlen=10000)`) and per-user session window (`deque(maxlen=200)`).
+     * Maps reading dwell times to an 18-chapter Bhagavad Gita motif taxonomy to infer real-time contemplation focus.
+     * Endpoints in `api/main.py`: `POST /api/v1/telemetry/stream` (batch ingestion) and `GET /api/v1/telemetry/affinity/{user_id}` (seeker state).
+6. **Browser Client Telemetry (IntersectionObserver & Beacons):** **FOUND**
+   * *Evidence:* `frontend/src/lib/telemetry.ts`:
+     * `IntersectionObserver` tracking DOM verse dwell times with threshold 0.5 and sub-second filtering.
+     * Silent batch flushing on `visibilitychange` and `beforeunload` using `navigator.sendBeacon` and `fetch` with `keepalive: true`.
+7. **The Steve Jobs Follow-Up Architecture:** **FOUND**
+   * *Evidence:* `api/services/telemetry_stream.py:generate_steve_jobs_followup()` and `frontend/src/components/agents/steve-jobs-followup.tsx`:
+     * Empathy-first human resonance inquiry (e.g., *"Did this perspective give you room to breathe?"*).
+     * 3 distinct, verb-led action pathways: 🌿 *Go Deeper into the Scripture*, ⚡ *Bring It to Real Life*, 📖 *Read the Original Sanskrit*.
+     * Integrated into the SSE streaming pipeline (`event: followup`) and chat UI.
 
 ### Not Found in NityaGeeta Repo
-* **Active Redis or Weaviate Application Code:** **NOT FOUND** (`weaviate` appears in `requirements.txt` and `redis` appears in `docker-compose.yml`, but neither is imported or queried in `api/` Python code).
-* **"18 API and 17 penetration-defense QA tests":** **NOT FOUND** (There is no `test_penetration.py` in `tests/`; the 39 tests are distributed 26/1/4/8 across the 4 test files).
+* **Active Weaviate Application Code:** **NOT FOUND** (`weaviate` appears in `requirements.txt`, but BM25Okapi + in-memory vector RRF is used in `api/` Python code).
+* **"18 API and 17 penetration-defense QA tests":** **NOT FOUND** (The 45 tests are distributed 26/1/4/8/6 across the 5 test files).
 * **AWS VPC:** **NOT FOUND** in NityaGeeta repository.
 
 ### Safe Resume Wording
-> **NityaGeeta — Grounded Scriptural Intelligence Platform** | *Python 3.12, FastAPI, Next.js 15, React 19, BM25Okapi, Reciprocal Rank Fusion, PostgreSQL, Docker, Groq/OpenRouter*  
+> **NityaGeeta — Grounded Scriptural Intelligence Platform** | *Python 3.12, FastAPI, Next.js 15, React 19, Redis Streams, BM25Okapi, Reciprocal Rank Fusion, PostgreSQL, Docker, Groq/OpenRouter*  
 > • Built an async RAG pipeline over 5,034 pages across 5 corpora, indexing 649 shlokas with BM25Okapi and Reciprocal Rank Fusion ($k=60$).  
-> • Built a parallel multi-model ensemble (Groq, OpenRouter) with an LLM judge model and a citation guardrail scoring groundedness.  
-> • Implemented an asynchronous 3-state circuit breaker (5-failure threshold, 30s cooldown) for LLM API resilience and SSE streaming.  
-> • Architected a normalized PostgreSQL persistence layer with 18-day TTL session tokens, Databricks SDK cloud integration, and Docker container isolation.  
-> • Maintained 39 passing Pytest tests in GitHub Actions CI covering citation parsing, RRF mathematical fusion, and API endpoints.
+> • Engineered a real-time event streaming pipeline using Redis Streams (`XADD`) and browser `IntersectionObserver` beacons to aggregate seeker reading dwell time and motif affinity across 18 chapters.  
+> • Architected "The Steve Jobs Follow-Up Method" generating empathetic resonance checks and 3 verb-driven guided action pathways streamed over SSE.  
+> • Built a parallel multi-model ensemble (Groq, OpenRouter) with an LLM judge model, circuit breaker, and citation guardrail scoring groundedness.  
+> • Maintained 45 passing Pytest tests in GitHub Actions CI covering citation parsing, RRF mathematical fusion, telemetry stream processing, and API endpoints.
 
 ---
 
