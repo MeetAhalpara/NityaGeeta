@@ -321,10 +321,10 @@ function NityaGeetaChatSidebar({
 
         {/* Recents Section */}
         <div>
-          <div className="px-1.5 pb-1 flex items-center justify-between text-[11px] font-semibold text-[#8C7B70] dark:text-[#8E8E8E]">
+          <div className="px-1.5 pb-1 flex items-center justify-between text-xs font-semibold text-[#8C7B70] dark:text-[#8E8E8E]">
             <span className="tracking-wide">Recents</span>
             {filteredConversations.length > 0 && (
-              <span className="text-[10px] font-mono opacity-60">{filteredConversations.length}</span>
+              <span className="text-xs font-mono opacity-60">{filteredConversations.length}</span>
             )}
           </div>
 
@@ -355,7 +355,7 @@ function NityaGeetaChatSidebar({
               <div className="space-y-2.5 mt-1">
                 {groups.map(({ label, items }) => (
                   <div key={label}>
-                    <p className="px-1.5 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-[#8C7B70]/60 dark:text-[#8E8E8E]/60">
+                    <p className="px-1.5 pt-1 pb-0.5 text-xs font-bold uppercase tracking-wider text-[#8C7B70]/60 dark:text-[#8E8E8E]/60">
                       {label}
                     </p>
                     <div className="space-y-0.5">
@@ -406,7 +406,7 @@ function NityaGeetaChatSidebar({
                 className="size-7 rounded-full object-cover shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all"
               />
             ) : (
-              <div className="size-7 rounded-full bg-[#525E62] dark:bg-[#3F484A] flex items-center justify-center text-white font-medium text-[11px] shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all">
+              <div className="size-7 rounded-full bg-[#525E62] dark:bg-[#3F484A] flex items-center justify-center text-white font-medium text-xs shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all">
                 {userInitial}
               </div>
             )}
@@ -414,7 +414,7 @@ function NityaGeetaChatSidebar({
               <div className="truncate text-xs font-semibold text-[#2D2622] dark:text-[#ECECEC] group-hover:text-[#C25E38] dark:group-hover:text-[#E06D43] transition-colors">
                 {userName}
               </div>
-              <div className="truncate text-[10px] text-[#8C7B70] dark:text-[#8E8E8E]">
+              <div className="truncate text-xs text-[#8C7B70] dark:text-[#8E8E8E]">
                 {session?.user?.email ? "Seeker Account" : "Free"}
               </div>
             </div>
@@ -1327,7 +1327,7 @@ Start or verify the backend server:
                                             }`}
                                           >
                                             <span>{cand.model_name}</span>
-                                            <span className="text-[10px] opacity-75">({cand.score ?? msg.scorecards?.find(s => s.model_name === cand.model_name)?.score ?? 90}/100)</span>
+                                            <span className="text-xs opacity-75">({cand.score ?? msg.scorecards?.find(s => s.model_name === cand.model_name)?.score ?? 90}/100)</span>
                                           </button>
                                         );
                                       })}
@@ -1339,7 +1339,7 @@ Start or verify the backend server:
                                           <span className="font-bold text-[#C25E38] dark:text-[#E06D43]">
                                             {msg.candidates[activeCandidateTab].model_name} Full Response
                                           </span>
-                                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] font-bold">
+                                          <span className="text-xs px-2.5 py-0.5 rounded bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] font-bold">
                                             Score: {msg.candidates[activeCandidateTab].score}/100
                                           </span>
                                         </div>

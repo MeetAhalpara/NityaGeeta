@@ -1505,7 +1505,7 @@ export default function SourcesPage() {
                       <div className="flex items-start sm:items-center gap-5 flex-1">
                         {/* Apple/Linear-Grade Sleek Rank Badge */}
                         <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#3E3832] flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:border-[#C25E38]/50 transition-colors">
-                          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43] leading-none mb-1">
+                          <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43] leading-none mb-1">
                             {source.tierLabel}
                           </span>
                           <span className="text-xl sm:text-2xl font-serif font-black text-[#2D2622] dark:text-[#F5F2EB] leading-none">
@@ -1565,7 +1565,7 @@ export default function SourcesPage() {
 
                         {/* Tagline and Expand Toggle */}
                         <div className="flex items-center justify-between w-full text-xs pt-1">
-                          <span className="font-semibold text-[#5C4F45] dark:text-[#D4C7B8] px-2.5 py-0.5 rounded-md bg-[#EFE9DF] dark:bg-[#332E2A] text-[11px]">
+                          <span className="font-semibold text-[#5C4F45] dark:text-[#D4C7B8] px-2.5 py-0.5 rounded-md bg-[#EFE9DF] dark:bg-[#332E2A] text-xs">
                             {source.tagline}
                           </span>
                           <div className="p-1 rounded-lg text-[#C25E38] dark:text-[#E06D43] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A]">
@@ -2247,24 +2247,24 @@ export default function SourcesPage() {
                   {/* Score Highlight Hero Card */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-5 rounded-2xl bg-[#EFE9DF] dark:bg-[#181513] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm">
                     <div>
-                      <div className="text-[11px] font-semibold text-[#8C7B70] dark:text-[#A89F91]">
+                      <div className="text-xs font-semibold text-[#8C7B70] dark:text-[#A89F91]">
                         Metric Classification & Benchmark Tier
                       </div>
                       <div className="text-sm sm:text-base font-bold text-[#2D2622] dark:text-[#F5F2EB] mt-0.5">
                         {activeScoringInfo.metricName}
                       </div>
-                      <span className="inline-block mt-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
+                      <span className="inline-block mt-1 text-xs font-semibold px-2.5 py-0.5 rounded-md bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
                         {activeScoringInfo.tierTag}
                       </span>
                     </div>
                     <div className="sm:text-right shrink-0">
-                      <div className="text-[11px] font-semibold text-[#8C7B70] dark:text-[#A89F91]">
+                      <div className="text-xs font-semibold text-[#8C7B70] dark:text-[#A89F91]">
                         Overall Audit Score
                       </div>
                       <div className="text-3xl font-mono font-black text-[#C25E38] dark:text-[#E06D43]">
                         {activeScoringInfo.scoreLabel}
                       </div>
-                      <div className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] font-sans">
+                      <div className="text-xs text-[#8C7B70] dark:text-[#A89F91] font-sans">
                         Peer-Verified Consensus
                       </div>
                     </div>
@@ -2410,7 +2410,7 @@ export default function SourcesPage() {
                       <h3 className="text-sm sm:text-base font-bold font-serif truncate text-[#2D2622] dark:text-[#F5F2EB]">
                         {selectedBookTitle}
                       </h3>
-                      <div className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] font-mono">
+                      <div className="text-xs text-[#8C7B70] dark:text-[#A89F91] font-mono">
                         Archived Edition • Public Domain Research Preservation
                       </div>
                     </div>

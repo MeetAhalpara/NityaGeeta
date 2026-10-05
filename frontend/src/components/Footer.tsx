@@ -23,27 +23,27 @@ export function Footer() {
               />
             </span>
           </div>
-          <p className="text-xs text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed max-w-sm">
+          <p className="text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed max-w-sm">
             Universal Bhagavad Gita intelligence synthesized across canonical manuscripts and classical commentaries with 100% citation transparency.
           </p>
-          <div className="pt-0.5">
+          <div className="pt-1 flex items-center gap-2">
             <a
-              href="mailto:contact@nityageeta.com"
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FAF7F2] dark:bg-[#201C19] border border-[#DFD5C6] dark:border-[#38332E] text-[#5C4F45] dark:text-[#D4C7B8] hover:text-[#C25E38] dark:hover:text-[#E06D43] hover:border-[#C25E38]/40 transition text-xs font-medium cursor-pointer shadow-xs"
-              title="Official Contact & Support Email"
+              href="mailto:Morved.NityaGeeta@outlook.com"
+              className="p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#201C19] border border-[#DFD5C6] dark:border-[#38332E] text-[#5C4F45] dark:text-[#D4C7B8] hover:text-[#C25E38] dark:hover:text-[#E06D43] hover:border-[#C25E38]/50 hover:scale-105 active:scale-95 transition cursor-pointer shadow-xs inline-flex items-center justify-center"
+              title="Official Support: Morved.NityaGeeta@outlook.com"
+              aria-label="Official Support Email"
             >
-              <Mail className="w-3.5 h-3.5 text-[#C25E38] dark:text-[#E06D43]" />
-              <span>contact@nityageeta.com</span>
+              <Mail className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
             </a>
           </div>
         </div>
 
         {/* Column 2: Platform Navigation */}
         <div className="space-y-3">
-          <h4 className="font-serif font-bold uppercase tracking-wider text-[11px] text-[#2D2622] dark:text-[#F5F2EB]">
+          <h4 className="font-serif font-bold uppercase tracking-wider text-xs text-[#2D2622] dark:text-[#F5F2EB]">
             Platform
           </h4>
-          <ul className="space-y-2.5 text-xs">
+          <ul className="space-y-3 text-sm">
             <li>
               <button
                 type="button"
@@ -77,7 +77,7 @@ export function Footer() {
                 onClick={() => router.push("/architecture")}
                 className="hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-colors cursor-pointer bg-transparent border-0 p-0 text-left"
               >
-                System Architecture
+                Thinking & Architecture
               </button>
             </li>
           </ul>
@@ -85,10 +85,10 @@ export function Footer() {
 
         {/* Column 3: Governance & Contact */}
         <div className="space-y-3">
-          <h4 className="font-serif font-bold uppercase tracking-wider text-[11px] text-[#2D2622] dark:text-[#F5F2EB]">
+          <h4 className="font-serif font-bold uppercase tracking-wider text-xs text-[#2D2622] dark:text-[#F5F2EB]">
             Governance
           </h4>
-          <ul className="space-y-2.5 text-xs">
+          <ul className="space-y-3 text-sm">
             <li>
               <button
                 type="button"
@@ -121,11 +121,11 @@ export function Footer() {
       </div>
 
       {/* Bottom copyright line */}
-      <div className="max-w-6xl mx-auto pt-5 border-t border-[#E8E1D7] dark:border-[#38332E] flex flex-col sm:flex-row justify-between items-center text-[11px] text-[#8C7B70] dark:text-[#A89F91] gap-2">
+      <div className="max-w-6xl mx-auto pt-5 border-t border-[#E8E1D7] dark:border-[#38332E] flex flex-col sm:flex-row justify-between items-center text-xs text-[#8C7B70] dark:text-[#A89F91] gap-2">
         <div>
           © 2026 <span className="font-semibold text-[#C25E38] dark:text-[#E06D43]">NityaGeeta Foundation</span>. All rights reserved.
         </div>
-        <div className="text-[10px] tracking-wide text-[#8C7B70] dark:text-[#A89F91]">
+        <div className="text-xs tracking-wide text-[#8C7B70] dark:text-[#A89F91]">
           Canonical Sanskrit Ground Truth • 100% Verified Citations
         </div>
       </div>

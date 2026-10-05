@@ -137,6 +137,36 @@
   --ring-brand: rgba(224, 109, 67, 0.5);
 }
 
+html {
+  font-size: 16.5px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (min-width: 640px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 17.5px;
+  }
+}
+
+/* Ensure minimum legibility floor across legacy micro-text classes */
+.text-\[9px\],
+.text-\[10px\] {
+  font-size: 0.775rem !important;
+  line-height: 1.15rem !important;
+}
+
+.text-\[11px\] {
+  font-size: 0.8125rem !important;
+  line-height: 1.25rem !important;
+}
+
 *,
 *:before,
 *:after,
@@ -156,6 +186,7 @@ body {
   background: var(--background);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+  line-height: 1.6;
 }
 
 .font-sans {

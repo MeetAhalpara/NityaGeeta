@@ -13,27 +13,23 @@ import {
   CheckCircle2,
   ChevronDown,
   Layers,
-  Flame,
-  Lightbulb,
   Heart,
   Quote,
-  Target,
   Zap,
-  Activity,
   Award,
-  ExternalLink,
   BrainCircuit,
   FileText,
-  Globe
+  Globe,
+  Shield,
+  Server,
+  Flame,
+  Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
-import { AgentActivity, type AgentActivityItem } from "@/components/agents/agent-activity";
-import { Citations, type CitationItem } from "@/components/agents/citations";
-import { ArchitectureDiagrams } from "@/components/ui/architecture-diagrams";
 
 const ARCHITECTURE_STEPS = [
   {
@@ -204,7 +200,6 @@ const SIMULATION_CASES = [
 export default function ArchitecturePage() {
   const router = useRouter();
   const [activeSimulation, setActiveSimulation] = useState(SIMULATION_CASES[0]);
-  const [citationsOpen, setCitationsOpen] = useState(false);
   const [integrityCitationsOpen, setIntegrityCitationsOpen] = useState(false);
 
   return (
@@ -212,257 +207,481 @@ export default function ArchitecturePage() {
       <ScrollProgress className="fixed top-0 left-0 right-0 z-[10000]" />
       <Navbar activePage="architecture" />
 
-      {/* ── KEYNOTE HERO: REVERENT VEDIC ETHICS & TIMELESS CLARITY ── */}
+      {/* ── KEYNOTE HERO: THE THINKING & ARCHITECTURE ── */}
       <section className="pt-32 pb-20 px-6 max-w-5xl mx-auto w-full text-center">
         <p className="text-xs sm:text-sm font-sans font-bold uppercase tracking-[0.25em] text-[#C25E38] dark:text-[#E06D43] mb-4">
-          Sanatana Dharma • Canonical Truth • Mind Mastery
+          Sanatana Dharma • Sacred Truth • The Thinking &amp; Architecture
         </p>
 
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-normal leading-[1.15] text-[#2D2622] dark:text-[#F5F2EB] mb-8 font-serif">
-          Sacred Vedic Wisdom for the <br />
-          <span className="text-[#C25E38] dark:text-[#E06D43] font-medium italic">Modern Seeker</span>
+          Why NityaGeeta? <br />
+          <span className="text-[#C25E38] dark:text-[#E06D43] font-medium italic">
+            The Thinking &amp; Technical Architecture
+          </span>
         </h1>
 
         <p className="text-base sm:text-xl text-[#5C4F45] dark:text-[#D4C7B8] max-w-3xl mx-auto font-sans leading-relaxed mb-10 font-normal">
-          Rooted in the eternal truths of Sanatana Dharma and the 700 canonical verses of the Bhagavad Gita—synthesized through reverent, multi-agent AI dialogue with zero hallucinations.
+          The Bhagavad Gita is not casual internet text—it is an eternal, sacred scripture preserved across millennia for over 5,000+ years. Here is the foundational thinking behind NityaGeeta, the human-centric philosophy that guides it, and the architecture that guarantees 100% canonical truth.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4 font-sans text-xs sm:text-sm">
           <button
-            onClick={() => router.push("/app")}
+            onClick={() => {
+              const el = document.getElementById("the-thinking");
+              el?.scrollIntoView({ behavior: "smooth" });
+            }}
             className="px-8 py-4 rounded-2xl bg-[#C25E38] dark:bg-[#E06D43] text-white font-bold shadow-xl hover:brightness-110 active:scale-95 transition-all cursor-pointer flex items-center gap-2.5"
           >
-            <span>Experience NityaGeeta Dialogue</span>
+            <span>Read The Thinking</span>
             <ArrowRight className="w-4 h-4" />
           </button>
 
           <button
-            onClick={() => router.push("/dilemmas")}
+            onClick={() => {
+              const el = document.getElementById("the-architecture");
+              el?.scrollIntoView({ behavior: "smooth" });
+            }}
             className="px-8 py-4 rounded-2xl bg-[#EFE9DF] dark:bg-[#262320] border border-[#DFD5C6] dark:border-[#38332E] text-[#2D2622] dark:text-[#F5F2EB] font-bold hover:border-[#C25E38] transition-all cursor-pointer flex items-center gap-2"
           >
-            <BookOpen className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
-            <span>Browse 700-Verse Dilemmas</span>
+            <Cpu className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
+            <span>Explore The Architecture</span>
           </button>
         </div>
       </section>
 
-      {/* ── SYSTEM TOPOLOGY & INTERACTIVE BLUEPRINTS (MERMAID.JS) ── */}
-      <section className="py-8 px-6 max-w-6xl mx-auto w-full">
-        <ArchitectureDiagrams />
-      </section>
-
-      {/* ── ARCHITECTURAL PILLARS: 4-STAGE GROUNDING PIPELINE ── */}
-      <section className="py-20 px-6 max-w-6xl mx-auto w-full">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-sans font-bold uppercase tracking-[0.2em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
-            Engineering & Tradition
+      {/* ══════════════════════════════════════════════════════════════
+          PART 1: THE THINKING — WHY WAS NITYAGEETA BUILT?
+          ══════════════════════════════════════════════════════════════ */}
+      <section id="the-thinking" className="py-20 px-6 max-w-6xl mx-auto w-full border-t border-[#DFD5C6] dark:border-[#38332E]">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-sans font-bold uppercase tracking-[0.25em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
+            Part 1 • The Philosophy &amp; Origin
           </span>
           <h2 className="text-3xl sm:text-5xl font-normal text-[#2D2622] dark:text-[#F5F2EB] font-serif">
-            The 4-Stage Grounding Pipeline
+            The Thinking Behind NityaGeeta
           </h2>
-          <p className="mt-4 text-sm sm:text-base text-[#5C4F45] dark:text-[#D4C7B8] font-sans">
-            How NityaGeeta transforms 5,000-year-old Sanskrit verses into real-time, actionable psychological clarity.
+          <p className="mt-4 text-base sm:text-lg text-[#5C4F45] dark:text-[#D4C7B8] font-sans leading-relaxed">
+            Technology is only as meaningful as the soul and reverence behind it. Why does NityaGeeta exist, and what principles govern every single interaction?
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {ARCHITECTURE_STEPS.map((step) => {
-            const Icon = step.icon;
-            return (
-              <div
-                key={step.step}
-                className="p-8 sm:p-10 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center">
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <span className="text-3xl font-serif text-[#DFD5C6] dark:text-[#38332E] font-bold">
-                      {step.step}
-                    </span>
-                  </div>
+        {/* 1.1 The Reason: Why NityaGeeta? */}
+        <div className="mb-16 p-8 sm:p-12 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm">
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] text-xs font-sans font-bold uppercase tracking-wider">
+              <Quote className="w-3.5 h-3.5" /> The Core Origin &amp; Need
+            </div>
 
-                  <span className="px-3 py-1 rounded-full bg-[#EFE9DF] dark:bg-[#2A2622] text-[#C25E38] dark:text-[#E06D43] text-[11px] font-sans font-bold tracking-wider uppercase inline-block mb-3">
-                    {step.badge}
-                  </span>
+            <h3 className="text-2xl sm:text-4xl font-serif text-[#2D2622] dark:text-[#F5F2EB]">
+              Scripture Over 5,000+ Years Old Is Sacred Ground Truth — Not Training Noise
+            </h3>
 
-                  <h3 className="text-2xl font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB] mb-2">
-                    {step.title}
-                  </h3>
-                  <h4 className="text-xs sm:text-sm font-sans font-semibold text-[#8C7B70] dark:text-[#A89F91] mb-4">
-                    {step.subtitle}
-                  </h4>
+            <div className="font-sans text-sm sm:text-base text-[#5C4F45] dark:text-[#D4C7B8] space-y-4 leading-relaxed">
+              <p>
+                When a person is experiencing real human crisis—grief over a lost loved one, intense corporate burnout, moral confusion, or paralyzing anxiety—they do not need generic internet summaries. They turn to the Bhagavad Gita because it has provided unshakable spiritual grounding across millennia.
+              </p>
+              <p>
+                Yet when modern AI arrived, a dangerous crisis emerged: <strong>Commercial LLMs hallucinate scripture</strong>. They invent Sanskrit quotes that sound holy but do not exist in the 700 canonical verses. They dilute nuanced metaphysical concepts into shallow motivational fluff, and they provide zero page-level proof to authentic traditional editions.
+              </p>
+              <p className="p-4 rounded-2xl bg-[#EFE9DF]/80 dark:bg-[#262320]/80 border-l-4 border-[#C25E38] text-[#2D2622] dark:text-[#F5F2EB] font-serif italic text-base sm:text-lg">
+                &ldquo;If a medical AI hallucinated dosages, it would be unacceptable. When an AI hallucinating spiritual medicine gives distorted advice to someone in distress, the harm is equally profound. NityaGeeta was built to establish an uncompromising, zero-hallucination standard.&rdquo;
+              </p>
+            </div>
+          </div>
+        </div>
 
-                  <p className="text-xs sm:text-sm font-sans text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed mb-6">
-                    {step.summary}
-                  </p>
-                </div>
-
-                <div className="border-t border-[#E8E1D7] dark:border-[#38332E] pt-4 mt-auto">
-                  <div className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#8C7B70] dark:text-[#A89F91] mb-2">
-                    Primary Sources & Integrity:
-                  </div>
-                  <div className="space-y-1.5 font-sans">
-                    {step.sources.map((s, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-xs">
-                        <span className="text-[#2D2622] dark:text-[#F5F2EB] font-medium">{s.name}</span>
-                        <span className="text-[10px] text-[#8C7B70] dark:text-[#A89F91]">{s.tag}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+        {/* 1.2 Steve Jobs Human-Centric Philosophy */}
+        <div className="p-8 sm:p-12 rounded-3xl bg-linear-to-b from-[#EFE9DF]/60 to-[#FAF7F2] dark:from-[#262320]/80 dark:to-[#1A1816] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm mb-16">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] text-xs font-sans font-bold uppercase tracking-wider mb-4">
+                <Heart className="w-3.5 h-3.5" /> Human-Centric Design Philosophy
               </div>
-            );
-          })}
+              <h3 className="text-2xl sm:text-4xl font-serif text-[#2D2622] dark:text-[#F5F2EB] mb-4">
+                Technology Married with the Humanities
+              </h3>
+              <p className="text-sm sm:text-base font-sans text-[#5C4F45] dark:text-[#D4C7B8] italic">
+                &ldquo;It&apos;s technology married with liberal arts, married with the humanities, that yields us the results that make our heart sing.&rdquo; — Steve Jobs
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans">
+              {/* Pillar 1: Resonance First */}
+              <div className="p-6 rounded-2xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center font-bold">
+                  01
+                </div>
+                <h4 className="font-serif font-bold text-lg text-[#2D2622] dark:text-[#F5F2EB]">
+                  Resonance Over Raw Tokens
+                </h4>
+                <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                  Most AI tools compete on token speed. We evaluate whether the guidance actually gave the seeker room to breathe. Every dialogue ends with an empathetic resonance check: <em>&ldquo;Did this medicine land?&rdquo;</em>
+                </p>
+              </div>
+
+              {/* Pillar 2: 3 Intentional Action Pathways */}
+              <div className="p-6 rounded-2xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center font-bold">
+                  02
+                </div>
+                <h4 className="font-serif font-bold text-lg text-[#2D2622] dark:text-[#F5F2EB]">
+                  3 Guided Verb Pathways
+                </h4>
+                <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                  Steve Jobs believed in clear, intuitive pathways. NityaGeeta never leaves you with passive text. It offers 3 intentional verbs: <strong>Deepen Scripture</strong>, <strong>Bring to Real Life</strong>, and <strong>Read Original Sanskrit</strong>.
+                </p>
+              </div>
+
+              {/* Pillar 3: Uncompromising Reverence & Craft */}
+              <div className="p-6 rounded-2xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center font-bold">
+                  03
+                </div>
+                <h4 className="font-serif font-bold text-lg text-[#2D2622] dark:text-[#F5F2EB]">
+                  Sacred Craftsmanship
+                </h4>
+                <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                  Just as Apple crafted the unseen back of cabinets with absolute perfection, NityaGeeta treats the unseen pipeline with sacred reverence: 700/700 verses indexed, multi-model consensus, and page-by-page verification.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── INTERACTIVE LIVE CONSENSUS SIMULATION ── */}
-      <section className="py-20 px-6 max-w-5xl mx-auto w-full font-sans">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
-            Live Engine Trace
+      {/* ══════════════════════════════════════════════════════════════
+          PART 2: THE ARCHITECTURE — HOW IT WORKS
+          ══════════════════════════════════════════════════════════════ */}
+      <section id="the-architecture" className="py-20 px-6 max-w-6xl mx-auto w-full border-t border-[#DFD5C6] dark:border-[#38332E]">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <span className="text-xs font-sans font-bold uppercase tracking-[0.25em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
+            Part 2 • Technical Architecture &amp; Data Pipeline
           </span>
-          <h2 className="text-3xl sm:text-4xl font-serif font-normal text-[#2D2622] dark:text-[#F5F2EB]">
-            Simulated Multi-Agent Trace
+          <h2 className="text-3xl sm:text-5xl font-normal text-[#2D2622] dark:text-[#F5F2EB] font-serif">
+            The System Architecture
           </h2>
-          <p className="mt-3 text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8]">
-            Select a life dilemma below to inspect real-time agent verification steps and ground truth citations.
+          <p className="mt-4 text-base sm:text-lg text-[#5C4F45] dark:text-[#D4C7B8] font-sans leading-relaxed">
+            A clean, production-grade ensemble pipeline connecting over 5,000+ years of Sanskrit commentary to real-time, low-latency AI dialogue.
           </p>
         </div>
 
-        <div className="flex justify-center gap-3 mb-8">
-          {SIMULATION_CASES.map((sc) => (
-            <button
-              key={sc.id}
-              onClick={() => setActiveSimulation(sc)}
-              className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer ${
-                activeSimulation.id === sc.id
-                  ? "bg-[#C25E38] dark:bg-[#E06D43] text-white shadow-md"
-                  : "bg-[#EFE9DF] dark:bg-[#262320] text-[#5C4F45] dark:text-[#D4C7B8] hover:border-[#C25E38]"
-              }`}
-            >
-              {sc.title}
-            </button>
-          ))}
-        </div>
-
-        <div className="p-6 sm:p-8 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E1D7] dark:border-[#38332E] pb-4">
+        {/* Normal, Clean Visual Architecture Flow Cards (No raw code box) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20 font-sans">
+          {/* Card 1: Sacred Ingestion */}
+          <div className="p-6 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm flex flex-col justify-between">
             <div>
-              <span className="text-[11px] font-mono text-[#C25E38] dark:text-[#E06D43] font-bold">
-                {activeSimulation.chapter}
+              <div className="w-12 h-12 rounded-2xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center mb-4">
+                <Database className="w-6 h-6" />
+              </div>
+              <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] uppercase tracking-wider block mb-1">
+                Stage 1 • Ingestion
               </span>
-              <h3 className="text-xl font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB]">
-                {activeSimulation.title}
+              <h3 className="text-lg font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB] mb-2">
+                Canonical OCR &amp; Digitization
               </h3>
+              <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                Direct high-resolution scan ingestion of 1923 Gita Press Gorakhpur Sadhaka-Sanjivani, Adi Shankaracharya&apos;s Advaita Bhashya, and Winthrop Sargeant&apos;s linguistic concordance.
+              </p>
             </div>
-            <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold self-start sm:self-auto">
-              ✓ Verified Ground Truth
-            </span>
+            <div className="mt-4 pt-3 border-t border-[#E8E1D7] dark:border-[#38332E] text-xs font-mono text-[#8C7B70] dark:text-[#A89F91]">
+              700 Verses • 18 Chapters • 100% Indexed
+            </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#EFE9DF]/50 dark:bg-[#1A1816] border border-[#DFD5C6] dark:border-[#38332E] font-serif text-center">
-            <p className="text-sm sm:text-base text-[#C25E38] dark:text-[#E06D43] leading-relaxed whitespace-pre-line font-bold">
-              {activeSimulation.sanskrit}
+          {/* Card 2: Semantic Retrieval */}
+          <div className="p-6 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center mb-4">
+                <Server className="w-6 h-6" />
+              </div>
+              <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] uppercase tracking-wider block mb-1">
+                Stage 2 • Storage &amp; Search
+              </span>
+              <h3 className="text-lg font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB] mb-2">
+                Hybrid Vector &amp; Fast Cache
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                In-memory verse lookup (&lt;2ms latency), Weaviate hybrid vector search for deep semantic matching, and PostgreSQL session persistence with 18-day TTL tokens.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#E8E1D7] dark:border-[#38332E] text-xs font-mono text-[#8C7B70] dark:text-[#A89F91]">
+              PostgreSQL 16 • Redis 7.2 • Weaviate Cloud
+            </div>
+          </div>
+
+          {/* Card 3: Multi-Model Consensus */}
+          <div className="p-6 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center mb-4">
+                <Cpu className="w-6 h-6" />
+              </div>
+              <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] uppercase tracking-wider block mb-1">
+                Stage 3 • Consensus
+              </span>
+              <h3 className="text-lg font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB] mb-2">
+                5-Model Parallel Council
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                Queries Gemini 2.5, DeepSeek-R1, Claude 3.5, Llama 3.3, and Qwen 2.5 simultaneously. The models cross-examine scripture interpretations to completely remove single-model bias.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#E8E1D7] dark:border-[#38332E] text-xs font-mono text-[#8C7B70] dark:text-[#A89F91]">
+              Parallel asyncio • MoA Ensemble Judge
+            </div>
+          </div>
+
+          {/* Card 4: Anti-Hallucination Gate */}
+          <div className="p-6 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center mb-4">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] uppercase tracking-wider block mb-1">
+                Stage 4 • Verification
+              </span>
+              <h3 className="text-lg font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB] mb-2">
+                Anti-Hallucination Gate
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                Deterministic regex matching against canonical Sanskrit verses. Rejects any synthesized response scoring below 95% groundedness before the seeker ever sees a word.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#E8E1D7] dark:border-[#38332E] text-xs font-mono text-[#8C7B70] dark:text-[#A89F91]">
+              Deterministic Shloka Regex • RAGAS Faithful
+            </div>
+          </div>
+        </div>
+
+        {/* ── 4-STAGE GROUNDING PIPELINE CARDS ── */}
+        <div className="mb-20">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-xs font-sans font-bold uppercase tracking-[0.2em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
+              Deep Dive
+            </span>
+            <h3 className="text-2xl sm:text-4xl font-serif text-[#2D2622] dark:text-[#F5F2EB]">
+              The 4-Stage Grounding Pipeline
+            </h3>
+            <p className="mt-3 text-sm sm:text-base text-[#5C4F45] dark:text-[#D4C7B8] font-sans">
+              How NityaGeeta transforms sacred verses preserved over millennia (spanning more than 5,000 years) into real-time, actionable psychological clarity.
             </p>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#8C7B70] dark:text-[#A89F91]">
-              Live Agent Activity
-            </h4>
-            <AgentActivity
-              items={activeSimulation.steps as AgentActivityItem[]}
-              status="complete"
-              duration={1.2}
-              defaultOpen={true}
-              collapseOnComplete={false}
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-sans">
+            {ARCHITECTURE_STEPS.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={step.step}
+                  className="p-8 sm:p-10 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="w-12 h-12 rounded-2xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center">
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <span className="text-3xl font-serif text-[#DFD5C6] dark:text-[#38332E] font-bold">
+                        {step.step}
+                      </span>
+                    </div>
 
-          <div className="pt-4 border-t border-[#E8E1D7] dark:border-[#38332E]">
-            <Citations
-              citations={activeSimulation.citations as CitationItem[]}
-            />
+                    <span className="px-3 py-1 rounded-full bg-[#EFE9DF] dark:bg-[#2A2622] text-[#C25E38] dark:text-[#E06D43] text-xs font-sans font-bold tracking-wider uppercase inline-block mb-3">
+                      {step.badge}
+                    </span>
+
+                    <h4 className="text-2xl font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB] mb-2">
+                      {step.title}
+                    </h4>
+                    <h5 className="text-xs sm:text-sm font-sans font-semibold text-[#8C7B70] dark:text-[#A89F91] mb-4">
+                      {step.subtitle}
+                    </h5>
+
+                    <p className="text-xs sm:text-sm font-sans text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed mb-6">
+                      {step.summary}
+                    </p>
+                  </div>
+
+                  <div className="border-t border-[#E8E1D7] dark:border-[#38332E] pt-4 mt-auto">
+                    <div className="text-xs font-sans font-bold uppercase tracking-wider text-[#8C7B70] dark:text-[#A89F91] mb-2">
+                      Primary Sources &amp; Integrity:
+                    </div>
+                    <div className="space-y-1.5 font-sans">
+                      {step.sources.map((s, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
+                          <span className="text-[#2D2622] dark:text-[#F5F2EB] font-medium">{s.name}</span>
+                          <span className="text-xs text-[#8C7B70] dark:text-[#A89F91]">{s.tag}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </section>
 
-      {/* ── COMPARISON MATRIX & CITATIONS SECTION ── */}
-      <section className="py-20 px-6 max-w-6xl mx-auto w-full font-sans">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
-            Rigorous Verification
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-serif font-normal text-[#2D2622] dark:text-[#F5F2EB]">
-            Why Generic AI Fails on Scripture
-          </h2>
-          <p className="mt-3 text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8]">
-            Comparing standard LLMs with NityaGeeta&apos;s verified multi-agent Sanskrit synthesis.
-          </p>
-        </div>
+        {/* ── INTERACTIVE LIVE CONSENSUS SIMULATION ── */}
+        <div className="mb-20 font-sans">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
+              Live Engine Trace
+            </span>
+            <h3 className="text-3xl sm:text-4xl font-serif font-normal text-[#2D2622] dark:text-[#F5F2EB]">
+              Simulated Multi-Agent Trace
+            </h3>
+            <p className="mt-3 text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8]">
+              Select a life dilemma below to inspect real-time agent verification steps and ground truth citations.
+            </p>
+          </div>
 
-        <div className="overflow-x-auto rounded-3xl border border-[#DFD5C6] dark:border-[#38332E] shadow-xl bg-[#FAF7F2] dark:bg-[#201D1A]">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[#E8E1D7] dark:border-[#38332E] bg-[#EFE9DF]/60 dark:bg-[#1C1917] text-[11px] font-bold uppercase tracking-wider">
-                <th className="p-4 sm:p-6 text-[#5C4F45] dark:text-[#D4C7B8]">Dimension</th>
-                <th className="p-4 sm:p-6 text-red-600 dark:text-red-400">Generic AI</th>
-                <th className="p-4 sm:p-6 text-[#8C7B70] dark:text-[#A89F91]">Single RAG Wrappers</th>
-                <th className="p-4 sm:p-6 text-[#C25E38] dark:text-[#E06D43] font-black">NityaGeeta Engine</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E8E1D7] dark:divide-[#38332E] text-xs">
-              {COMPARISON_DATA.map((row, idx) => (
-                <tr key={idx} className="hover:bg-[#EFE9DF]/30 dark:hover:bg-[#262320] transition">
-                  <td className="p-4 sm:p-6 font-bold text-[#2D2622] dark:text-[#F5F2EB]">{row.dimension}</td>
-                  <td className="p-4 sm:p-6 text-[#6B5E55] dark:text-[#A89F91]">
-                    {row.genericAi.text}
-                    {row.genericAi.ref && (
-                      <sup className="text-[#C25E38] dark:text-[#E06D43] font-mono font-bold ml-1">
-                        [{row.genericAi.ref}]
-                      </sup>
-                    )}
-                  </td>
-                  <td className="p-4 sm:p-6 text-[#6B5E55] dark:text-[#A89F91]">
-                    {row.singleRag.text}
-                  </td>
-                  <td className="p-4 sm:p-6 font-semibold text-[#2D2622] dark:text-[#F5F2EB] bg-[#C25E38]/5 dark:bg-[#E06D43]/10">
-                    {row.nityaGeeta.text}
-                    {row.nityaGeeta.ref && (
-                      <sup className="text-[#C25E38] dark:text-[#E06D43] font-mono font-bold ml-1">
-                        [{row.nityaGeeta.ref}]
-                      </sup>
-                    )}
-                  </td>
-                </tr>
+          <div className="flex justify-center gap-3 mb-8">
+            {SIMULATION_CASES.map((sc) => (
+              <button
+                key={sc.id}
+                onClick={() => setActiveSimulation(sc)}
+                className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+                  activeSimulation.id === sc.id
+                    ? "bg-[#C25E38] dark:bg-[#E06D43] text-white shadow-md"
+                    : "bg-[#EFE9DF] dark:bg-[#262320] text-[#5C4F45] dark:text-[#D4C7B8] hover:border-[#C25E38]"
+                }`}
+              >
+                {sc.title}
+              </button>
+            ))}
+          </div>
+
+          {/* Trace Card */}
+          <div className="p-8 sm:p-10 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-md max-w-4xl mx-auto space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E8E1D7] dark:border-[#38332E] pb-4">
+              <div>
+                <span className="text-xs font-mono text-[#C25E38] dark:text-[#E06D43] font-bold">
+                  {activeSimulation.chapter}
+                </span>
+                <h4 className="text-xl font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB] mt-0.5">
+                  {activeSimulation.title}
+                </h4>
+              </div>
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
+                100% Canonical Grounding
+              </span>
+            </div>
+
+            {/* Devanagari Shloka */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-[#EFE9DF]/60 dark:bg-[#262320]/60 border border-[#DFD5C6] dark:border-[#38332E] text-center font-serif text-lg sm:text-xl text-[#C25E38] dark:text-[#E06D43] leading-loose whitespace-pre-line font-medium">
+              {activeSimulation.sanskrit}
+            </div>
+
+            {/* Step-by-Step Agent Execution */}
+            <div className="space-y-3 pt-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#8C7B70] dark:text-[#A89F91] block">
+                Verification Pipeline Log:
+              </span>
+              {activeSimulation.steps.map((st) => (
+                <div
+                  key={st.id}
+                  className="p-3.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1E1B18] border border-[#E8E1D7] dark:border-[#38332E] flex items-center justify-between gap-3 text-xs sm:text-sm"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="text-[#2D2622] dark:text-[#F5F2EB] font-medium">{st.label}</span>
+                  </div>
+                  {st.meta && (
+                    <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] shrink-0">
+                      {st.meta}
+                    </span>
+                  )}
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Citations Preview */}
+            <div className="pt-4 border-t border-[#E8E1D7] dark:border-[#38332E]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#8C7B70] dark:text-[#A89F91] block mb-3">
+                Extracted Ground Truth Citations:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {activeSimulation.citations.map((c) => (
+                  <div
+                    key={c.id}
+                    className="p-3.5 rounded-xl bg-[#EFE9DF]/50 dark:bg-[#262320]/60 border border-[#DFD5C6] dark:border-[#38332E] text-xs space-y-1.5"
+                  >
+                    <div className="font-bold text-[#2D2622] dark:text-[#F5F2EB] font-serif text-sm">
+                      {c.title}
+                    </div>
+                    <p className="text-[#6B5E55] dark:text-[#A89F91] italic leading-relaxed">
+                      &ldquo;{c.quote}&rdquo;
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Scriptural Fidelity & Integrity Citations Accordion (Default Closed) */}
-        <div className="mt-8 rounded-2xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] overflow-hidden shadow-sm font-sans">
+        {/* ── COMPARISON MATRIX ── */}
+        <div className="mb-20 font-sans">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
+              Rigorous Benchmarking
+            </span>
+            <h3 className="text-3xl sm:text-4xl font-serif text-[#2D2622] dark:text-[#F5F2EB]">
+              NityaGeeta vs Generic AI Wrappers
+            </h3>
+            <p className="mt-3 text-sm sm:text-base text-[#5C4F45] dark:text-[#D4C7B8]">
+              Why ordinary chatbots fail on ancient scripture, and how our architecture guarantees fidelity.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto rounded-3xl border border-[#DFD5C6] dark:border-[#38332E] bg-[#FAF7F2] dark:bg-[#201D1A] shadow-md">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead>
+                <tr className="border-b border-[#DFD5C6] dark:border-[#38332E] bg-[#EFE9DF]/70 dark:bg-[#262320]/70 text-[#2D2622] dark:text-[#F5F2EB]">
+                  <th className="p-4 sm:p-5 font-serif font-bold">Dimension</th>
+                  <th className="p-4 sm:p-5 font-serif font-bold text-red-700 dark:text-red-400">Generic AI (ChatGPT / Gemini)</th>
+                  <th className="p-4 sm:p-5 font-serif font-bold text-[#8C7B70] dark:text-[#A89F91]">Single-Model RAG</th>
+                  <th className="p-4 sm:p-5 font-serif font-bold text-[#C25E38] dark:text-[#E06D43]">NityaGeeta Multi-Agent Council</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E8E1D7] dark:divide-[#38332E]">
+                {COMPARISON_DATA.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-[#EFE9DF]/30 dark:hover:bg-[#262320]/30 transition-colors">
+                    <td className="p-4 sm:p-5 font-bold text-[#2D2622] dark:text-[#F5F2EB]">
+                      {row.dimension}
+                    </td>
+                    <td className="p-4 sm:p-5 text-[#6B5E55] dark:text-[#A89F91]">
+                      {row.genericAi.text}
+                    </td>
+                    <td className="p-4 sm:p-5 text-[#6B5E55] dark:text-[#A89F91]">
+                      {row.singleRag.text}
+                    </td>
+                    <td className="p-4 sm:p-5 font-semibold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/5 dark:bg-[#E06D43]/10">
+                      {row.nityaGeeta.text}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── ACADEMIC CITATIONS ACCORDION ── */}
+        <div className="rounded-3xl border border-[#DFD5C6] dark:border-[#38332E] bg-[#FAF7F2] dark:bg-[#201D1A] overflow-hidden shadow-sm font-sans">
           <button
-            type="button"
             onClick={() => setIntegrityCitationsOpen(!integrityCitationsOpen)}
             className="w-full px-6 py-4 flex items-center justify-between hover:bg-[#EFE9DF]/40 dark:hover:bg-[#262320]/40 transition cursor-pointer text-left select-none"
             aria-expanded={integrityCitationsOpen}
           >
             <div className="flex items-center gap-3">
               <BookOpen className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
-              <h3 className="text-sm font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB]">
-                Scriptural Fidelity & Integrity Citations
-              </h3>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
+              <h4 className="text-sm sm:text-base font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB]">
+                Scriptural Fidelity &amp; Integrity Citations
+              </h4>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
                 4
               </span>
             </div>
 
             <div className="flex items-center gap-2 text-[#8C7B70] dark:text-[#A89F91] text-xs">
-              <span className="hidden sm:inline text-[11px]">
+              <span className="hidden sm:inline text-xs">
                 {integrityCitationsOpen ? "Hide Citations" : "Show Citations"}
               </span>
               <ChevronDown
@@ -488,14 +707,14 @@ export default function ArchitecturePage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#EFE9DF]/50 dark:bg-[#262320]/60 border border-[#DFD5C6]/70 dark:border-[#38332E]/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
                           [1]
                         </span>
                         <strong className="text-[#2D2622] dark:text-[#F5F2EB] font-serif text-sm">
                           Unanchored LLM Hallucination Rates
                         </strong>
                       </div>
-                      <p className="text-xs text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
+                      <p className="text-xs sm:text-sm text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
                         Empirical research confirms high hallucination rates and Sanskrit verse misattribution in ungrounded foundational models.
                       </p>
                     </div>
@@ -527,14 +746,14 @@ export default function ArchitecturePage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#EFE9DF]/50 dark:bg-[#262320]/60 border border-[#DFD5C6]/70 dark:border-[#38332E]/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
                           [2]
                         </span>
                         <strong className="text-[#2D2622] dark:text-[#F5F2EB] font-serif text-sm">
                           Canonical Corpus Ground Truth
                         </strong>
                       </div>
-                      <p className="text-xs text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
+                      <p className="text-xs sm:text-sm text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
                         Sourced from Gita Press Gorakhpur (1923), Shankaracharya Advaita Bhashya, and SUNY Press interlinear concordances.
                       </p>
                     </div>
@@ -558,16 +777,6 @@ export default function ArchitecturePage() {
                       >
                         <Globe className="w-4 h-4" />
                       </a>
-                      <a
-                        href="https://sunypress.edu/Books/T/The-Bhagavad-Gita"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 rounded-xl bg-[#FAF7F2] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#38332E] text-[#C25E38] dark:text-[#E06D43] hover:border-[#C25E38] hover:scale-105 active:scale-95 transition shadow-xs flex items-center justify-center cursor-pointer"
-                        title="SUNY Press: The Bhagavad Gita by Winthrop Sargeant"
-                        aria-label="SUNY Press: The Bhagavad Gita by Winthrop Sargeant"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
                     </div>
                   </div>
 
@@ -575,14 +784,14 @@ export default function ArchitecturePage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#EFE9DF]/50 dark:bg-[#262320]/60 border border-[#DFD5C6]/70 dark:border-[#38332E]/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
                           [3]
                         </span>
                         <strong className="text-[#2D2622] dark:text-[#F5F2EB] font-serif text-sm">
                           Multi-Agent Consensus Reliability
                         </strong>
                       </div>
-                      <p className="text-xs text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
+                      <p className="text-xs sm:text-sm text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
                         Multi-agent debate frameworks achieve up to 34% error reduction over single models through automated peer cross-examination.
                       </p>
                     </div>
@@ -614,14 +823,14 @@ export default function ArchitecturePage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#EFE9DF]/50 dark:bg-[#262320]/60 border border-[#DFD5C6]/70 dark:border-[#38332E]/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
                           [4]
                         </span>
                         <strong className="text-[#2D2622] dark:text-[#F5F2EB] font-serif text-sm">
                           Deterministic Verification Gate
                         </strong>
                       </div>
-                      <p className="text-xs text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
+                      <p className="text-xs sm:text-sm text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
                         Deterministic regex and semantic cross-checking against canonical shloka indexes before response synthesis.
                       </p>
                     </div>
@@ -645,13 +854,15 @@ export default function ArchitecturePage() {
         </div>
       </section>
 
-      {/* ── CALL TO ACTION ── */}
-      <section className="py-24 px-6 max-w-6xl mx-auto w-full text-center font-sans">
-        <div className="w-full p-12 sm:p-16 md:p-20 rounded-3xl bg-gradient-to-b from-[#EFE9DF]/80 via-[#FAF7F2] to-[#FAF7F2] dark:from-[#262320]/90 dark:via-[#1E1B18] dark:to-[#1A1816] border border-[#DFD5C6] dark:border-[#38332E] shadow-2xl space-y-6 relative overflow-hidden">
+      {/* ══════════════════════════════════════════════════════════════
+          PART 3: INVITATION TO START — CALL TO ACTION
+          ══════════════════════════════════════════════════════════════ */}
+      <section className="py-24 px-6 max-w-6xl mx-auto w-full text-center font-sans border-t border-[#DFD5C6] dark:border-[#38332E]">
+        <div className="w-full p-12 sm:p-16 md:p-20 rounded-3xl bg-linear-to-b from-[#EFE9DF]/80 via-[#FAF7F2] to-[#FAF7F2] dark:from-[#262320]/90 dark:via-[#1E1B18] dark:to-[#1A1816] border border-[#DFD5C6] dark:border-[#38332E] shadow-2xl space-y-6 relative overflow-hidden">
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#C25E38]/10 dark:bg-[#E06D43]/15 rounded-full blur-3xl pointer-events-none" />
 
           <p className="text-xs sm:text-sm font-mono font-bold uppercase tracking-[0.28em] text-[#C25E38] dark:text-[#E06D43] relative z-10">
-            An Invitation to Truth
+            Part 3 • An Invitation to Truth
           </p>
 
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-serif text-[#2D2622] dark:text-[#F5F2EB] leading-tight relative z-10">
@@ -662,7 +873,7 @@ export default function ArchitecturePage() {
           </h2>
 
           <p className="text-base sm:text-lg md:text-xl text-[#5C4F45] dark:text-[#D4C7B8] max-w-2xl mx-auto leading-relaxed font-sans font-normal relative z-10">
-            The clarity you have been searching for has existed for 5,000 years. All it took was the courage to build technology worthy of delivering it.
+            The clarity you have been searching for has existed for over 5,000 years—eternal, unshakable, and canonical. All it took was the reverence to build technology worthy of delivering it.
           </p>
 
           <div className="pt-6 flex flex-wrap items-center justify-center gap-4 relative z-10">
@@ -672,6 +883,14 @@ export default function ArchitecturePage() {
             >
               <span>Start Your Dialogue Now</span>
               <ArrowRight className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={() => router.push("/sources")}
+              className="px-10 py-5 rounded-2xl bg-[#FAF7F2] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#38332E] text-[#2D2622] dark:text-[#F5F2EB] font-bold text-base hover:border-[#C25E38] transition-all cursor-pointer flex items-center gap-3"
+            >
+              <BookOpen className="w-5 h-5 text-[#C25E38] dark:text-[#E06D43]" />
+              <span>Explore Sources &amp; Manuscripts</span>
             </button>
           </div>
         </div>

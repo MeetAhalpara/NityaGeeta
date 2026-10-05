@@ -9,6 +9,18 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontSize: {
+        '2xs': ['0.75rem', { lineHeight: '1.05rem' }],
+        'xs': ['0.8125rem', { lineHeight: '1.25rem' }],
+        'sm': ['0.9375rem', { lineHeight: '1.4rem' }],
+        'base': ['1rem', { lineHeight: '1.625rem' }],
+        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
+        'xl': ['1.25rem', { lineHeight: '1.875rem' }],
+        '2xl': ['1.5rem', { lineHeight: '2.125rem' }],
+        '3xl': ['1.875rem', { lineHeight: '2.375rem' }],
+        '4xl': ['2.25rem', { lineHeight: '2.75rem' }],
+        '5xl': ['3rem', { lineHeight: '1.15' }],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
