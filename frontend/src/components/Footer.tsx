@@ -16,11 +16,12 @@ export function Footer() {
             <h3 className="font-serif text-2xl font-bold text-[#2D2622] dark:text-[#F5F2EB] tracking-tight">
               NityaGeeta
             </h3>
-            <ShieldCheck
-              className="w-5 h-5 text-[#C25E38] dark:text-[#E06D43] shrink-0"
-              aria-label="Verified Canonical Ground Truth"
-              title="Verified Canonical Ground Truth"
-            />
+            <span title="Verified Canonical Ground Truth">
+              <ShieldCheck
+                className="w-5 h-5 text-[#C25E38] dark:text-[#E06D43] shrink-0"
+                aria-label="Verified Canonical Ground Truth"
+              />
+            </span>
           </div>
           <p className="text-xs text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed max-w-sm">
             Universal Bhagavad Gita intelligence synthesized across canonical manuscripts and classical commentaries with 100% citation transparency.
