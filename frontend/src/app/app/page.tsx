@@ -57,8 +57,7 @@ import { Citations, Citation } from "@/components/agents/citations";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TopicBreadcrumb } from "@/components/agents/topic-breadcrumb";
 import { TangentAccordion, type TangentSummaryItem } from "@/components/agents/tangent-accordion";
-
-
+import { SteveJobsFollowUp } from "@/components/agents/steve-jobs-followup";
 
 interface CitationItem {
   type?: string;
@@ -102,6 +101,16 @@ interface Message {
   candidates?: CandidateItem[];
   citations?: CitationItem[];
   web_citations?: CitationItem[];
+  steve_jobs_followup?: {
+    resonance_check: string;
+    pathways: Array<{
+      id: string;
+      icon: string;
+      label: string;
+      prompt: string;
+      description: string;
+    }>;
+  };
   isPinned?: boolean;
   isStreaming?: boolean;
 }
@@ -765,6 +774,7 @@ export default function AppMainPage() {
           let streamDone = false;
           let accumulatedText = "";
           let streamCitations: CitationItem[] = [];
+          let streamFollowup: any = null;
           const streamingBotId = (Date.now() + 1).toString();
 
           // Optimistically append streaming message container
@@ -805,6 +815,18 @@ export default function AppMainPage() {
                 } catch {
                   // Keep citations intact
                 }
+              } else if (eventName === "followup" && rawData) {
+                try {
+                  const parsed = JSON.parse(rawData);
+                  streamFollowup = parsed;
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === streamingBotId ? { ...m, steve_jobs_followup: streamFollowup } : m
+                    )
+                  );
+                } catch {
+                  // Keep followup intact
+                }
               } else if (eventName === "token" && rawData) {
                 try {
                   const parsed = JSON.parse(rawData);
@@ -834,6 +856,7 @@ export default function AppMainPage() {
               sender: "bot",
               text: cleanMarkdownText(accumulatedText),
               citations: streamCitations,
+              steve_jobs_followup: streamFollowup,
               isStreaming: false,
             };
             const finalMessages = [...nextMessages, completedBotMsg];
@@ -872,6 +895,7 @@ export default function AppMainPage() {
             scorecards: data.scorecards || [],
             candidates: data.candidates || [],
             citations: data.citations || [],
+            steve_jobs_followup: data.steve_jobs_followup,
             isStreaming: false,
           };
           const finalMessages = [...nextMessages, botMsg];
@@ -1425,7 +1449,17 @@ Start or verify the backend server:
                           )}
                         </motion.div>
 
-
+                        {/* THE STEVE JOBS FOLLOW-UP PATHWAYS */}
+                        {msg.steve_jobs_followup && !msg.isStreaming && (
+                          <SteveJobsFollowUp
+                            resonanceCheck={msg.steve_jobs_followup.resonance_check}
+                            pathways={msg.steve_jobs_followup.pathways}
+                            onSelectPathway={(prompt) => {
+                              setQuery(prompt);
+                              handleSend(prompt);
+                            }}
+                          />
+                        )}
 
                         {/* CITATIONS & SOURCES DRAWER */}
                         {msg.citations && msg.citations.length > 0 && (
