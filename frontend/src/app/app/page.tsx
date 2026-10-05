@@ -1219,7 +1219,10 @@ Start or verify the backend server:
                   <SquarePen className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">New Dialogue</span>
                 </button>
-                <AnimatedThemeToggler />
+                <AnimatedThemeToggler
+                  theme={theme === "dark" ? "dark" : "light"}
+                  onThemeChange={(t) => setTheme(t)}
+                />
               </div>
             </header>
 

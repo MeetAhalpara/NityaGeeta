@@ -81,7 +81,23 @@ export function RadialContextMenu({
   outerRingWidth = 10,
 }: RadialContextMenuProps) {
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  const [isDark, setIsDark] = React.useState(false);
+
+  // Strictly sync isDark with the active document theme class at all times
+  React.useEffect(() => {
+    const updateThemeState = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+    updateThemeState();
+
+    const observer = new MutationObserver(updateThemeState);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, [resolvedTheme]);
 
   const [position, setPosition] = React.useState<{ x: number; y: number } | null>(null);
   const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
@@ -103,6 +119,9 @@ export function RadialContextMenu({
       closeMenu();
       return;
     }
+    // Re-verify document theme when opening menu
+    setIsDark(document.documentElement.classList.contains("dark"));
+
     // Clamp coordinates to stay within window bounds
     const x = Math.min(Math.max(e.clientX, radius + 10), window.innerWidth - radius - 10);
     const y = Math.min(Math.max(e.clientY, radius + 10), window.innerHeight - radius - 10);
