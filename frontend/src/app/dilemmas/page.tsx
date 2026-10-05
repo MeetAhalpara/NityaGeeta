@@ -612,7 +612,7 @@ export default function DilemmasPage() {
 
             {/* Curated Suggested Topic Chips */}
             <div className="w-full pt-2">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-[#8C7B70] dark:text-[#A89F91] mb-2.5">
+              <div className="text-xs font-bold uppercase tracking-wider text-[#8C7B70] dark:text-[#A89F91] mb-2.5">
                 Suggested Topics & Dilemmas
               </div>
               <div className="flex flex-wrap items-center justify-center gap-2">
@@ -636,7 +636,7 @@ export default function DilemmasPage() {
                       setActiveCategory("all");
                       setSelectedChapter("all");
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#38332E] text-xs text-[#5C4F45] dark:text-[#D4C7B8] hover:border-[#C25E38]/60 hover:text-[#C25E38] dark:hover:text-[#E06D43] transition cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#38332E] text-sm text-[#5C4F45] dark:text-[#D4C7B8] hover:border-[#C25E38]/60 hover:text-[#C25E38] dark:hover:text-[#E06D43] transition cursor-pointer"
                   >
                     {chip}
                   </button>
@@ -652,7 +652,7 @@ export default function DilemmasPage() {
                   setActiveCategory("all");
                   setSelectedChapter("all");
                 }}
-                className="px-6 py-2 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-sm cursor-pointer"
+                className="px-6 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-sm font-bold hover:brightness-110 active:scale-95 transition shadow-sm cursor-pointer"
               >
                 Clear Search & Reset Filters
               </button>
@@ -669,54 +669,54 @@ export default function DilemmasPage() {
                   <div>
                     {/* Card Top Meta */}
                     <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg bg-[#C25E38]/10 dark:bg-[#E06D43]/15 text-[#C25E38] dark:text-[#E06D43] border border-[#C25E38]/20 dark:border-[#E06D43]/25 shadow-2xs">
+                      <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-lg bg-[#C25E38]/10 dark:bg-[#E06D43]/15 text-[#C25E38] dark:text-[#E06D43] border border-[#C25E38]/20 dark:border-[#E06D43]/25 shadow-2xs">
                         {item.categoryLabel}
                       </span>
-                      <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] flex items-center gap-1">
-                        <BookOpen className="w-3.5 h-3.5" /> {item.verseCitation}
+                      <span className="text-sm font-mono font-bold text-[#C25E38] dark:text-[#E06D43] flex items-center gap-1.5">
+                        <BookOpen className="w-4 h-4" /> {item.verseCitation}
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB] mb-3 leading-snug group-hover:text-[#C25E38] dark:group-hover:text-[#E06D43] transition-colors">
+                    <h3 className="text-2xl font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB] mb-3 leading-snug group-hover:text-[#C25E38] dark:group-hover:text-[#E06D43] transition-colors">
                       {item.title}
                     </h3>
 
                     {/* Sanskrit Shloka */}
-                    <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF7F2]/80 dark:bg-[#1C1917]/80 border border-[#DFD5C6]/60 dark:border-[#38332E]/60 text-center font-serif text-base sm:text-lg lg:text-xl font-medium text-[#C25E38] dark:text-[#E06D43] whitespace-pre-line leading-relaxed tracking-wide mb-2.5">
+                    <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF7F2]/80 dark:bg-[#1C1917]/80 border border-[#DFD5C6]/60 dark:border-[#38332E]/60 text-center font-serif text-lg sm:text-xl lg:text-2xl font-medium text-[#C25E38] dark:text-[#E06D43] whitespace-pre-line leading-relaxed tracking-wide mb-2.5">
                       {item.verseSanskrit}
                     </div>
 
                     {/* Transliteration */}
-                    <p className="text-[11px] sm:text-xs font-serif italic text-[#5C4F45] dark:text-[#D4C7B8] text-center mb-4 line-clamp-2 leading-relaxed tracking-wide">
+                    <p className="text-xs sm:text-sm font-serif italic text-[#5C4F45] dark:text-[#D4C7B8] text-center mb-4 line-clamp-2 leading-relaxed tracking-wide">
                       {item.verseTransliteration}
                     </p>
 
                     {/* Core Insight */}
                     <div className="mb-6">
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-[#2D2622] dark:text-[#F5F2EB] mb-1 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#C25E38] dark:text-[#E06D43]" />
+                      <div className="text-xs font-bold uppercase tracking-wider text-[#2D2622] dark:text-[#F5F2EB] mb-1 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
                         <span>Gita&apos;s Guidance:</span>
                       </div>
-                      <p className="text-xs text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                      <p className="text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
                         {item.coreInsight}
                       </p>
                     </div>
                   </div>
 
                   {/* Card Bottom Meta with 1-Click AI Dialogue Action */}
-                  <div className="pt-4 border-t border-[#E8E1D7] dark:border-[#38332E] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                    <span className="font-mono text-[11px] px-2.5 py-1 rounded-md bg-[#EFE9DF] dark:bg-[#1E1B18] text-[#8C7B70] dark:text-[#A89F91]">
+                  <div className="pt-4 border-t border-[#E8E1D7] dark:border-[#38332E] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
+                    <span className="font-mono text-xs px-2.5 py-1 rounded-md bg-[#EFE9DF] dark:bg-[#1E1B18] text-[#8C7B70] dark:text-[#A89F91]">
                       #{item.tag}
                     </span>
 
                     <button
                       type="button"
                       onClick={() => router.push(`/app?prompt=${encodeURIComponent(item.promptQuery)}`)}
-                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#C25E38]/10 hover:bg-[#C25E38] dark:bg-[#E06D43]/15 dark:hover:bg-[#E06D43] text-[#C25E38] hover:text-white dark:text-[#E06D43] dark:hover:text-white text-xs font-bold font-sans transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-sm group/btn shrink-0"
+                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#C25E38]/10 hover:bg-[#C25E38] dark:bg-[#E06D43]/15 dark:hover:bg-[#E06D43] text-[#C25E38] hover:text-white dark:text-[#E06D43] dark:hover:text-white text-sm font-bold font-sans transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-sm group/btn shrink-0"
                       title="Open this dilemma in NityaGeeta 1-click AI Dialogue"
                     >
                       <span>Ask AI for Guidance</span>
-                      <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
+                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                     </button>
                   </div>
                 </div>
@@ -726,10 +726,10 @@ export default function DilemmasPage() {
             {/* Bottom Banner: Ask AI Directly for Unique Situations */}
             <div className="p-6 sm:p-8 rounded-3xl bg-linear-to-r from-[#FAF7F2] to-[#EFE9DF]/80 dark:from-[#262320] dark:to-[#1E1B18] border border-[#DFD5C6] dark:border-[#38332E] flex flex-col sm:flex-row items-center justify-between gap-5 shadow-sm text-center sm:text-left">
               <div>
-                <h4 className="text-base sm:text-lg font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB] mb-1">
+                <h4 className="text-lg sm:text-xl font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB] mb-1">
                   Have a specific question or personal situation?
                 </h4>
-                <p className="text-xs text-[#5C4F45] dark:text-[#D4C7B8] max-w-xl">
+                <p className="text-sm text-[#5C4F45] dark:text-[#D4C7B8] max-w-xl">
                   One can ask NityaGeeta directly. NityaGeeta finds the most relevant verses and explanations from authentic Gita commentaries to guide one&apos;s situation.
                 </p>
               </div>
@@ -737,7 +737,7 @@ export default function DilemmasPage() {
               <button
                 type="button"
                 onClick={() => router.push("/app")}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-md shrink-0 cursor-pointer font-sans group/banner"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-sm font-bold hover:brightness-110 active:scale-95 transition shadow-md shrink-0 cursor-pointer font-sans group/banner"
               >
                 <span>Ask NityaGeeta AI</span>
                 <ArrowRight className="w-4 h-4 group-hover/banner:translate-x-1 transition-transform" />

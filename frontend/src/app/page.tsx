@@ -459,7 +459,7 @@ export default function LandingPage() {
                     <Icon className="w-4 h-4" />
                   </div>
                   <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                       isSelected
                         ? "bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]"
                         : "bg-transparent text-[#8C7B70] dark:text-[#A89F91]"
@@ -470,13 +470,13 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <h3
-                    className={`text-sm font-bold font-serif mb-1 leading-snug ${
+                    className={`text-base font-bold font-serif mb-1 leading-snug ${
                       isSelected ? "text-[#C25E38] dark:text-[#E06D43]" : "text-[#2D2622] dark:text-[#F5F2EB]"
                     }`}
                   >
                     {item.category}
                   </h3>
-                  <p className="text-xs text-[#6B5E55] dark:text-[#A89F91] line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-[#6B5E55] dark:text-[#A89F91] line-clamp-2 leading-relaxed">
                     {item.title}
                   </p>
                 </div>
@@ -491,16 +491,16 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               {/* Left Side: Modern Situation */}
               <div className="lg:col-span-5 space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] text-xs font-bold uppercase tracking-wider">
-                  <AlertCircle className="w-3.5 h-3.5" /> Modern Life Dilemma
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] text-sm font-bold uppercase tracking-wider">
+                  <AlertCircle className="w-4 h-4" /> Modern Life Dilemma
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-serif text-[#2D2622] dark:text-[#F5F2EB] font-normal leading-snug">
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-[#2D2622] dark:text-[#F5F2EB] font-normal leading-snug">
                   {modernDilemmas[activeDilemma].title}
                 </h3>
-                <div className="p-4 rounded-xl bg-[#EFE9DF]/70 dark:bg-[#1C1917]/70 border border-[#DFD5C6] dark:border-[#38332E] text-sm text-[#5C4F45] dark:text-[#D4C7B8] italic leading-relaxed">
+                <div className="p-4 rounded-xl bg-[#EFE9DF]/70 dark:bg-[#1C1917]/70 border border-[#DFD5C6] dark:border-[#38332E] text-base text-[#5C4F45] dark:text-[#D4C7B8] italic leading-relaxed">
                   &ldquo;{modernDilemmas[activeDilemma].situation}&rdquo;
                 </div>
-                <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] leading-relaxed">
+                <p className="text-sm text-[#8C7B70] dark:text-[#A89F91] leading-relaxed">
                   This conflict mirrors Arjuna&apos;s moral dilemma on Kurukshetra. The Gita addresses this root attachment directly:
                 </p>
               </div>
@@ -508,45 +508,45 @@ export default function LandingPage() {
               {/* Right Side: Canonical Sanskrit Verse & Practical Purport */}
               <div className="lg:col-span-7 p-6 sm:p-8 rounded-2xl bg-[#EFE9DF] dark:bg-[#1C1917] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#DFD5C6] dark:border-[#38332E] pb-3">
-                  <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5" /> {modernDilemmas[activeDilemma].verseCitation}
+                  <span className="text-sm font-mono font-bold text-[#C25E38] dark:text-[#E06D43] flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4" /> {modernDilemmas[activeDilemma].verseCitation}
                   </span>
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#C25E38]/15 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
+                  <span className="text-xs font-semibold px-3 py-1 rounded-md bg-[#C25E38]/15 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
                     100% Canonical Grounding
                   </span>
                 </div>
 
                 {/* Devanagari Shloka */}
-                <div className="font-serif text-lg sm:text-xl text-[#2D2622] dark:text-[#F5F2EB] font-medium leading-loose text-center py-2 bg-[#FAF7F2]/60 dark:bg-[#262320]/60 rounded-xl border border-[#DFD5C6]/60 dark:border-[#38332E]/60 whitespace-pre-line">
+                <div className="font-serif text-xl sm:text-2xl lg:text-3xl text-[#2D2622] dark:text-[#F5F2EB] font-medium leading-loose text-center py-3 bg-[#FAF7F2]/60 dark:bg-[#262320]/60 rounded-xl border border-[#DFD5C6]/60 dark:border-[#38332E]/60 whitespace-pre-line">
                   {modernDilemmas[activeDilemma].verseSanskrit}
                 </div>
 
                 {/* Transliteration */}
-                <p className="text-xs font-mono text-[#8C7B70] dark:text-[#A89F91] text-center italic">
+                <p className="text-sm font-mono text-[#8C7B70] dark:text-[#A89F91] text-center italic">
                   {modernDilemmas[activeDilemma].verseTransliteration}
                 </p>
 
                 {/* Core Insight */}
                 <div className="pt-2">
-                  <div className="text-xs font-bold uppercase tracking-wider text-[#2D2622] dark:text-[#F5F2EB] mb-1">
+                  <div className="text-sm font-bold uppercase tracking-wider text-[#2D2622] dark:text-[#F5F2EB] mb-1">
                     Core Philosophical Insight:
                   </div>
-                  <p className="text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                  <p className="text-base text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
                     {modernDilemmas[activeDilemma].coreInsight}
                   </p>
                 </div>
 
                 {/* Action CTA */}
                 <div className="pt-3 border-t border-[#DFD5C6] dark:border-[#38332E] flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-xs text-[#8C7B70] dark:text-[#A89F91]">
+                  <span className="text-sm text-[#8C7B70] dark:text-[#A89F91]">
                     Ask NityaGeeta to synthesize this verse with all 5 classical bhashyas:
                   </span>
                   <Link
                     href={`/app?q=${encodeURIComponent(modernDilemmas[activeDilemma].promptQuery)}`}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:opacity-90 transition shadow-md group"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-sm font-bold hover:opacity-90 transition shadow-md group"
                   >
                     <span>Converse in Dialogue</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               </div>
@@ -822,7 +822,7 @@ export default function LandingPage() {
               <span className="font-bold text-sm text-[#2D2622] dark:text-[#F5F2EB] font-serif">
                 Academic Research & Empirical Citations
               </span>
-              <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
                 4 Verified Citations
               </span>
             </div>
@@ -1483,35 +1483,35 @@ export default function LandingPage() {
 
                         {/* Authenticity & Context Trust Ratios Breakdown */}
                         <div className="pt-2.5 border-t border-[#E8E1D7] dark:border-[#38332E] space-y-2">
-                          <div className="font-bold text-[#2D2622] dark:text-[#F5F2EB] text-[11px] tracking-wide">
+                          <div className="font-bold text-[#2D2622] dark:text-[#F5F2EB] text-xs tracking-wide">
                             Authenticity & Trust Ratio Breakdown
                           </div>
 
                           {/* Ratio 1: Text Authenticity */}
                           <div className="space-y-0.5">
-                            <div className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center justify-between text-xs">
                               <span className="text-[#5C4F45] dark:text-[#D4C7B8] font-medium">Text Authenticity Ratio:</span>
                               <span className="font-mono font-bold text-[#C25E38] dark:text-[#E06D43]">{source.authenticityRatio}</span>
                             </div>
-                            <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.authenticityDetail}</p>
+                            <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.authenticityDetail}</p>
                           </div>
 
                           {/* Ratio 2: Context Trust */}
                           <div className="space-y-0.5 pt-1">
-                            <div className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center justify-between text-xs">
                               <span className="text-[#5C4F45] dark:text-[#D4C7B8] font-medium">Context Trust (Zero-Bias Ratio):</span>
                               <span className="font-mono font-bold text-[#C25E38] dark:text-[#E06D43]">{source.contextTrustRatio}</span>
                             </div>
-                            <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.contextTrustDetail}</p>
+                            <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.contextTrustDetail}</p>
                           </div>
 
                           {/* Ratio 3: Scholarly Authority */}
                           <div className="space-y-0.5 pt-1">
-                            <div className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center justify-between text-xs">
                               <span className="text-[#5C4F45] dark:text-[#D4C7B8] font-medium">Scholarly Authority Ratio:</span>
                               <span className="font-mono font-bold text-[#C25E38] dark:text-[#E06D43]">{source.scholarlyAuthorityRatio}</span>
                             </div>
-                            <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.scholarlyAuthorityDetail}</p>
+                            <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.scholarlyAuthorityDetail}</p>
                           </div>
                         </div>
                       </div>

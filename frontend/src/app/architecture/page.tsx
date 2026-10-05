@@ -305,9 +305,9 @@ export default function ArchitecturePage() {
                   </div>
                   <div className="space-y-1.5 font-sans">
                     {step.sources.map((s, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-xs">
+                      <div key={idx} className="flex items-center justify-between text-xs sm:text-sm">
                         <span className="text-[#2D2622] dark:text-[#F5F2EB] font-medium">{s.name}</span>
-                        <span className="text-[10px] text-[#8C7B70] dark:text-[#A89F91]">{s.tag}</span>
+                        <span className="text-xs text-[#8C7B70] dark:text-[#A89F91]">{s.tag}</span>
                       </div>
                     ))}
                   </div>
@@ -453,16 +453,16 @@ export default function ArchitecturePage() {
           >
             <div className="flex items-center gap-3">
               <BookOpen className="w-4 h-4 text-[#C25E38] dark:text-[#E06D43]" />
-              <h3 className="text-sm font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB]">
+              <h3 className="text-sm sm:text-base font-serif font-bold text-[#2D2622] dark:text-[#F5F2EB]">
                 Scriptural Fidelity & Integrity Citations
               </h3>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
                 4
               </span>
             </div>
 
             <div className="flex items-center gap-2 text-[#8C7B70] dark:text-[#A89F91] text-xs">
-              <span className="hidden sm:inline text-[11px]">
+              <span className="hidden sm:inline text-xs">
                 {integrityCitationsOpen ? "Hide Citations" : "Show Citations"}
               </span>
               <ChevronDown
@@ -488,7 +488,7 @@ export default function ArchitecturePage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#EFE9DF]/50 dark:bg-[#262320]/60 border border-[#DFD5C6]/70 dark:border-[#38332E]/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
                           [1]
                         </span>
                         <strong className="text-[#2D2622] dark:text-[#F5F2EB] font-serif text-sm">
@@ -527,7 +527,7 @@ export default function ArchitecturePage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#EFE9DF]/50 dark:bg-[#262320]/60 border border-[#DFD5C6]/70 dark:border-[#38332E]/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
                           [2]
                         </span>
                         <strong className="text-[#2D2622] dark:text-[#F5F2EB] font-serif text-sm">
@@ -575,7 +575,7 @@ export default function ArchitecturePage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#EFE9DF]/50 dark:bg-[#262320]/60 border border-[#DFD5C6]/70 dark:border-[#38332E]/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
                           [3]
                         </span>
                         <strong className="text-[#2D2622] dark:text-[#F5F2EB] font-serif text-sm">
@@ -614,7 +614,7 @@ export default function ArchitecturePage() {
                   <div className="p-3.5 sm:p-4 rounded-xl bg-[#EFE9DF]/50 dark:bg-[#262320]/60 border border-[#DFD5C6]/70 dark:border-[#38332E]/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
+                        <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] bg-[#C25E38]/15 dark:bg-[#E06D43]/25">
                           [4]
                         </span>
                         <strong className="text-[#2D2622] dark:text-[#F5F2EB] font-serif text-sm">
