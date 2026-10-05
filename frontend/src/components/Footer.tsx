@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check } from "lucide-react";
+import { ShieldCheck, Mail } from "lucide-react";
 
 export function Footer() {
   const router = useRouter();
@@ -16,17 +16,26 @@ export function Footer() {
             <h3 className="font-serif text-2xl font-bold text-[#2D2622] dark:text-[#F5F2EB] tracking-tight">
               NityaGeeta
             </h3>
-            <span
-              className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#C25E38]/15 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] border border-[#C25E38]/30 dark:border-[#E06D43]/40"
-              title="Verified"
-              aria-label="Verified"
-            >
-              <Check className="w-2.5 h-2.5 stroke-[3]" />
+            <span title="Verified Canonical Ground Truth">
+              <ShieldCheck
+                className="w-5 h-5 text-[#C25E38] dark:text-[#E06D43] shrink-0"
+                aria-label="Verified Canonical Ground Truth"
+              />
             </span>
           </div>
           <p className="text-xs text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed max-w-sm">
             Universal Bhagavad Gita intelligence synthesized across canonical manuscripts and classical commentaries with 100% citation transparency.
           </p>
+          <div className="pt-0.5">
+            <a
+              href="mailto:contact@nityageeta.com"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FAF7F2] dark:bg-[#201C19] border border-[#DFD5C6] dark:border-[#38332E] text-[#5C4F45] dark:text-[#D4C7B8] hover:text-[#C25E38] dark:hover:text-[#E06D43] hover:border-[#C25E38]/40 transition text-xs font-medium cursor-pointer shadow-xs"
+              title="Official Contact & Support Email"
+            >
+              <Mail className="w-3.5 h-3.5 text-[#C25E38] dark:text-[#E06D43]" />
+              <span>contact@nityageeta.com</span>
+            </a>
+          </div>
         </div>
 
         {/* Column 2: Platform Navigation */}
