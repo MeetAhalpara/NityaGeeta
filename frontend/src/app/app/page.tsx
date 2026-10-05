@@ -962,8 +962,8 @@ Start or verify the backend server:
     }
   };
 
-  const userName = session?.user?.name || (isPreview ? "Meet Ahalpara" : "User");
-  const userInitial = session?.user?.name ? userName.charAt(0).toUpperCase() : "ME";
+  const userName = session?.user?.name || (isPreview ? "Seeker" : "User");
+  const userInitial = session?.user?.name ? userName.charAt(0).toUpperCase() : "S";
   // ID of the most recent bot message — only this one gets the animate-in effect
   const latestBotId = [...messages].reverse().find(m => m.sender === "bot")?.id ?? null;
 
@@ -1116,7 +1116,7 @@ Start or verify the backend server:
                 className="fixed bottom-16 left-3 md:left-4 z-[9999] min-w-[220px] rounded-2xl bg-[#FAF7F2]/95 dark:bg-[#1f1d1b]/95 backdrop-blur-2xl border border-[#DFD5C6] dark:border-[#38332E] shadow-[0_16px_48px_-12px_rgba(0,0,0,0.45)] p-2 space-y-1 text-xs overflow-hidden"
               >
                 <div className="px-3 py-2.5 border-b border-[#E6DDD0]/60 dark:border-[#38332E]/60 mb-1">
-                  <p className="font-bold text-[#2D2622] dark:text-[#F5F2EB] truncate text-sm">{userName || "Meet Ahalpara"}</p>
+                  <p className="font-bold text-[#2D2622] dark:text-[#F5F2EB] truncate text-sm">{userName || "Seeker"}</p>
                   <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] truncate font-mono">{session?.user?.email || "Seeker Account"}</p>
                 </div>
 
