@@ -1,10 +1,10 @@
 {
   "project_name": "NityaGeeta",
-  "last_synced_commit": "fae6d4df9d895abd6a3d3d6969d3bbedde1a05ed",
-  "last_synced_date": "2026-09-26 15:14:35",
-  "test_count": 39,
-  "fastapi_routes": 19,
+  "last_synced_commit": "49a017f32bf793beee0414f9b6ca1aeb464692dd",
+  "last_synced_date": "2026-10-05 13:54:26",
+  "test_count": 45,
+  "fastapi_routes": 21,
   "pages_indexed": 5034,
   "unique_shlokas": 649,
-  "architecture": "Hybrid BM25Okapi + RRF (k=60) Scriptural RAG Engine"
+  "architecture": "Hybrid BM25Okapi + RRF (k=60) Scriptural RAG Engine, Redis Streams, Steve Jobs Follow-Up Engine & Interactive Domain Data Model Topology"
 }
