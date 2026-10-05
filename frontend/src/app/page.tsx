@@ -50,6 +50,13 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import { TextReveal } from "@/components/ui/text-reveal";
 import { PdfManuscriptReader } from "@/components/ui/pdf-manuscript-reader";
 
+const HERO_BACKGROUND_IMAGES = [
+  "/LandingPage/krishna-arjun-lord-krishna-s-blessing-rb0kv4lecke81fqz.jpg",
+  "/LandingPage/wp6293190-krishna-mahabharat-wallpapers.jpg",
+  "/LandingPage/wp6293276-krishna-mahabharat-wallpapers.png",
+  "/LandingPage/wp6874871-karna-mahabharat-wallpapers.jpg",
+];
+
 export default function LandingPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -58,9 +65,13 @@ export default function LandingPage() {
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
   const [selectedBookTitle, setSelectedBookTitle] = useState<string>("");
   const [homeCitationsOpen, setHomeCitationsOpen] = useState(false);
+  const [heroBgImage, setHeroBgImage] = useState<string>(HERO_BACKGROUND_IMAGES[0]);
 
   useEffect(() => {
     setMounted(true);
+    // Select a random background image on each page refresh
+    const randomIdx = Math.floor(Math.random() * HERO_BACKGROUND_IMAGES.length);
+    setHeroBgImage(HERO_BACKGROUND_IMAGES[randomIdx]);
   }, []);
 
   const handleOpenPdf = (url: string | null, title: string) => {
@@ -344,8 +355,9 @@ export default function LandingPage() {
           className="absolute inset-0 z-0 pointer-events-none"
         >
           <Image
-            src="/images/hero_krishna.png"
-            alt="Lord Krishna Bhagavad Gita Chariot"
+            key={heroBgImage}
+            src={heroBgImage}
+            alt="Sacred Bhagavad Gita Chariot"
             fill
             priority
             className="object-cover object-center filter brightness-[0.9] dark:brightness-[0.7] contrast-[1.05]"
@@ -419,14 +431,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SECTION 1: Modern Life Dilemmas Grounded in 5,000-Year-Old Wisdom */}
+      {/* SECTION 1: Modern Life Dilemmas Grounded in Over 5,000 Years of Timeless Wisdom */}
       <section id="modern-dilemmas" className="py-24 px-6 max-w-6xl mx-auto w-full border-t border-[#E8E1D7] dark:border-[#38332E]">
         <div className="text-center max-w-3xl mx-auto mb-14">
           <span className="text-xs font-sans font-semibold tracking-widest text-[#C25E38] dark:text-[#E06D43] uppercase block mb-2">
             Timeless Answers For Contemporary Challenges
           </span>
           <h2 className="text-3xl sm:text-4xl text-[#2D2622] dark:text-[#F5F2EB] font-normal font-serif">
-            5,000-Year-Old Wisdom for <span className="text-[#C25E38] dark:text-[#E06D43]">Modern Life Dilemmas</span>
+            Timeless Wisdom Spanning Over 5,000 Years for <span className="text-[#C25E38] dark:text-[#E06D43]">Modern Life Dilemmas</span>
           </h2>
           <p className="mt-4 text-[#6B5E55] dark:text-[#A89F91] font-sans text-base leading-relaxed">
             Select a real-world struggle below to see how canonical Bhagavad Gita verses provide immediate, grounded clarity.
