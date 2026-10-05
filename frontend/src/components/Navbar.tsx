@@ -129,7 +129,7 @@ export function Navbar({ activePage = "" }: { activePage?: string }) {
         {/* RIGHT SIDE: Animated Theme Toggle, Auth buttons */}
         <div className="flex items-center space-x-3 font-sans">
           <AnimatedThemeToggler
-            theme={mounted ? (resolvedTheme === "dark" ? "dark" : "light") : undefined}
+            theme={mounted ? (resolvedTheme === "dark" ? "dark" : "light") : "light"}
             onThemeChange={(newTheme) => setTheme(newTheme)}
           />
 

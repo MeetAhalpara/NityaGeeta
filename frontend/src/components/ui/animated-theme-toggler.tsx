@@ -162,6 +162,12 @@ export const AnimatedThemeToggler = ({
 }: AnimatedThemeTogglerProps) => {
   const shape = variant ?? "circle";
   const nextThemes = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const isControlled = theme !== undefined;
   const [internalIsDark, setInternalIsDark] = useState(false);
   const isDark = isControlled
@@ -306,6 +312,25 @@ export const AnimatedThemeToggler = ({
     }
   }, [shape, fromCenter, duration, isDark, isControlled, onThemeChange]);
 
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        className={cn(
+          "p-2.5 rounded-xl text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#262320] transition border border-transparent hover:border-[#DFD5C6] dark:hover:border-[#38332E] cursor-pointer",
+          className
+        )}
+        aria-label="Toggle theme"
+        title="Toggle Light / Dark Mode"
+        suppressHydrationWarning
+        {...props}
+      >
+        <span className="w-4 h-4 inline-block" aria-hidden="true" />
+        <span className="sr-only">Toggle theme</span>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -317,6 +342,7 @@ export const AnimatedThemeToggler = ({
       )}
       aria-label="Toggle theme"
       title="Toggle Light / Dark Mode"
+      suppressHydrationWarning
       {...props}
     >
       {isDark ? (
