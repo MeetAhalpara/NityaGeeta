@@ -515,7 +515,6 @@ export default function SourcesPage() {
       tradition: "Classical Ayurvedic & Smriti Daily Discipline",
       tagline: "Daily Shastric Discipline",
       desc: "Step-by-step actionable guide on traditional daily routines (Dincharya), morning Brahmamuhurta habits, energy conservation, and mental purity.",
-      pdfUrl: "https://storage.googleapis.com/nityageeta-library/Vedic%20Dincharya.pdf",
       storeUrl: "https://www.amazon.in/dp/9359164534?ref=cm_sw_r_ffobk_cso_cp_mwn_dp_S1PZD5B2XQX1CZJSQ64R&ref_=cm_sw_r_ffobk_cso_cp_mwn_dp_S1PZD5B2XQX1CZJSQ64R&social_share=cm_sw_r_ffobk_cso_cp_mwn_dp_S1PZD5B2XQX1CZJSQ64R&bestFormat=true",
       totalVerses: "Daily Routine Manual",
       score: 94,
@@ -579,7 +578,6 @@ export default function SourcesPage() {
       tradition: "Patanjali Yoga Sutra Self-Mastery & Focus",
       tagline: "Self-Mastery Action Manual",
       desc: "Practical action manual focusing on mental discipline, energy conservation, focus mastery, and overcoming compulsive digital distractions.",
-      pdfUrl: "https://storage.googleapis.com/nityageeta-library/Brahmacharya-the-Ultimate-Action-Book-for-Brahmacharya.pdf",
       storeUrl: "https://www.veducation.world/store/Brahmcharya-Hindi",
       totalVerses: "Action Guide",
       score: 92,
@@ -1503,11 +1501,8 @@ export default function SourcesPage() {
                       className="p-6 sm:p-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 cursor-pointer group"
                     >
                       <div className="flex items-start sm:items-center gap-5 flex-1">
-                        {/* Apple/Linear-Grade Sleek Rank Badge */}
-                        <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#3E3832] flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:border-[#C25E38]/50 transition-colors">
-                          <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43] leading-none mb-1">
-                            {source.tierLabel}
-                          </span>
+                        {/* Clean Rank Badge - Just Number 01..04 */}
+                        <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#3E3832] flex items-center justify-center shrink-0 shadow-sm group-hover:border-[#C25E38]/50 transition-colors">
                           <span className="text-xl sm:text-2xl font-serif font-black text-[#2D2622] dark:text-[#F5F2EB] leading-none">
                             0{source.priority}
                           </span>
@@ -1686,7 +1681,7 @@ export default function SourcesPage() {
                             Open and verify the full manuscript edition:
                           </span>
                           <div className="flex items-center gap-2">
-                            {source.pdfUrl && (
+                            {(source as any).pdfUrl && !(source as any).translationNotice && (
                               <div className="relative group/tooltip">
                                 <button
                                   type="button"
@@ -1765,11 +1760,8 @@ export default function SourcesPage() {
                       className="p-6 sm:p-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 cursor-pointer group"
                     >
                       <div className="flex items-start sm:items-center gap-5 flex-1">
-                        {/* Apple/Linear-Grade Sleek Rank Badge */}
-                        <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#3E3832] flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:border-[#C25E38]/50 transition-colors">
-                          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43] leading-none mb-1">
-                            {source.tierLabel}
-                          </span>
+                        {/* Clean Rank Badge - Just Number 01..04 */}
+                        <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#3E3832] flex items-center justify-center shrink-0 shadow-sm group-hover:border-[#C25E38]/50 transition-colors">
                           <span className="text-xl sm:text-2xl font-serif font-black text-[#2D2622] dark:text-[#F5F2EB] leading-none">
                             0{source.priority}
                           </span>
@@ -2031,7 +2023,7 @@ export default function SourcesPage() {
                             Open and verify this publication:
                           </span>
                           <div className="flex items-center gap-2">
-                            {source.pdfUrl && (
+                            {source.pdfUrl && !source.translationNotice && (
                               <div className="relative group/tooltip">
                                 <button
                                   type="button"

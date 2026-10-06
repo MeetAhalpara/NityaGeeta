@@ -55,7 +55,6 @@ import { FormattedChatMessage } from "@/components/ui/formatted-chat-message";
 import { AgentActivity, type AgentActivityItem } from "@/components/agents/agent-activity";
 import { Citations, Citation } from "@/components/agents/citations";
 import { EmptyState } from "@/components/ui/empty-state";
-import { TopicBreadcrumb } from "@/components/agents/topic-breadcrumb";
 import { TangentAccordion, type TangentSummaryItem } from "@/components/agents/tangent-accordion";
 import { SteveJobsFollowUp } from "@/components/agents/steve-jobs-followup";
 
@@ -174,6 +173,8 @@ function NityaGeetaChatSidebar({
   imageError,
   setImageError,
   router,
+  pinnedMessagesCount = 0,
+  onOpenPinnedDrawer,
 }: {
   conversations: ConversationSession[];
   activeSessionId: string | null;
@@ -191,6 +192,8 @@ function NityaGeetaChatSidebar({
   imageError: boolean;
   setImageError: (err: boolean) => void;
   router: any;
+  pinnedMessagesCount?: number;
+  onOpenPinnedDrawer?: () => void;
 }) {
   const { open, setOpen, toggleSidebar } = useAnimatedSidebar();
   const [searchQuery, setSearchQuery] = useState("");
@@ -259,7 +262,7 @@ function NityaGeetaChatSidebar({
       </div>
 
       {/* ── PERSISTENT NEW DIALOGUE BUTTON (Locked Coordinates in Both States) ── */}
-      <div className="px-2.5 pt-2 shrink-0 w-full overflow-hidden">
+      <div className="px-2.5 pt-2 shrink-0 w-full overflow-hidden space-y-1.5">
         <button
           onClick={createNewDialogue}
           disabled={loading}
@@ -273,6 +276,24 @@ function NityaGeetaChatSidebar({
             New Dialogue
           </span>
         </button>
+
+        {pinnedMessagesCount > 0 && onOpenPinnedDrawer && (
+          <button
+            onClick={onOpenPinnedDrawer}
+            title={`Pinned Reflections (${pinnedMessagesCount})`}
+            className="w-full h-9 rounded-xl bg-[#C25E38]/10 dark:bg-[#E06D43]/15 hover:bg-[#C25E38]/20 dark:hover:bg-[#E06D43]/25 text-[#C25E38] dark:text-[#E06D43] transition-colors shadow-2xs cursor-pointer border border-[#C25E38]/20 flex items-center overflow-hidden"
+          >
+            <div className="w-[34px] h-full shrink-0 flex items-center justify-center">
+              <Bookmark className="w-4 h-4 fill-current text-[#C25E38] dark:text-[#E06D43]" />
+            </div>
+            <span className="group-data-[state=collapsed]/sidebar:hidden flex-1 text-left text-xs font-semibold truncate pr-2">
+              Pinned Reflections
+            </span>
+            <span className="group-data-[state=collapsed]/sidebar:hidden mr-2.5 text-[10px] px-1.5 py-0.5 rounded-full bg-[#C25E38]/20 dark:bg-[#E06D43]/30 font-bold shrink-0">
+              {pinnedMessagesCount}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* ── COLLAPSED MIDDLE: History Button Tightly Stacked Below New Dialogue ── */}
@@ -430,6 +451,16 @@ function NityaGeetaChatSidebar({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function FloatingSidebarTrigger() {
+  const { open } = useAnimatedSidebar();
+  if (open) return null;
+  return (
+    <div className="absolute top-3 left-3 z-30 pointer-events-auto">
+      <AnimatedSidebarTrigger className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] bg-[#FAF7F2]/40 dark:bg-[#1A1816]/40 backdrop-blur-md border border-[#E6DDD0]/30 dark:border-[#2D2825]/30 hover:bg-[#EFE9DF]/80 dark:hover:bg-[#262320]/80 transition-colors shadow-2xs cursor-pointer" />
     </div>
   );
 }
@@ -1040,6 +1071,16 @@ Start or verify the backend server:
       icon: theme === "dark" ? Sun : Moon,
       action: () => setTheme(theme === "dark" ? "light" : "dark"),
     },
+    ...(pinnedMessages.length > 0
+      ? [
+          {
+            id: "pinned",
+            label: `Pinned (${pinnedMessages.length})`,
+            icon: Bookmark,
+            action: () => setShowPinnedDrawer(true),
+          },
+        ]
+      : []),
     {
       id: "home",
       label: "Go Home",
@@ -1095,6 +1136,8 @@ Start or verify the backend server:
             imageError={imageError}
             setImageError={setImageError}
             router={router}
+            pinnedMessagesCount={pinnedMessages.length}
+            onOpenPinnedDrawer={() => setShowPinnedDrawer(true)}
           />
           <AnimatedSidebarRail />
         </AnimatedSidebar>
@@ -1188,43 +1231,22 @@ Start or verify the backend server:
               style={{ backgroundImage: "url('/assets/images/ChatBG/BG.png')" }}
             />
 
-            {/* TOP APPLE-STYLE MINIMALIST HEADER */}
-            <header className="relative z-20 w-full flex items-center justify-between px-4 sm:px-6 h-14 border-b border-[#E6DDD0]/40 dark:border-[#2D2825]/40 bg-[#FAF7F2]/80 dark:bg-[#1A1816]/80 backdrop-blur-xl shrink-0">
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <AnimatedSidebarTrigger className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#262320]/60 transition-colors shrink-0" />
-                <TopicBreadcrumb
-                  mainTopic={activeTopicName}
-                  activeTangent={activeTangent}
-                  onPopTangent={handleReturnToMain}
-                  className="max-w-xs sm:max-w-md border-none bg-transparent dark:bg-transparent px-1 py-0 shadow-none"
-                />
-              </div>
+            {/* Discreet Floating Sidebar Trigger (Only visible when sidebar is collapsed) */}
+            <FloatingSidebarTrigger />
 
-              <div className="flex items-center gap-2 shrink-0">
-                {pinnedMessages.length > 0 && (
-                  <button
-                    onClick={() => setShowPinnedDrawer(true)}
-                    title="View pinned reflections"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#C25E38]/10 dark:bg-[#E06D43]/15 text-[#C25E38] dark:text-[#E06D43] border border-[#C25E38]/20 hover:bg-[#C25E38]/20 transition-all cursor-pointer"
-                  >
-                    <Bookmark className="w-3.5 h-3.5 fill-[#C25E38] dark:fill-[#E06D43]" />
-                    <span>{pinnedMessages.length} Pinned</span>
-                  </button>
-                )}
+            {/* Discreet Floating Pinned Reflections Button (Only visible when pinned messages exist) */}
+            {pinnedMessages.length > 0 && (
+              <div className="absolute top-3 right-4 z-30 pointer-events-auto">
                 <button
-                  onClick={() => createNewDialogue()}
-                  title="Start fresh dialogue"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#5C4F45] dark:text-[#D4C7B8] hover:text-[#C25E38] dark:hover:text-[#E06D43] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#262320]/60 transition-colors cursor-pointer"
+                  onClick={() => setShowPinnedDrawer(true)}
+                  title="View pinned reflections"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#FAF7F2]/60 dark:bg-[#1A1816]/60 backdrop-blur-md text-[#C25E38] dark:text-[#E06D43] border border-[#E6DDD0]/40 dark:border-[#2D2825]/40 hover:bg-[#EFE9DF]/80 dark:hover:bg-[#262320]/80 transition-colors shadow-2xs cursor-pointer"
                 >
-                  <SquarePen className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">New Dialogue</span>
+                  <Bookmark className="w-3.5 h-3.5 fill-current" />
+                  <span>{pinnedMessages.length} Pinned</span>
                 </button>
-                <AnimatedThemeToggler
-                  theme={theme === "dark" ? "dark" : "light"}
-                  onThemeChange={(t) => setTheme(t)}
-                />
               </div>
-            </header>
+            )}
 
             {/* Full-width Scrollable Container: Mouse scrolling works anywhere on the window */}
             <div className="relative z-10 flex-1 overflow-y-auto scrollbar-hide w-full h-full">
