@@ -1681,7 +1681,7 @@ export default function SourcesPage() {
                             Open and verify the full manuscript edition:
                           </span>
                           <div className="flex items-center gap-2">
-                            {source.pdfUrl && !source.translationNotice && (
+                            {(source as any).pdfUrl && !(source as any).translationNotice && (
                               <div className="relative group/tooltip">
                                 <button
                                   type="button"
