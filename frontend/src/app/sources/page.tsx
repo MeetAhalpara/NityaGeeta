@@ -1056,7 +1056,7 @@ export default function SourcesPage() {
   };
 
   // Unified Semantic Search Engine
-  const { filteredGeeta, filteredVeducation, filteredChapters, totalMatches, isSearchActive, showVeducationFirst, topMatch } = useMemo(() => {
+  const { filteredGeeta, filteredVeducation, filteredChapters, totalMatches, isSearchActive, showVeducationFirst, topMatch, topMatchCategory } = useMemo(() => {
     const rawQ = searchQuery.trim();
     if (!rawQ) {
       return {
@@ -1066,7 +1066,8 @@ export default function SourcesPage() {
         totalMatches: geetaEditions.length + veducationSeries.length + chaptersIndex.length,
         isSearchActive: false,
         showVeducationFirst: false,
-        topMatch: null
+        topMatch: null,
+        topMatchCategory: null
       };
     }
 
@@ -1105,11 +1106,15 @@ export default function SourcesPage() {
 
     const topGeetaScore = scoredGeeta[0]?.score || 0;
     const topVeducationScore = scoredVeducation[0]?.score || 0;
-    const showVeducationFirst = isSearchActive && (topVeducationScore > topGeetaScore);
+    const showVeducationFirst = topVeducationScore > topGeetaScore;
 
     const topCandidate = topVeducationScore > topGeetaScore
       ? (scoredVeducation[0] || scoredGeeta[0] || null)
       : (scoredGeeta[0] || scoredVeducation[0] || null);
+
+    const topMatchCategory = topCandidate
+      ? (scoredVeducation.some((s) => s.item.id === topCandidate.item.id) ? "veducation" : "geeta")
+      : null;
 
     return {
       filteredGeeta: scoredGeeta.map((res) => res.item),
@@ -1118,7 +1123,8 @@ export default function SourcesPage() {
       totalMatches: total,
       isSearchActive: true,
       showVeducationFirst,
-      topMatch: topCandidate ? topCandidate.item : null
+      topMatch: topCandidate ? topCandidate.item : null,
+      topMatchCategory
     };
   }, [searchQuery, geetaEditions, veducationSeries, chaptersIndex]);
 
@@ -1535,7 +1541,7 @@ export default function SourcesPage() {
         )}
 
         {/* Top Semantic Recommendation Spotlight Card */}
-        {isSearchActive && topMatch && (
+        {isSearchActive && topMatch && (activeTab === "all" || activeTab === topMatchCategory) && (
           <div className="mb-12 p-6 sm:p-7 rounded-3xl bg-[#FAF3EC] dark:bg-[#25201C] border-2 border-[#C25E38]/40 dark:border-[#E06D43]/40 shadow-lg animate-in fade-in duration-200">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2">
@@ -1568,11 +1574,16 @@ export default function SourcesPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const el = document.getElementById(topMatch.id);
-                    if (el) {
-                      setExpandedSourceId(topMatch.id);
-                      el.scrollIntoView({ behavior: "smooth", block: "center" });
+                    if (topMatchCategory && activeTab !== "all" && activeTab !== topMatchCategory) {
+                      setActiveTab(topMatchCategory);
                     }
+                    setExpandedSourceId(topMatch.id);
+                    setTimeout(() => {
+                      const el = document.getElementById(topMatch.id);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }
+                    }, 50);
                   }}
                   className="px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-sm cursor-pointer flex items-center gap-2"
                 >

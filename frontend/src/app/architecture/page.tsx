@@ -281,7 +281,7 @@ export default function ArchitecturePage() {
             </p>
 
             <p>
-              Most of the time, the world gives one dogma. One opens a religious book, and what does it tell one? It gives you a list of commandments. <em>&lsquo;Believe this or suffer.&rsquo; &lsquo;Bow down or burn.&rsquo; &lsquo;Retreat from the world, sit on a mountaintop, and renounce one&apos;s life.&rsquo;</em>
+              Most of the time, the world gives one dogma. He opens a religious book, and what does it tell him? It gives him a list of commandments. <em>&lsquo;Believe this or suffer.&rsquo; &lsquo;Bow down or burn.&rsquo; &lsquo;Retreat from the world, sit on a mountaintop, and renounce one&apos;s life.&rsquo;</em>
             </p>
 
             <p className="text-[#D4C7B8]">
@@ -309,7 +309,7 @@ export default function ArchitecturePage() {
             </div>
 
             <p className="text-xl sm:text-2xl text-white font-normal text-center py-4 border-y border-[#3E3832]/60">
-              &ldquo;And what the Gita gave him was not a religion. <br />
+              &ldquo;What the Gita gave him was not a religion. <br />
               <span className="text-[#E06D43] font-semibold italic">It gave him a universal guide and clear compass for the human mind.&rdquo;</span>
             </p>
           </div>
@@ -479,7 +479,7 @@ export default function ArchitecturePage() {
 
               <div className="text-base sm:text-lg font-serif text-[#D4C7B8] leading-relaxed space-y-4">
                 <p>
-                  &ldquo;Now, one might ask: <em>&lsquo;What about me or the reader? One can already visit temples, do rituals, enjoy festivals, and follow traditions. Why does one need to read the Gita?&rsquo;</em>
+                  &ldquo;Now, one might ask: <em>&lsquo;What about me or the reader? One can already visit temples, does rituals, enjoys festivals, and follows traditions. Why does one need to read the Gita?&rsquo;</em>
                 </p>
                 <p className="text-white font-medium">
                   Here’s the hard truth:
