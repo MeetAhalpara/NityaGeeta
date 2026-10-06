@@ -922,7 +922,9 @@ export default function SourcesPage() {
     shlok: "shloka",
     sloka: "shloka",
     geeta: "gita",
-    bhagvat: "bhagavad"
+    bhagvat: "bhagavad",
+    univers: "universe",
+    universes: "universe"
   }), []);
 
   // Semantic concept synonym dictionary for multi-concept natural queries
@@ -930,6 +932,7 @@ export default function SourcesPage() {
     time: ["kaal", "yuga", "kalpa", "cycles", "brahma", "pralaya"],
     kaal: ["time", "cosmic time", "yugas", "kalpa"],
     universe: ["brahmand", "cosmos", "cosmic", "creation", "lokas", "planetary", "space", "dimensions"],
+    univers: ["universe", "brahmand", "cosmos", "cosmic", "creation", "lokas", "planetary", "space", "dimensions"],
     cosmos: ["universe", "brahmand", "cosmology", "lokas", "planetary", "space", "creation", "dimensions"],
     cosmic: ["cosmos", "universe", "brahmand", "kaal", "time", "cycles", "dimensions"],
     routine: ["dincharya", "brahmamuhurta", "habits", "daily", "ayurveda"],
@@ -959,8 +962,6 @@ export default function SourcesPage() {
     const rawQuery = query.toLowerCase().trim();
     const collapsedQuery = rawQuery.replace(/[^a-z0-9]/g, "");
     const collapsedTitle = title.toLowerCase().replace(/[^a-z0-9]/g, "");
-    const collapsedKeywords = keywords.map(k => k.toLowerCase().replace(/[^a-z0-9]/g, "")).join(" ");
-    const collapsedCorpus = corpus.toLowerCase().replace(/[^a-z0-9]/g, "");
 
     let score = 0;
 
@@ -968,13 +969,13 @@ export default function SourcesPage() {
     if (collapsedQuery.length >= 2) {
       if (collapsedTitle === collapsedQuery) score += 180;
       else if (collapsedTitle.includes(collapsedQuery)) score += 110;
-      else if (collapsedKeywords.includes(collapsedQuery)) score += 90;
-      else if (collapsedCorpus.includes(collapsedQuery)) score += 50;
+      else if (keywords.some(k => k.toLowerCase().replace(/[^a-z0-9]/g, "") === collapsedQuery)) score += 90;
     }
 
-    // 2. Exact phrase match in raw corpus or keywords
-    if (corpus.toLowerCase().includes(rawQuery)) {
-      score += 80;
+    // 2. Exact phrase match in corpus for multi-word queries
+    const isMultiWord = rawQuery.includes(" ");
+    if (isMultiWord && corpus.toLowerCase().includes(rawQuery)) {
+      score += 70;
     }
 
     // 3. Extract meaningful search tokens without stop words and map typos
@@ -993,16 +994,20 @@ export default function SourcesPage() {
 
       let tokenMatched = false;
 
+      // Word boundary regex for cleanToken and normalizedToken
+      const tokenRegex = new RegExp(`(^|[^a-z0-9])(${cleanToken}|${normalizedToken})([^a-z0-9]|$)`, "i");
+
       // Check title
-      if (title.toLowerCase().includes(token) || title.toLowerCase().includes(normalizedToken) || collapsedTitle.includes(cleanToken) || collapsedTitle.includes(normalizedToken)) {
-        score += 45;
+      if (tokenRegex.test(title) || collapsedTitle.includes(cleanToken) || collapsedTitle.includes(normalizedToken)) {
+        score += 50;
         tokenMatched = true;
       }
 
       // Check dedicated chapter titles (exceptional evidence that this book specifically covers the topic)
       const chMatch = chapterTitles.some(ct => {
         const ctLower = ct.toLowerCase();
-        return ctLower.includes(token) || 
+        return tokenRegex.test(ctLower) ||
+               ctLower.includes(token) || 
                ctLower.includes(normalizedToken) ||
                synonyms.some(syn => ctLower.includes(syn));
       });
@@ -1012,20 +1017,24 @@ export default function SourcesPage() {
       }
 
       // Check keywords array
-      const kwMatch = keywords.some(k => 
-        k.toLowerCase().includes(token) || 
-        k.toLowerCase().replace(/[^a-z0-9]/g, "").includes(cleanToken) ||
-        synonyms.some(syn => k.toLowerCase().includes(syn))
-      );
+      const kwMatch = keywords.some(k => {
+        const kLower = k.toLowerCase();
+        return tokenRegex.test(kLower) ||
+               kLower.includes(token) || 
+               kLower.replace(/[^a-z0-9]/g, "").includes(cleanToken) ||
+               synonyms.some(syn => kLower.includes(syn));
+      });
       if (kwMatch) {
-        score += 35;
+        score += 40;
         tokenMatched = true;
       }
 
-      // Check overall corpus
-      const corpusMatch = corpus.toLowerCase().includes(token) || 
-        collapsedCorpus.includes(cleanToken) ||
-        synonyms.some(syn => corpus.toLowerCase().includes(syn));
+      // Check overall corpus with word boundaries (avoids partial substrings like "univers" matching "universal" blindly)
+      const corpusMatch = tokenRegex.test(corpus) ||
+        synonyms.some(syn => {
+          const synRegex = new RegExp(`(^|[^a-z0-9])${syn}([^a-z0-9]|$)`, "i");
+          return synRegex.test(corpus);
+        });
       if (corpusMatch) {
         score += 15;
         tokenMatched = true;
@@ -1079,10 +1088,13 @@ export default function SourcesPage() {
         const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title, chapterTitles);
         return { item: b, score };
       })
-      .filter((res) => res.score > 0)
+      .filter((res) => res.score >= 40)
       .sort((a, b) => b.score - a.score);
 
+    const isBundleSearch = /pack|bundle|5\s*in\s*1|all\s*books|curriculum/i.test(rawQ);
+
     const scoredVeducation = veducationSeries
+      .filter((b) => isBundleSearch || b.id !== "ved-4")
       .map((b) => {
         const chapterTitles = (b.chapters || []).map((c: any) => c.title);
         const chaptersText = (b.chapters || []).map((c: any) => `${c.title} ${c.description} ${(c.keywords || []).join(" ")}`).join(" ");
@@ -1090,7 +1102,7 @@ export default function SourcesPage() {
         const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title, chapterTitles);
         return { item: b, score };
       })
-      .filter((res) => res.score > 0)
+      .filter((res) => res.score >= 40)
       .sort((a, b) => b.score - a.score);
 
     const scoredChapters = chaptersIndex
@@ -1099,7 +1111,7 @@ export default function SourcesPage() {
         const score = scoreSemanticItem(rawQ, corpus, c.keywords || [], c.name);
         return { item: c, score };
       })
-      .filter((res) => res.score > 0)
+      .filter((res) => res.score >= 40)
       .sort((a, b) => b.score - a.score);
 
     const total = scoredGeeta.length + scoredVeducation.length + scoredChapters.length;
@@ -1546,7 +1558,7 @@ export default function SourcesPage() {
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#C25E38] dark:bg-[#E06D43] text-white shadow-xs">
-                  ★ Top Shastric Recommendation
+                  ★ Top Shastric Recommendation • Direct Answer
                 </span>
                 <span className="text-xs text-[#8C7B70] dark:text-[#A89F91]">
                   Best conceptual match for &ldquo;{searchQuery}&rdquo;
@@ -1608,7 +1620,9 @@ export default function SourcesPage() {
                 </h2>
               </div>
               <span className="text-xs font-mono font-bold text-[#8C7B70] dark:text-[#A89F91] hidden sm:block">
-                {filteredGeeta.length} of {geetaEditions.length} Editions Available
+                {isSearchActive
+                  ? `${filteredGeeta.length} ${filteredGeeta.length === 1 ? "Edition Matched" : "Editions Matched"}`
+                  : `${filteredGeeta.length} of ${geetaEditions.length} Editions Available`}
               </span>
             </div>
 
@@ -1867,7 +1881,9 @@ export default function SourcesPage() {
                 </h2>
               </div>
               <span className="text-xs font-mono font-bold text-[#8C7B70] dark:text-[#A89F91] hidden sm:block">
-                {filteredVeducation.length} of {veducationSeries.length} Handbooks Available
+                {isSearchActive
+                  ? `${filteredVeducation.length} ${filteredVeducation.length === 1 ? "Handbook Matched" : "Handbooks Matched"}`
+                  : `${filteredVeducation.length} of ${veducationSeries.length} Handbooks Available`}
               </span>
             </div>
 
@@ -2209,7 +2225,9 @@ export default function SourcesPage() {
                 </h2>
               </div>
               <span className="text-xs font-mono font-bold text-[#8C7B70] dark:text-[#A89F91] hidden sm:block">
-                {filteredChapters.length} of 18 Chapters
+                {isSearchActive
+                  ? `${filteredChapters.length} ${filteredChapters.length === 1 ? "Chapter Matched" : "Chapters Matched"}`
+                  : `${filteredChapters.length} of 18 Chapters`}
               </span>
             </div>
 

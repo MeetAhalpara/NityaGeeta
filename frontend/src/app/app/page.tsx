@@ -595,8 +595,25 @@ export default function AppMainPage() {
         setActiveSessionId(null);
         setMessages([]);
         if (typeof window !== "undefined") {
-          const urlParams = new URLSearchParams(window.location.search);
-          const initialQ = urlParams.get("q") || urlParams.get("prompt") || "";
+          let initialQ = "";
+          try {
+            const pendingQuery = sessionStorage.getItem("nitya_pending_query");
+            if (pendingQuery) {
+              initialQ = pendingQuery;
+              sessionStorage.removeItem("nitya_pending_query");
+            }
+          } catch {}
+
+          if (!initialQ) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawParam = urlParams.get("q") || urlParams.get("prompt") || "";
+            if (rawParam) {
+              // Bounds-check and sanitize input against injection
+              initialQ = rawParam.slice(0, 1000).replace(/[<>]/g, "").trim();
+              // Clean address bar immediately so sensitive prompts do not linger in browser URL bar
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          }
           setQuery(initialQ);
         } else {
           setQuery("");

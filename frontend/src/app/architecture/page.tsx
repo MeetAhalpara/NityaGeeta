@@ -253,14 +253,14 @@ export default function ArchitecturePage() {
           PART 1: THE KEYNOTE — WHY THE GITA?
           ══════════════════════════════════════════════════════════════ */}
       <section id="the-thinking" className="py-20 px-6 max-w-6xl mx-auto w-full border-t border-[#DFD5C6] dark:border-[#38332E]">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-4xl mx-auto mb-16">
           <span className="text-xs font-sans font-bold uppercase tracking-[0.25em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
             Part 1 • The Keynote
           </span>
-          <h2 className="text-3xl sm:text-5xl font-normal text-[#2D2622] dark:text-[#F5F2EB] font-serif">
+          <h2 className="text-2xl sm:text-3xl lg:text-[2.2rem] font-normal text-[#2D2622] dark:text-[#F5F2EB] font-serif leading-snug">
             A Theatrical Keynote on Timeless Clarity, Sacred Craftsmanship, and a Universal Guide for the Human Mind
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-[#5C4F45] dark:text-[#D4C7B8] font-sans leading-relaxed">
+          <p className="mt-4 text-base sm:text-lg text-[#5C4F45] dark:text-[#D4C7B8] font-sans leading-relaxed max-w-2xl mx-auto">
             Lights dim. The stage is dark except for a single warm spotlight. A black slide appears behind him with one word: CLARITY.
           </p>
         </div>
@@ -474,12 +474,12 @@ export default function ArchitecturePage() {
             {/* Act 3: Why Does One Need to Read the Gita Today? */}
             <div className="mt-16 p-8 sm:p-10 rounded-2xl bg-[#181411] border border-[#3E3832] space-y-6">
               <h4 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-                &ldquo;Why Does One Need to Read the Gita Today?&rdquo;
+                &ldquo;Why Does One Need to Read the Gita?&rdquo;
               </h4>
 
               <div className="text-base sm:text-lg font-serif text-[#D4C7B8] leading-relaxed space-y-4">
                 <p>
-                  &ldquo;Now, one might ask: <em>&lsquo;What about me or the reader? One can already visit temples, does rituals, enjoys festivals, and follows traditions. Why does one need to read the Gita?&rsquo;</em>
+                  &ldquo;Now, one might have a question: <em>&lsquo;Why should I? I visit temples, do rituals, enjoy festivals, and follow traditions. Why does one need to read the Gita then?&rsquo;</em>
                 </p>
                 <p className="text-white font-medium">
                   Here’s the hard truth:

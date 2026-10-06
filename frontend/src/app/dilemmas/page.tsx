@@ -711,7 +711,14 @@ export default function DilemmasPage() {
 
                     <button
                       type="button"
-                      onClick={() => router.push(`/app?prompt=${encodeURIComponent(item.promptQuery)}`)}
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          try {
+                            sessionStorage.setItem("nitya_pending_query", item.promptQuery);
+                          } catch {}
+                        }
+                        router.push("/app");
+                      }}
                       className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#C25E38]/10 hover:bg-[#C25E38] dark:bg-[#E06D43]/15 dark:hover:bg-[#E06D43] text-[#C25E38] hover:text-white dark:text-[#E06D43] dark:hover:text-white text-sm font-bold font-sans transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-sm group/btn shrink-0"
                       title="Open this dilemma in NityaGeeta 1-click AI Dialogue"
                     >

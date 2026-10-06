@@ -578,13 +578,21 @@ export default function LandingPage() {
                   <span className="text-sm text-[#8C7B70] dark:text-[#A89F91]">
                     Ask NityaGeeta to synthesize this verse with all 5 classical bhashyas:
                   </span>
-                  <Link
-                    href={`/app?q=${encodeURIComponent(modernDilemmas[activeDilemma].promptQuery)}`}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-sm font-bold hover:opacity-90 transition shadow-md group"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        try {
+                          sessionStorage.setItem("nitya_pending_query", modernDilemmas[activeDilemma].promptQuery);
+                        } catch {}
+                      }
+                      router.push("/app");
+                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-sm font-bold hover:opacity-90 transition shadow-md group cursor-pointer"
                   >
                     <span>Converse in Dialogue</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>
@@ -838,9 +846,9 @@ export default function LandingPage() {
 
             <div className="mt-8 pt-4 border-t border-[#DFD5C6] dark:border-[#38332E] flex items-center justify-between text-xs text-[#C25E38] dark:text-[#E06D43] font-bold">
               <span>Result: Uncompromised Authenticity & Sacred Trust</span>
-              <a href="#sources" className="inline-flex items-center gap-1 hover:underline">
+              <Link href="/sources" className="inline-flex items-center gap-1 hover:underline">
                 Inspect Sources <ChevronRight className="w-3.5 h-3.5" />
-              </a>
+              </Link>
             </div>
           </div>
 
