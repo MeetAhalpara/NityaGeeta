@@ -281,7 +281,7 @@ export default function ArchitecturePage() {
             </p>
 
             <p>
-              Most of the time, the world gives you dogma. You open a religious book, and what does it tell you? It gives you a list of commandments. <em>&lsquo;Believe this or suffer.&rsquo; &lsquo;Bow down or burn.&rsquo; &lsquo;Retreat from the world, sit on a mountaintop, and renounce your life.&rsquo;</em>
+              Most of the time, the world gives one dogma. One opens a religious book, and what does it tell one? It gives you a list of commandments. <em>&lsquo;Believe this or suffer.&rsquo; &lsquo;Bow down or burn.&rsquo; &lsquo;Retreat from the world, sit on a mountaintop, and renounce one&apos;s life.&rsquo;</em>
             </p>
 
             <p className="text-[#D4C7B8]">
@@ -318,7 +318,7 @@ export default function ArchitecturePage() {
           <div className="relative z-10 max-w-4xl mx-auto space-y-12">
             <div className="text-center">
               <h3 className="text-2xl sm:text-4xl font-serif text-white mb-2">
-                &ldquo;Why Read the Gita Over Any Other Book in the World?&rdquo;
+                &ldquo;Why Read the Gita in the World?&rdquo;
               </h3>
               <p className="text-xs sm:text-sm font-sans uppercase tracking-[0.2em] text-[#A89F91]">
                 4 Shastric Pillars of Sovereign Intellect
@@ -510,7 +510,7 @@ export default function ArchitecturePage() {
                   One doesn’t need to wander through 108 Upanishads or thousands of Vedic hymns. The entire metaphysical essence of Sanatana Dharma has been concentrated into 700 clean, elegant verses.
                 </p>
                 <p className="text-white font-medium">
-                  If a reader doesn’t read the Gita, one is living in a palace while begging for bread outside. Reading the Gita transforms a reader&apos;s heritage from an ancestral superstition into an unshakable intellectual armor.&rdquo;
+                  If one doesn’t read the Gita, he is living in a palace while begging for bread outside. Reading the Gita transforms his heritage from an ancestral superstition into an unshakable intellectual armor.&rdquo;
                 </p>
               </div>
             </div>
