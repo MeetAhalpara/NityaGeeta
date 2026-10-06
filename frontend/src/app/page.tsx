@@ -50,11 +50,33 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import { TextReveal } from "@/components/ui/text-reveal";
 import { PdfManuscriptReader } from "@/components/ui/pdf-manuscript-reader";
 
-const HERO_BACKGROUND_IMAGES = [
-  "/LandingPage/krishna-arjun-lord-krishna-s-blessing-rb0kv4lecke81fqz.jpg",
-  "/LandingPage/wp6293190-krishna-mahabharat-wallpapers.jpg",
-  "/LandingPage/wp6293276-krishna-mahabharat-wallpapers.png",
-  "/LandingPage/wp6874871-karna-mahabharat-wallpapers.jpg",
+interface HeroWallpaper {
+  src: string;
+  alt: string;
+  objectPosition: string;
+}
+
+const HERO_WALLPAPERS: HeroWallpaper[] = [
+  {
+    src: "/LandingPage/krishna-arjun-lord-krishna-s-blessing-rb0kv4lecke81fqz.jpg",
+    alt: "Lord Krishna Bestowing Divine Blessing upon Arjuna",
+    objectPosition: "center 28%",
+  },
+  {
+    src: "/LandingPage/wp6293190-krishna-mahabharat-wallpapers.jpg",
+    alt: "Lord Krishna Driving the Sacred Chariot with Arjuna",
+    objectPosition: "center 38%",
+  },
+  {
+    src: "/LandingPage/wp6293276-krishna-mahabharat-wallpapers.png",
+    alt: "Lord Krishna and Arjuna in Golden Radiance on Kurukshetra",
+    objectPosition: "center 25%",
+  },
+  {
+    src: "/LandingPage/wp6874871-karna-mahabharat-wallpapers.jpg",
+    alt: "Karna and Arjuna on Kurukshetra Battlefield",
+    objectPosition: "center 68%",
+  },
 ];
 
 export default function LandingPage() {
@@ -65,13 +87,13 @@ export default function LandingPage() {
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
   const [selectedBookTitle, setSelectedBookTitle] = useState<string>("");
   const [homeCitationsOpen, setHomeCitationsOpen] = useState(false);
-  const [heroBgImage, setHeroBgImage] = useState<string>(HERO_BACKGROUND_IMAGES[0]);
+  const [heroWallpaper, setHeroWallpaper] = useState<HeroWallpaper>(HERO_WALLPAPERS[0]);
 
   useEffect(() => {
     setMounted(true);
-    // Select a random background image on each page refresh
-    const randomIdx = Math.floor(Math.random() * HERO_BACKGROUND_IMAGES.length);
-    setHeroBgImage(HERO_BACKGROUND_IMAGES[randomIdx]);
+    // Select a random background wallpaper on each page refresh
+    const randomIdx = Math.floor(Math.random() * HERO_WALLPAPERS.length);
+    setHeroWallpaper(HERO_WALLPAPERS[randomIdx]);
   }, []);
 
   const handleOpenPdf = (url: string | null, title: string) => {
@@ -355,24 +377,27 @@ export default function LandingPage() {
           className="absolute inset-0 z-0 pointer-events-none"
         >
           <Image
-            key={heroBgImage}
-            src={heroBgImage}
-            alt="Sacred Bhagavad Gita Chariot"
+            key={heroWallpaper.src}
+            src={heroWallpaper.src}
+            alt={heroWallpaper.alt}
             fill
             priority
-            className="object-cover object-center filter brightness-[0.9] dark:brightness-[0.7] contrast-[1.05]"
+            style={{ objectPosition: heroWallpaper.objectPosition }}
+            className="object-cover filter brightness-[0.98] dark:brightness-[0.88] contrast-[1.08] saturate-[1.12]"
           />
-          {/* Theme-adaptive gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/85 via-[#FAF7F2]/65 to-[#FAF7F2] dark:from-[#1A1816]/90 dark:via-[#1A1816]/75 dark:to-[#1A1816]" />
+          {/* Theme-adaptive subtle gradient overlay: keeps the center open so main characters are brightly visible */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/75 via-[#FAF7F2]/25 to-[#FAF7F2] dark:from-[#1A1816]/80 dark:via-[#1A1816]/30 dark:to-[#1A1816]" />
+          {/* Gentle radial vignette */}
+          <div className="absolute inset-0 bg-radial-[circle_at_center] from-transparent via-[#FAF7F2]/15 to-[#FAF7F2]/50 dark:via-[#1A1816]/15 dark:to-[#1A1816]/50 pointer-events-none" />
         </motion.div>
 
         {/* Foreground Content */}
         <div className="relative z-10 max-w-4xl mx-auto text-center flex flex-col items-center">
-          <h1 className="text-4xl sm:text-6xl font-normal leading-tight tracking-tight text-[#2D2622] dark:text-[#F5F2EB] mb-6 font-serif">
+          <h1 className="text-4xl sm:text-6xl font-normal leading-tight tracking-tight text-[#2D2622] dark:text-[#F5F2EB] mb-6 font-serif drop-shadow-sm">
             Bhagavad Gita in <span className="text-[#C25E38] dark:text-[#E06D43] font-medium italic">Authentic Devotion & Wisdom</span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-[#5C4F45] dark:text-[#D4C7B8] max-w-2xl font-sans leading-relaxed mb-10">
+          <p className="text-lg sm:text-xl text-[#5C4F45] dark:text-[#D4C7B8] max-w-2xl font-sans leading-relaxed mb-10 drop-shadow-xs">
             Read, explore, and converse with eternal wisdom grounded in canonical Sanskrit verses and authentic commentary traditions.
           </p>
 
