@@ -925,12 +925,34 @@ export default function SourcesPage() {
     bhagvat: "bhagavad"
   }), []);
 
+  // Semantic concept synonym dictionary for multi-concept natural queries
+  const SYNONYM_MAP: Record<string, string[]> = useMemo(() => ({
+    time: ["kaal", "yuga", "kalpa", "cycles", "brahma", "pralaya"],
+    kaal: ["time", "cosmic time", "yugas", "kalpa"],
+    universe: ["brahmand", "cosmos", "cosmic", "creation", "lokas", "planetary", "space", "dimensions"],
+    cosmos: ["universe", "brahmand", "cosmology", "lokas", "planetary", "space", "creation", "dimensions"],
+    cosmic: ["cosmos", "universe", "brahmand", "kaal", "time", "cycles", "dimensions"],
+    routine: ["dincharya", "brahmamuhurta", "habits", "daily", "ayurveda"],
+    dincharya: ["routine", "daily", "brahmamuhurta", "habits", "discipline"],
+    discipline: ["dincharya", "brahmacharya", "routine", "focus", "willpower"],
+    focus: ["brahmacharya", "mind", "concentration", "meditation", "willpower"],
+    brahmacharya: ["focus", "willpower", "discipline", "mind control", "energy"],
+    duty: ["dharma", "karma", "swadharma", "action"],
+    dharma: ["duty", "righteousness", "ethics", "purushartha", "swadharma"],
+    karma: ["action", "destiny", "duty", "reincarnation", "deeds"],
+    mind: ["manas", "buddhi", "chitta", "control", "focus", "meditation", "dhyana"],
+    meditation: ["dhyana", "mind", "focus", "yoga", "stillness"],
+    grammar: ["linguistics", "roots", "dhatu", "interlinear", "sargeant", "parsing"],
+    boss: ["sanatan", "sanskriti", "basics", "foundations", "vedas", "purusharthas", "samskaras"]
+  }), []);
+
   // Multi-tier semantic and fuzzy scoring function
   const scoreSemanticItem = (
     query: string,
     corpus: string,
     keywords: string[],
-    title: string
+    title: string,
+    chapterTitles: string[] = []
   ): number => {
     if (!query.trim()) return 1;
 
@@ -944,15 +966,15 @@ export default function SourcesPage() {
 
     // 1. Direct Acronym / Title Collapsed Match (e.g. "boss" matches "b.o.s.s.")
     if (collapsedQuery.length >= 2) {
-      if (collapsedTitle === collapsedQuery) score += 150;
-      else if (collapsedTitle.includes(collapsedQuery)) score += 90;
-      else if (collapsedKeywords.includes(collapsedQuery)) score += 80;
+      if (collapsedTitle === collapsedQuery) score += 180;
+      else if (collapsedTitle.includes(collapsedQuery)) score += 110;
+      else if (collapsedKeywords.includes(collapsedQuery)) score += 90;
       else if (collapsedCorpus.includes(collapsedQuery)) score += 50;
     }
 
     // 2. Exact phrase match in raw corpus or keywords
     if (corpus.toLowerCase().includes(rawQuery)) {
-      score += 70;
+      score += 80;
     }
 
     // 3. Extract meaningful search tokens without stop words and map typos
@@ -967,24 +989,44 @@ export default function SourcesPage() {
       const cleanToken = token.replace(/[^a-z0-9]/g, "");
       if (!cleanToken) return;
       const normalizedToken = TYPO_MAP[cleanToken] || cleanToken;
+      const synonyms = SYNONYM_MAP[cleanToken] || SYNONYM_MAP[normalizedToken] || [];
 
       let tokenMatched = false;
 
       // Check title
       if (title.toLowerCase().includes(token) || title.toLowerCase().includes(normalizedToken) || collapsedTitle.includes(cleanToken) || collapsedTitle.includes(normalizedToken)) {
-        score += 40;
+        score += 45;
+        tokenMatched = true;
+      }
+
+      // Check dedicated chapter titles (exceptional evidence that this book specifically covers the topic)
+      const chMatch = chapterTitles.some(ct => {
+        const ctLower = ct.toLowerCase();
+        return ctLower.includes(token) || 
+               ctLower.includes(normalizedToken) ||
+               synonyms.some(syn => ctLower.includes(syn));
+      });
+      if (chMatch) {
+        score += 65;
         tokenMatched = true;
       }
 
       // Check keywords array
-      const kwMatch = keywords.some(k => k.toLowerCase().includes(token) || k.toLowerCase().replace(/[^a-z0-9]/g, "").includes(cleanToken));
+      const kwMatch = keywords.some(k => 
+        k.toLowerCase().includes(token) || 
+        k.toLowerCase().replace(/[^a-z0-9]/g, "").includes(cleanToken) ||
+        synonyms.some(syn => k.toLowerCase().includes(syn))
+      );
       if (kwMatch) {
         score += 35;
         tokenMatched = true;
       }
 
       // Check overall corpus
-      if (corpus.toLowerCase().includes(token) || collapsedCorpus.includes(cleanToken)) {
+      const corpusMatch = corpus.toLowerCase().includes(token) || 
+        collapsedCorpus.includes(cleanToken) ||
+        synonyms.some(syn => corpus.toLowerCase().includes(syn));
+      if (corpusMatch) {
         score += 15;
         tokenMatched = true;
       }
@@ -992,16 +1034,29 @@ export default function SourcesPage() {
       if (tokenMatched) matchedTokensCount++;
     });
 
-    // Multi-token synergy boost when multiple concepts match simultaneously
-    if (tokensToUse.length > 1 && matchedTokensCount >= Math.ceil(tokensToUse.length * 0.5)) {
-      score += matchedTokensCount * 25;
+    // Multi-concept density guard:
+    // If the seeker typed 3+ distinct concepts, discard items that only accidentally matched 1 word
+    if (tokensToUse.length >= 3 && matchedTokensCount < 2 && !corpus.toLowerCase().includes(rawQuery) && !title.toLowerCase().includes(rawQuery)) {
+      return 0;
+    }
+    if (tokensToUse.length === 2 && matchedTokensCount < 1 && !corpus.toLowerCase().includes(rawQuery)) {
+      return 0;
+    }
+
+    // Synergy boost when all or most concepts match simultaneously
+    if (tokensToUse.length > 1) {
+      if (matchedTokensCount === tokensToUse.length) {
+        score += matchedTokensCount * 70; // 100% conceptual match
+      } else if (matchedTokensCount >= Math.ceil(tokensToUse.length * 0.5)) {
+        score += matchedTokensCount * 30;
+      }
     }
 
     return score;
   };
 
   // Unified Semantic Search Engine
-  const { filteredGeeta, filteredVeducation, filteredChapters, totalMatches, isSearchActive } = useMemo(() => {
+  const { filteredGeeta, filteredVeducation, filteredChapters, totalMatches, isSearchActive, showVeducationFirst, topMatch } = useMemo(() => {
     const rawQ = searchQuery.trim();
     if (!rawQ) {
       return {
@@ -1009,31 +1064,33 @@ export default function SourcesPage() {
         filteredVeducation: veducationSeries,
         filteredChapters: chaptersIndex,
         totalMatches: geetaEditions.length + veducationSeries.length + chaptersIndex.length,
-        isSearchActive: false
+        isSearchActive: false,
+        showVeducationFirst: false,
+        topMatch: null
       };
     }
 
     const scoredGeeta = geetaEditions
       .map((b) => {
+        const chapterTitles = (b.chapters || []).map((c: any) => c.title);
         const chaptersText = (b.chapters || []).map((c: any) => `${c.title} ${c.description} ${(c.keywords || []).join(" ")}`).join(" ");
         const corpus = `${b.title} ${b.author} ${b.desc} ${b.tradition} ${b.era} ${b.tagline} ${b.summary} ${b.whyChosen} ${b.tierBadge} ${b.tierLabel} ${b.metricName} ${(b.keywords || []).join(" ")} ${chaptersText}`;
-        const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title);
+        const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title, chapterTitles);
         return { item: b, score };
       })
       .filter((res) => res.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((res) => res.item);
+      .sort((a, b) => b.score - a.score);
 
     const scoredVeducation = veducationSeries
       .map((b) => {
+        const chapterTitles = (b.chapters || []).map((c: any) => c.title);
         const chaptersText = (b.chapters || []).map((c: any) => `${c.title} ${c.description} ${(c.keywords || []).join(" ")}`).join(" ");
         const corpus = `${b.title} ${b.author} ${b.desc} ${b.tradition} ${b.era} ${b.tagline} ${b.summary} ${b.whyChosen} ${b.tierBadge} ${b.tierLabel} ${b.metricName} ${(b.keywords || []).join(" ")} ${chaptersText}`;
-        const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title);
+        const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title, chapterTitles);
         return { item: b, score };
       })
       .filter((res) => res.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((res) => res.item);
+      .sort((a, b) => b.score - a.score);
 
     const scoredChapters = chaptersIndex
       .map((c) => {
@@ -1042,17 +1099,26 @@ export default function SourcesPage() {
         return { item: c, score };
       })
       .filter((res) => res.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((res) => res.item);
+      .sort((a, b) => b.score - a.score);
 
     const total = scoredGeeta.length + scoredVeducation.length + scoredChapters.length;
 
+    const topGeetaScore = scoredGeeta[0]?.score || 0;
+    const topVeducationScore = scoredVeducation[0]?.score || 0;
+    const showVeducationFirst = isSearchActive && (topVeducationScore > topGeetaScore);
+
+    const topCandidate = topVeducationScore > topGeetaScore
+      ? (scoredVeducation[0] || scoredGeeta[0] || null)
+      : (scoredGeeta[0] || scoredVeducation[0] || null);
+
     return {
-      filteredGeeta: scoredGeeta,
-      filteredVeducation: scoredVeducation,
-      filteredChapters: scoredChapters,
+      filteredGeeta: scoredGeeta.map((res) => res.item),
+      filteredVeducation: scoredVeducation.map((res) => res.item),
+      filteredChapters: scoredChapters.map((res) => res.item),
       totalMatches: total,
-      isSearchActive: true
+      isSearchActive: true,
+      showVeducationFirst,
+      topMatch: topCandidate ? topCandidate.item : null
     };
   }, [searchQuery, geetaEditions, veducationSeries, chaptersIndex]);
 
@@ -1262,9 +1328,9 @@ export default function SourcesPage() {
         </p>
 
         {/* Global Search Bar */}
-        <div className="max-w-xl mx-auto relative font-sans mb-10">
+        <div className="max-w-2xl sm:max-w-3xl mx-auto relative font-sans mb-10">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-[#8C7B70] dark:text-[#A89F91] absolute left-4 pointer-events-none shrink-0" />
+            <Search className="w-5 h-5 text-[#8C7B70] dark:text-[#A89F91] absolute left-4 sm:left-5 pointer-events-none shrink-0" />
             <input
               type="text"
               placeholder="Search books, topics, cosmic time, Sanskrit grammar, chapters..."
@@ -1276,14 +1342,14 @@ export default function SourcesPage() {
                   setActiveTab("all");
                 }
               }}
-              className="w-full pl-11 pr-28 py-2.5 rounded-2xl bg-[#EFE9DF] dark:bg-[#262320] border border-[#DFD5C6] dark:border-[#38332E] text-[#2D2622] dark:text-[#F5F2EB] placeholder-[#8C7B70] dark:placeholder-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#C25E38] dark:focus:ring-[#E06D43] transition shadow-inner text-sm"
+              className="w-full pl-12 sm:pl-14 pr-36 sm:pr-44 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl bg-[#EFE9DF] dark:bg-[#262320] border border-[#DFD5C6] dark:border-[#38332E] text-[#2D2622] dark:text-[#F5F2EB] placeholder-[#8C7B70] dark:placeholder-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#C25E38] dark:focus:ring-[#E06D43] transition-all shadow-inner text-sm sm:text-base caret-[#C25E38] dark:caret-[#E06D43] font-medium"
             />
             {isSearchActive && (
-              <div className="absolute right-2.5 flex items-center bg-[#E5DCD0] dark:bg-[#332E2A] border border-[#D5C9B9] dark:border-[#423C36] rounded-full px-2.5 py-1 gap-2 shadow-2xs shrink-0 select-none">
-                <span className="text-[11px] font-semibold text-[#C25E38] dark:text-[#E06D43] tracking-tight whitespace-nowrap leading-none">
+              <div className="absolute right-3 sm:right-3.5 flex items-center bg-[#E5DCD0] dark:bg-[#332E2A] border border-[#D5C9B9] dark:border-[#423C36] rounded-full px-3 py-1.5 gap-2 shadow-2xs shrink-0 select-none">
+                <span className="text-[11px] sm:text-xs font-semibold text-[#C25E38] dark:text-[#E06D43] tracking-tight whitespace-nowrap leading-none">
                   {totalMatches} {totalMatches === 1 ? "match" : "matches"}
                 </span>
-                <span className="w-px h-3 bg-[#CBBFB0] dark:bg-[#4E463F]" />
+                <span className="w-px h-3.5 bg-[#CBBFB0] dark:bg-[#4E463F]" />
                 <button
                   type="button"
                   onClick={() => {
@@ -1294,7 +1360,7 @@ export default function SourcesPage() {
                   title="Clear search"
                   aria-label="Clear search"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
@@ -1326,7 +1392,7 @@ export default function SourcesPage() {
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-6xl mx-auto px-6 pb-24 w-full flex-1 font-sans">
+      <main className="max-w-6xl mx-auto px-6 pb-24 w-full flex-1 font-sans flex flex-col">
 
         {/* Clean Empty State when ZERO results found across all categories - ALWAYS DISPLAYED AT THE VERY TOP */}
         {hasNoResults && (
@@ -1468,9 +1534,59 @@ export default function SourcesPage() {
           </div>
         )}
 
+        {/* Top Semantic Recommendation Spotlight Card */}
+        {isSearchActive && topMatch && (
+          <div className="mb-12 p-6 sm:p-7 rounded-3xl bg-[#FAF3EC] dark:bg-[#25201C] border-2 border-[#C25E38]/40 dark:border-[#E06D43]/40 shadow-lg animate-in fade-in duration-200">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#C25E38] dark:bg-[#E06D43] text-white shadow-xs">
+                  ★ Top Shastric Recommendation
+                </span>
+                <span className="text-xs text-[#8C7B70] dark:text-[#A89F91]">
+                  Best conceptual match for &ldquo;{searchQuery}&rdquo;
+                </span>
+              </div>
+              <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43]">
+                Score {topMatch.scoreLabel || `${topMatch.score} / 100`}
+              </span>
+            </div>
+
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+              <div className="flex-1">
+                <h3 className="text-xl sm:text-2xl font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB] mb-1">
+                  {topMatch.title}
+                </h3>
+                <p className="text-xs font-semibold text-[#C25E38] dark:text-[#E06D43] mb-2">
+                  By {topMatch.author} • {topMatch.era}
+                </p>
+                <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                  {topMatch.desc || topMatch.summary}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById(topMatch.id);
+                    if (el) {
+                      setExpandedSourceId(topMatch.id);
+                      el.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-sm cursor-pointer flex items-center gap-2"
+                >
+                  <span>Explore Matched Chapters</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TAB 1: GEETA COMMENTARIES SECTION */}
         {(activeTab === "all" || activeTab === "geeta") && filteredGeeta.length > 0 && (
-          <section className="mb-20">
+          <section className={`mb-20 ${showVeducationFirst ? "order-2" : "order-1"}`}>
             <div className="flex items-center justify-between border-b border-[#E8E1D7] dark:border-[#38332E] pb-4 mb-8">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43]">
@@ -1729,7 +1845,7 @@ export default function SourcesPage() {
 
         {/* TAB 2: VEDUCATION LITERATURE */}
         {(activeTab === "all" || activeTab === "veducation") && filteredVeducation.length > 0 && (
-          <section className="mb-20">
+          <section className={`mb-20 ${showVeducationFirst ? "order-1" : "order-2"}`}>
             <div className="flex items-center justify-between border-b border-[#E8E1D7] dark:border-[#38332E] pb-4 mb-8">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43]">
@@ -2071,7 +2187,7 @@ export default function SourcesPage() {
 
         {/* TAB 3: 18 CHAPTERS THEMATIC INDEX */}
         {(activeTab === "all" || activeTab === "chapters") && filteredChapters.length > 0 && (
-          <section className="mb-20">
+          <section className="mb-20 order-3">
             <div className="flex items-center justify-between border-b border-[#E8E1D7] dark:border-[#38332E] pb-4 mb-8">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43]">
@@ -2132,7 +2248,7 @@ export default function SourcesPage() {
 
         {/* TAB 4: EDITORIAL VETTING & AUTHENTICITY CRITERIA */}
         {((activeTab === "all" && !isSearchActive) || activeTab === "vetting") && (
-          <section className="mb-20">
+          <section className="mb-20 order-4">
             <div className="border-b border-[#E8E1D7] dark:border-[#38332E] pb-4 mb-8">
               <span className="text-xs font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43]">
                 Editorial Integrity
