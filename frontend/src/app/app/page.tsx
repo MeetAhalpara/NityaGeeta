@@ -1248,9 +1248,9 @@ Start or verify the backend server:
               </div>
             )}
 
-            {/* Full-width Scrollable Container: Mouse scrolling works anywhere on the window */}
+            {/* Full-width Scrollable Container: Inset below floating dialogue controls */}
             <div className="relative z-10 flex-1 overflow-y-auto scrollbar-hide w-full h-full">
-              <div className="px-4 sm:px-8 py-6 space-y-6 flex flex-col w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto min-h-full">
+              <div className="px-4 sm:px-8 pt-14 sm:pt-16 pb-6 space-y-6 flex flex-col w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto min-h-full">
 
                 {/* SŪTRA COLLAPSED TANGENTS ACCORDION */}
                 {collapsedTangents.length > 0 && (

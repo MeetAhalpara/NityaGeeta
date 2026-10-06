@@ -250,98 +250,289 @@ export default function ArchitecturePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
-          PART 1: THE THINKING — WHY WAS NITYAGEETA BUILT?
+          PART 1: THE KEYNOTE — WHY THE GITA?
           ══════════════════════════════════════════════════════════════ */}
       <section id="the-thinking" className="py-20 px-6 max-w-6xl mx-auto w-full border-t border-[#DFD5C6] dark:border-[#38332E]">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-sans font-bold uppercase tracking-[0.25em] text-[#C25E38] dark:text-[#E06D43] block mb-2">
-            Part 1 • The Philosophy &amp; Origin
+            Part 1 • The Keynote
           </span>
           <h2 className="text-3xl sm:text-5xl font-normal text-[#2D2622] dark:text-[#F5F2EB] font-serif">
-            The Thinking Behind NityaGeeta
+            A Theatrical Keynote on Timeless Clarity, Sacred Craftsmanship, and a Universal Guide for the Human Mind
           </h2>
           <p className="mt-4 text-base sm:text-lg text-[#5C4F45] dark:text-[#D4C7B8] font-sans leading-relaxed">
-            Technology is only as meaningful as the soul and reverence behind it. Why does NityaGeeta exist, and what principles govern every single interaction?
+            Lights dim. The stage is dark except for a single warm spotlight. A black slide appears behind him with one word: CLARITY.
           </p>
         </div>
 
-        {/* 1.1 The Reason: Why NityaGeeta? */}
-        <div className="mb-16 p-8 sm:p-12 rounded-3xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm">
-          <div className="max-w-3xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] text-xs font-sans font-bold uppercase tracking-wider">
-              <Quote className="w-3.5 h-3.5" /> The Core Origin &amp; Need
+        {/* Cinematic Keynote Stage Container */}
+        <div className="relative rounded-3xl bg-[#12100E] text-[#FAF7F2] border border-[#2E2822] shadow-2xl overflow-hidden p-6 sm:p-12 lg:p-16 mb-16">
+          {/* Warm Ambient Spotlight Overhead */}
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-b from-[#C25E38]/25 via-[#E06D43]/10 to-transparent blur-3xl pointer-events-none rounded-full" />
+
+          {/* Act 1: The Opening Monologue */}
+          <div className="relative z-10 max-w-3xl mx-auto font-serif text-lg sm:text-xl text-[#FAF7F2]/90 leading-relaxed space-y-6 mb-16">
+            <p className="text-2xl sm:text-3xl font-light text-white italic">
+              &ldquo;Thank you for visiting and reviewing.
+            </p>
+
+            <p>
+              Every once in a while, a piece of wisdom comes along that changes everything.
+            </p>
+
+            <p>
+              Most of the time, the world gives one dogma. He opens a religious book, and what does it tell him? It gives him a list of commandments. <em>&lsquo;Believe this or suffer.&rsquo; &lsquo;Bow down or burn.&rsquo; &lsquo;Retreat from the world, sit on a mountaintop, and renounce one&apos;s life.&rsquo;</em>
+            </p>
+
+            <p className="text-[#D4C7B8]">
+              That’s how the world has operated for centuries. Fear. Guilt. Blind compliance.
+            </p>
+
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border-l-4 border-[#C25E38] space-y-4 my-8">
+              <p className="text-white font-medium">
+                Over 5,000 years ago, something radically different happened.
+              </p>
+              <div className="text-base sm:text-lg text-[#D4C7B8] leading-relaxed space-y-2">
+                <p>It was not:</p>
+                <ul className="list-disc list-inside space-y-1.5 pl-2 text-[#FAF7F2]">
+                  <li>spoken inside a temple,</li>
+                  <li>handed down on stone tablets to a priest,</li>
+                  <li>telling anyone to run away from reality.</li>
+                </ul>
+              </div>
+              <p className="text-base sm:text-lg text-[#D4C7B8] leading-relaxed pt-2">
+                Instead, it was spoken right in the middle of a battlefield. Between two roaring armies. To a man who dropped his bow, fell to his knees in tears, and said: <em>&lsquo;My mind is trembling. I am paralyzed by grief. I don&apos;t know what to do.&rsquo;</em>
+              </p>
+              <p className="text-base sm:text-lg text-[#E06D43] font-sans font-semibold">
+                That seeker represents anyone at life&apos;s crossroads—every student, worker, parent, creator, or seeker who has ever felt overwhelmed by doubt, burnout, and fear of failure.
+              </p>
             </div>
 
-            <h3 className="text-2xl sm:text-4xl font-serif text-[#2D2622] dark:text-[#F5F2EB]">
-              Scripture Over 5,000+ Years Old Is Sacred Ground Truth — Not Training Noise
-            </h3>
-
-            <div className="font-sans text-sm sm:text-base text-[#5C4F45] dark:text-[#D4C7B8] space-y-4 leading-relaxed">
-              <p>
-                When a person is experiencing real human crisis—grief over a lost loved one, intense corporate burnout, moral confusion, or paralyzing anxiety—they do not need generic internet summaries. They turn to the Bhagavad Gita because it has provided unshakable spiritual grounding across millennia.
-              </p>
-              <p>
-                Yet when modern AI arrived, a dangerous crisis emerged: <strong>Commercial LLMs hallucinate scripture</strong>. They invent Sanskrit quotes that sound holy but do not exist in the 700 canonical verses. They dilute nuanced metaphysical concepts into shallow motivational fluff, and they provide zero page-level proof to authentic traditional editions.
-              </p>
-              <p className="p-4 rounded-2xl bg-[#EFE9DF]/80 dark:bg-[#262320]/80 border-l-4 border-[#C25E38] text-[#2D2622] dark:text-[#F5F2EB] font-serif italic text-base sm:text-lg">
-                &ldquo;If a medical AI hallucinated dosages, it would be unacceptable. When an AI hallucinating spiritual medicine gives distorted advice to someone in distress, the harm is equally profound. NityaGeeta was built to establish an uncompromising, zero-hallucination standard.&rdquo;
-              </p>
-            </div>
+            <p className="text-xl sm:text-2xl text-white font-normal text-center py-4 border-y border-[#3E3832]/60">
+              &ldquo;What the Gita gave him was not a religion. <br />
+              <span className="text-[#E06D43] font-semibold italic">It gave him a universal guide and clear compass for the human mind.&rdquo;</span>
+            </p>
           </div>
-        </div>
 
-        {/* 1.2 Steve Jobs Human-Centric Philosophy */}
-        <div className="p-8 sm:p-12 rounded-3xl bg-linear-to-b from-[#EFE9DF]/60 to-[#FAF7F2] dark:from-[#262320]/80 dark:to-[#1A1816] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm mb-16">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] text-xs font-sans font-bold uppercase tracking-wider mb-4">
-                <Heart className="w-3.5 h-3.5" /> Human-Centric Design Philosophy
-              </div>
-              <h3 className="text-2xl sm:text-4xl font-serif text-[#2D2622] dark:text-[#F5F2EB] mb-4">
-                Technology Married with the Humanities
+          {/* Act 2: The 4 Keynote Slides */}
+          <div className="relative z-10 max-w-4xl mx-auto space-y-12">
+            <div className="text-center">
+              <h3 className="text-2xl sm:text-4xl font-serif text-white mb-2">
+                &ldquo;Why Read the Gita in the World?&rdquo;
               </h3>
-              <p className="text-sm sm:text-base font-sans text-[#5C4F45] dark:text-[#D4C7B8] italic">
-                &ldquo;It&apos;s technology married with liberal arts, married with the humanities, that yields us the results that make our heart sing.&rdquo; — Steve Jobs
+              <p className="text-xs sm:text-sm font-sans uppercase tracking-[0.2em] text-[#A89F91]">
+                4 Shastric Pillars of Sovereign Intellect
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans">
-              {/* Pillar 1: Resonance First */}
-              <div className="p-6 rounded-2xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center font-bold">
-                  01
+            <div className="grid grid-cols-1 gap-8">
+              {/* Slide 1: Absolute Intellectual Freedom */}
+              <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border border-[#3E3832] space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/20 text-[#E06D43] text-xs font-mono font-semibold">
+                    <span>1. Absolute Intellectual Freedom</span>
+                  </div>
+                  <span className="text-xs font-mono text-[#A89F91]">Bhagavad Gita 18.63</span>
                 </div>
-                <h4 className="font-serif font-bold text-lg text-[#2D2622] dark:text-[#F5F2EB]">
-                  Resonance Over Raw Tokens
+
+                <h4 className="text-xl sm:text-2xl font-serif font-bold text-white">
+                  1. It Demands Critical Thinking — Not Blind Faith
                 </h4>
-                <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
-                  Most AI tools compete on token speed. We evaluate whether the guidance actually gave the seeker room to breathe. Every dialogue ends with an empathetic resonance check: <em>&ldquo;Did this medicine land?&rdquo;</em>
+
+                {/* Shloka Card */}
+                <div className="p-5 rounded-xl bg-[#12100E] border border-[#2E2822] space-y-2">
+                  <p className="text-lg sm:text-xl font-serif text-[#E06D43] font-medium leading-relaxed">
+                    विमृश्यैतदशेषेण यथेच्छसि तथा कुरु॥
+                  </p>
+                  <p className="text-xs font-mono text-[#A89F91]">
+                    Bhagavad Gita, Chapter 18 • Verse 63
+                  </p>
+                  <p className="text-sm font-sans text-white/90 italic">
+                    &ldquo;Reflect upon this wisdom completely and deeply, and then do as you choose.&rdquo;
+                  </p>
+                </div>
+
+                <div className="text-sm sm:text-base font-serif text-[#D4C7B8] leading-relaxed space-y-3">
+                  <p>
+                    &ldquo;In almost every scripture on this planet, the conclusion is: <em>&lsquo;Obey.&rsquo;</em> Look at how Krishna concludes the Bhagavad Gita after 18 chapters of deep psychological dissection:
+                  </p>
+                  <p>
+                    Think about that. The Supreme Divinity spends 700 verses explaining metaphysics, human nature, work, and the mind—and at the very end, He looks the seeker in the eye and says: <em>&lsquo;Don&apos;t take My word for it. Analyze it. Question it. And make your own sovereign choice.&rsquo;</em> There is no threat of eternal damnation. There is no coercion. It is the ultimate honor of human dignity and intellect.&rdquo;
+                  </p>
+                </div>
+              </div>
+
+              {/* Slide 2: Freedom From Religious Tribalism */}
+              <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border border-[#3E3832] space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/20 text-[#E06D43] text-xs font-mono font-semibold">
+                    <span>2. Freedom From Religious Tribalism</span>
+                  </div>
+                  <span className="text-xs font-mono text-[#A89F91]">Bhagavad Gita 4.11</span>
+                </div>
+
+                <h4 className="text-xl sm:text-2xl font-serif font-bold text-white">
+                  2. It Rejects Religious Monopoly
+                </h4>
+
+                {/* Shloka Card */}
+                <div className="p-5 rounded-xl bg-[#12100E] border border-[#2E2822] space-y-2">
+                  <p className="text-lg sm:text-xl font-serif text-[#E06D43] font-medium leading-relaxed">
+                    ये यथा मां प्रपद्यन्ते तांस्तथैव भजाम्यहम्। मम वर्त्मानुवर्तन्ते मनुष्याः पार्थ सर्वशः॥
+                  </p>
+                  <p className="text-xs font-mono text-[#A89F91]">
+                    Bhagavad Gita, Chapter 4 • Verse 11
+                  </p>
+                  <p className="text-sm font-sans text-white/90 italic">
+                    &ldquo;In whatever way men approach Me, so do I accept them. All paths, O Partha, lead to Me.&rdquo;
+                  </p>
+                </div>
+
+                <div className="text-sm sm:text-base font-serif text-[#D4C7B8] leading-relaxed space-y-3">
+                  <p>
+                    &ldquo;Most religious systems tell you: <em>&lsquo;My path is the only path. Everyone else is lost.&rsquo;</em> The Gita destroys that boundary in one sentence.
+                  </p>
+                  <p>
+                    It doesn’t ask you to convert. It doesn’t ask you to change your name or wear a costume. It tells you that wherever sincerity exists, truth is present. It is universal truth, not tribal allegiance.&rdquo;
+                  </p>
+                </div>
+              </div>
+
+              {/* Slide 3: The Ultimate Antidote to Modern Burnout */}
+              <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border border-[#3E3832] space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/20 text-[#E06D43] text-xs font-mono font-semibold">
+                    <span>3. The Ultimate Antidote to Modern Burnout</span>
+                  </div>
+                  <span className="text-xs font-mono text-[#A89F91]">Bhagavad Gita 2.47</span>
+                </div>
+
+                <h4 className="text-xl sm:text-2xl font-serif font-bold text-white">
+                  3. It Solves the Disease of Outcome Anxiety
+                </h4>
+
+                {/* Shloka Card */}
+                <div className="p-5 rounded-xl bg-[#12100E] border border-[#2E2822] space-y-2">
+                  <p className="text-lg sm:text-xl font-serif text-[#E06D43] font-medium leading-relaxed">
+                    कर्मण्येवाधिकारस्ते मा फलेषु कदाचन। मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥
+                  </p>
+                  <p className="text-xs font-mono text-[#A89F91]">
+                    Bhagavad Gita, Chapter 2 • Verse 47
+                  </p>
+                  <p className="text-sm font-sans text-white/90 italic">
+                    &ldquo;You have a right to your prescribed duty alone, never to its fruits. Let not the fruit of action be your motive, nor let your attachment be to inaction.&rdquo;
+                  </p>
+                </div>
+
+                <div className="text-sm sm:text-base font-serif text-[#D4C7B8] leading-relaxed space-y-3">
+                  <p>
+                    &ldquo;Modern life is driven by metrics, stock prices, likes, and outcomes. And it’s making society sick. People are paralyzed by anxiety because their identity is tied to the result. The Gita diagnosed this 5,000 years before modern psychiatry.
+                  </p>
+                  <p>
+                    This is the definition of peak performance. When you pour 100% of your soul into the craftsmanship of the work and completely detach your ego from the applause or the failure, you become invincible. That is Nishkama Karma.&rdquo;
+                  </p>
+                </div>
+              </div>
+
+              {/* Slide 4: Cognitive Architecture */}
+              <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border border-[#3E3832] space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/20 text-[#E06D43] text-xs font-mono font-semibold">
+                    <span>4. Cognitive Architecture: The Mind as Friend or Enemy</span>
+                  </div>
+                  <span className="text-xs font-mono text-[#A89F91]">Bhagavad Gita 6.5–6</span>
+                </div>
+
+                <h4 className="text-xl sm:text-2xl font-serif font-bold text-white">
+                  4. It Predated Cognitive Behavioral Therapy by Millennia
+                </h4>
+
+                {/* Shloka Card */}
+                <div className="p-5 rounded-xl bg-[#12100E] border border-[#2E2822] space-y-2">
+                  <p className="text-lg sm:text-xl font-serif text-[#E06D43] font-medium leading-relaxed">
+                    आत्मैवात्मनो बन्धुरात्मैव रिपुरात्मनः॥
+                  </p>
+                  <p className="text-xs font-mono text-[#A89F91]">
+                    Bhagavad Gita, Chapter 6 • Verses 5–6
+                  </p>
+                  <p className="text-sm font-sans text-white/90 italic">
+                    &ldquo;For one who has conquered the mind, the mind is the greatest of friends; but for one who has failed to master it, his own mind acts as his worst enemy.&rdquo;
+                  </p>
+                </div>
+
+                <div className="text-sm sm:text-base font-serif text-[#D4C7B8] leading-relaxed space-y-3">
+                  <p>
+                    &ldquo;Before psychology understood neuroplasticity or cognitive reframing, the Gita declared that heaven and hell aren’t physical places; they are states of your internal consciousness.
+                  </p>
+                  <p>
+                    No one can destroy you like your unmanaged thoughts, and no one can elevate you like a disciplined, focused mind.&rdquo;
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Act 3: Why Does One Need to Read the Gita Today? */}
+            <div className="mt-16 p-8 sm:p-10 rounded-2xl bg-[#181411] border border-[#3E3832] space-y-6">
+              <h4 className="text-2xl sm:text-3xl font-serif font-bold text-white">
+                &ldquo;Why Does One Need to Read the Gita Today?&rdquo;
+              </h4>
+
+              <div className="text-base sm:text-lg font-serif text-[#D4C7B8] leading-relaxed space-y-4">
+                <p>
+                  &ldquo;Now, one might ask: <em>&lsquo;What about me or the reader? One can already visit temples, does rituals, enjoys festivals, and follows traditions. Why does one need to read the Gita?&rsquo;</em>
+                </p>
+                <p className="text-white font-medium">
+                  Here’s the hard truth:
+                </p>
+                <p>
+                  Most people inherit their tradition as ceremony. They light an incense stick, ring a bell, recite a shloka like a magic spell, but their mind remains in chaos. They confuse mythology with methodology.
+                </p>
+                <p>
+                  Look at what the classical tradition itself says about the Gita in the sacred Gītā Dhyānam:
                 </p>
               </div>
 
-              {/* Pillar 2: 3 Intentional Action Pathways */}
-              <div className="p-6 rounded-2xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center font-bold">
-                  02
-                </div>
-                <h4 className="font-serif font-bold text-lg text-[#2D2622] dark:text-[#F5F2EB]">
-                  3 Guided Verb Pathways
-                </h4>
-                <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
-                  Steve Jobs believed in clear, intuitive pathways. NityaGeeta never leaves you with passive text. It offers 3 intentional verbs: <strong>Deepen Scripture</strong>, <strong>Bring to Real Life</strong>, and <strong>Read Original Sanskrit</strong>.
+              {/* Gita Dhyanam 4 Card */}
+              <div className="p-5 rounded-xl bg-[#12100E] border border-[#2E2822] space-y-2 my-4">
+                <p className="text-lg sm:text-xl font-serif text-[#E06D43] font-medium leading-relaxed">
+                  सर्वोपनिषदो गावो दोग्धा गोपालनन्दनः। पार्थो वत्सः सुधीर्भोक्ता दुग्धं गीतामृतं महत्॥
+                </p>
+                <p className="text-xs font-mono text-[#A89F91]">
+                  Gītā Dhyānam, Verse 4
+                </p>
+                <p className="text-sm font-sans text-white/90 italic">
+                  &ldquo;All the Upanishads are the cows; Krishna is the milker; Arjuna is the calf; the pure-hearted seeker is the drinker; and the nectar-like Gita is the supreme milk.&rdquo;
                 </p>
               </div>
 
-              {/* Pillar 3: Uncompromising Reverence & Craft */}
-              <div className="p-6 rounded-2xl bg-[#FAF7F2] dark:bg-[#201D1A] border border-[#DFD5C6] dark:border-[#38332E] space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] flex items-center justify-center font-bold">
-                  03
-                </div>
-                <h4 className="font-serif font-bold text-lg text-[#2D2622] dark:text-[#F5F2EB]">
-                  Sacred Craftsmanship
-                </h4>
-                <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
-                  Just as Apple crafted the unseen back of cabinets with absolute perfection, NityaGeeta treats the unseen pipeline with sacred reverence: 700/700 verses indexed, multi-model consensus, and page-by-page verification.
+              <div className="text-base sm:text-lg font-serif text-[#D4C7B8] leading-relaxed space-y-3">
+                <p>
+                  One doesn’t need to wander through 108 Upanishads or thousands of Vedic hymns. The entire metaphysical essence of Sanatana Dharma has been concentrated into 700 clean, elegant verses.
+                </p>
+                <p className="text-white font-medium">
+                  If one doesn’t read the Gita, he is living in a palace while begging for bread outside. Reading the Gita transforms his heritage from an ancestral superstition into an unshakable intellectual armor.&rdquo;
+                </p>
+              </div>
+            </div>
+
+            {/* Act 4: The Climax — Why NityaGeeta Was Built */}
+            <div className="mt-16 p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#1C1713] to-[#12100E] border-2 border-[#C25E38]/50 text-center space-y-6">
+              <h4 className="text-3xl sm:text-5xl font-serif text-white">
+                &ldquo;This Solution Is Why NityaGeeta Was Built&rdquo;
+              </h4>
+
+              <div className="max-w-3xl mx-auto text-base sm:text-lg font-serif text-[#D4C7B8] leading-relaxed space-y-4 text-left sm:text-center">
+                <p>
+                  When modern AI came along, people started asking generic LLMs for spiritual guidance. And what did they do? They hallucinated fake verses. They gave motivational clichés. They gave black-box answers with zero proof.
+                </p>
+                <p className="text-white font-bold text-xl sm:text-2xl">
+                  NityaGeeta said: No. That is unacceptable.
+                </p>
+                <p>
+                  If one is going to touch something this sacred, one treats it with uncompromising reverence. One indexes all 700 verses into memory. One links every single line back to the original Gita Press and Acharya manuscripts. NityaGeeta has 5 elite models cross-examine each other so no single AI can hallucinate.
+                </p>
+                <p className="text-xl sm:text-2xl font-serif text-[#E06D43] font-semibold pt-4">
+                  &ldquo;That is NityaGeeta. Timeless clarity, delivered through technology worthy of the soul.&rdquo;
                 </p>
               </div>
             </div>
