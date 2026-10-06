@@ -173,6 +173,8 @@ function NityaGeetaChatSidebar({
   imageError,
   setImageError,
   router,
+  pinnedMessagesCount = 0,
+  onOpenPinnedDrawer,
 }: {
   conversations: ConversationSession[];
   activeSessionId: string | null;
@@ -190,6 +192,8 @@ function NityaGeetaChatSidebar({
   imageError: boolean;
   setImageError: (err: boolean) => void;
   router: any;
+  pinnedMessagesCount?: number;
+  onOpenPinnedDrawer?: () => void;
 }) {
   const { open, setOpen, toggleSidebar } = useAnimatedSidebar();
   const [searchQuery, setSearchQuery] = useState("");
@@ -258,7 +262,7 @@ function NityaGeetaChatSidebar({
       </div>
 
       {/* ── PERSISTENT NEW DIALOGUE BUTTON (Locked Coordinates in Both States) ── */}
-      <div className="px-2.5 pt-2 shrink-0 w-full overflow-hidden">
+      <div className="px-2.5 pt-2 shrink-0 w-full overflow-hidden space-y-1.5">
         <button
           onClick={createNewDialogue}
           disabled={loading}
@@ -272,6 +276,24 @@ function NityaGeetaChatSidebar({
             New Dialogue
           </span>
         </button>
+
+        {pinnedMessagesCount > 0 && onOpenPinnedDrawer && (
+          <button
+            onClick={onOpenPinnedDrawer}
+            title={`Pinned Reflections (${pinnedMessagesCount})`}
+            className="w-full h-9 rounded-xl bg-[#C25E38]/10 dark:bg-[#E06D43]/15 hover:bg-[#C25E38]/20 dark:hover:bg-[#E06D43]/25 text-[#C25E38] dark:text-[#E06D43] transition-colors shadow-2xs cursor-pointer border border-[#C25E38]/20 flex items-center overflow-hidden"
+          >
+            <div className="w-[34px] h-full shrink-0 flex items-center justify-center">
+              <Bookmark className="w-4 h-4 fill-current text-[#C25E38] dark:text-[#E06D43]" />
+            </div>
+            <span className="group-data-[state=collapsed]/sidebar:hidden flex-1 text-left text-xs font-semibold truncate pr-2">
+              Pinned Reflections
+            </span>
+            <span className="group-data-[state=collapsed]/sidebar:hidden mr-2.5 text-[10px] px-1.5 py-0.5 rounded-full bg-[#C25E38]/20 dark:bg-[#E06D43]/30 font-bold shrink-0">
+              {pinnedMessagesCount}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* ── COLLAPSED MIDDLE: History Button Tightly Stacked Below New Dialogue ── */}
@@ -429,6 +451,16 @@ function NityaGeetaChatSidebar({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function FloatingSidebarTrigger() {
+  const { open } = useAnimatedSidebar();
+  if (open) return null;
+  return (
+    <div className="absolute top-3 left-3 z-30 pointer-events-auto">
+      <AnimatedSidebarTrigger className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] bg-[#FAF7F2]/40 dark:bg-[#1A1816]/40 backdrop-blur-md border border-[#E6DDD0]/30 dark:border-[#2D2825]/30 hover:bg-[#EFE9DF]/80 dark:hover:bg-[#262320]/80 transition-colors shadow-2xs cursor-pointer" />
     </div>
   );
 }
@@ -1094,6 +1126,8 @@ Start or verify the backend server:
             imageError={imageError}
             setImageError={setImageError}
             router={router}
+            pinnedMessagesCount={pinnedMessages.length}
+            onOpenPinnedDrawer={() => setShowPinnedDrawer(true)}
           />
           <AnimatedSidebarRail />
         </AnimatedSidebar>
@@ -1188,9 +1222,7 @@ Start or verify the backend server:
             />
 
             {/* Discreet Floating Sidebar Trigger (Only visible when sidebar is collapsed) */}
-            <div className="absolute top-3 left-3 z-30 pointer-events-auto group-data-[state=expanded]/sidebar:hidden">
-              <AnimatedSidebarTrigger className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] bg-[#FAF7F2]/40 dark:bg-[#1A1816]/40 backdrop-blur-md border border-[#E6DDD0]/30 dark:border-[#2D2825]/30 hover:bg-[#EFE9DF]/80 dark:hover:bg-[#262320]/80 transition-colors shadow-2xs" />
-            </div>
+            <FloatingSidebarTrigger />
 
             {/* Full-width Scrollable Container: Mouse scrolling works anywhere on the window */}
             <div className="relative z-10 flex-1 overflow-y-auto scrollbar-hide w-full h-full">

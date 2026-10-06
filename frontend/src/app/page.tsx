@@ -1558,7 +1558,11 @@ export default function LandingPage() {
                     {/* Footer Action Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-[#DFD5C6]/60 dark:border-[#38332E]/60">
                       <span className="text-xs text-[#6B5E55] dark:text-[#A89F91] font-medium">
-                        {source.link ? "Explore full canonical manuscript in high-resolution in-app reader:" : "Available offline in NityaGeeta's local dataset:"}
+                        {source.link ? (
+                          (source.link.toLowerCase().endsWith(".pdf") || source.link.includes(".pdf"))
+                            ? "Explore full canonical manuscript in high-resolution in-app reader:"
+                            : "Explore official published edition:"
+                        ) : "Available offline in NityaGeeta's local dataset:"}
                       </span>
 
                       {source.link ? (
@@ -1580,6 +1584,9 @@ export default function LandingPage() {
                             title="Open Official Edition"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
+                            {!(source.link.toLowerCase().endsWith(".pdf") || source.link.includes(".pdf")) && (
+                              <span>Official Edition</span>
+                            )}
                           </a>
                         </div>
                       ) : (
