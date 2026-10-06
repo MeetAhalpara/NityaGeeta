@@ -60,7 +60,7 @@ const HERO_WALLPAPERS: HeroWallpaper[] = [
   {
     src: "/LandingPage/krishna-arjun-lord-krishna-s-blessing-rb0kv4lecke81fqz.jpg",
     alt: "Lord Krishna Bestowing Divine Blessing upon Arjuna",
-    objectPosition: "center 28%",
+    objectPosition: "center 38%",
   },
   {
     src: "/LandingPage/wp6293190-krishna-mahabharat-wallpapers.jpg",
@@ -70,12 +70,12 @@ const HERO_WALLPAPERS: HeroWallpaper[] = [
   {
     src: "/LandingPage/wp6293276-krishna-mahabharat-wallpapers.png",
     alt: "Lord Krishna and Arjuna in Golden Radiance on Kurukshetra",
-    objectPosition: "center 25%",
+    objectPosition: "center 35%",
   },
   {
     src: "/LandingPage/wp6874871-karna-mahabharat-wallpapers.jpg",
     alt: "Karna and Arjuna on Kurukshetra Battlefield",
-    objectPosition: "center 68%",
+    objectPosition: "center 55%",
   },
 ];
 
@@ -383,7 +383,7 @@ export default function LandingPage() {
             fill
             priority
             style={{ objectPosition: heroWallpaper.objectPosition }}
-            className="object-cover filter brightness-[0.98] dark:brightness-[0.88] contrast-[1.08] saturate-[1.12]"
+            className="object-cover filter brightness-[0.80] dark:brightness-[0.75] contrast-[1.08] saturate-[1.12]"
           />
           {/* Theme-adaptive subtle gradient overlay: keeps the center open so main characters are brightly visible */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/75 via-[#FAF7F2]/25 to-[#FAF7F2] dark:from-[#1A1816]/80 dark:via-[#1A1816]/30 dark:to-[#1A1816]" />
@@ -1563,19 +1563,21 @@ export default function LandingPage() {
 
                       {source.link ? (
                         <div className="flex items-center gap-2.5">
-                          <button
-                            onClick={() => handleOpenPdf(source.link, source.title)}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-md cursor-pointer border-0"
-                          >
-                            <BookOpen className="w-4 h-4" />
-                            <span>Read in App Viewer</span>
-                          </button>
+                          {(source.link.toLowerCase().endsWith(".pdf") || source.link.includes(".pdf")) && (
+                            <button
+                              onClick={() => handleOpenPdf(source.link, source.title)}
+                              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-md cursor-pointer border-0"
+                            >
+                              <BookOpen className="w-4 h-4" />
+                              <span>Read in App Viewer</span>
+                            </button>
+                          )}
                           <a
                             href={source.link}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#EFE9DF] dark:bg-[#1C1917] border border-[#DFD5C6] dark:border-[#38332E] text-[#5C4F45] dark:text-[#D4C7B8] text-xs font-semibold hover:text-[#C25E38] dark:hover:text-[#E06D43] transition shadow-sm"
-                            title="Download / Open Archive.org PDF"
+                            title="Open Official Edition"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
