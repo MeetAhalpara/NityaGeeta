@@ -250,7 +250,7 @@ export default function ArchitecturePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════
-          PART 1: THE KEYNOTE — STEVE JOBS ON STAGE: WHY THE GITA?
+          PART 1: THE KEYNOTE — WHY THE GITA?
           ══════════════════════════════════════════════════════════════ */}
       <section id="the-thinking" className="py-20 px-6 max-w-6xl mx-auto w-full border-t border-[#DFD5C6] dark:border-[#38332E]">
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -258,10 +258,10 @@ export default function ArchitecturePage() {
             Part 1 • The Keynote
           </span>
           <h2 className="text-3xl sm:text-5xl font-normal text-[#2D2622] dark:text-[#F5F2EB] font-serif">
-            Steve Jobs on Stage: Why the Gita?
+            A Theatrical Keynote on Timeless Clarity, Sacred Craftsmanship, and a Universal Guide for the Human Mind
           </h2>
           <p className="mt-4 text-base sm:text-lg text-[#5C4F45] dark:text-[#D4C7B8] font-sans leading-relaxed">
-            A theatrical keynote on timeless clarity, sacred craftsmanship, and an operating system for the human mind.
+            Lights dim. The stage is dark except for a single warm spotlight. A black slide appears behind him with one word: CLARITY.
           </p>
         </div>
 
@@ -270,18 +270,10 @@ export default function ArchitecturePage() {
           {/* Warm Ambient Spotlight Overhead */}
           <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-b from-[#C25E38]/25 via-[#E06D43]/10 to-transparent blur-3xl pointer-events-none rounded-full" />
 
-          {/* Keynote Stage Cue 1 */}
-          <div className="relative z-10 flex items-center justify-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1C1815] border border-[#3E3832] text-xs font-mono text-[#D4C7B8] shadow-inner">
-              <span className="w-2 h-2 rounded-full bg-[#E06D43] animate-pulse" />
-              <span>(Lights dim. The stage is dark except for a single warm spotlight. A black slide appears behind him with one word: <strong className="text-white tracking-widest uppercase">CLARITY</strong>.)</span>
-            </div>
-          </div>
-
           {/* Act 1: The Opening Monologue */}
           <div className="relative z-10 max-w-3xl mx-auto font-serif text-lg sm:text-xl text-[#FAF7F2]/90 leading-relaxed space-y-6 mb-16">
             <p className="text-2xl sm:text-3xl font-light text-white italic">
-              &ldquo;Thank you for coming.
+              &ldquo;Thank you for visiting and reviewing.
             </p>
 
             <p>
@@ -298,22 +290,27 @@ export default function ArchitecturePage() {
 
             <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border-l-4 border-[#C25E38] space-y-4 my-8">
               <p className="text-white font-medium">
-                But over 5,000 years ago, something radically different happened.
+                Over 5,000 years ago, something radically different happened.
               </p>
-              <p className="text-base sm:text-lg text-[#D4C7B8] leading-relaxed">
-                It wasn’t spoken inside a temple. It wasn’t handed down on stone tablets to a priest. And it didn’t tell anyone to run away from reality.
-              </p>
-              <p className="text-base sm:text-lg text-[#D4C7B8] leading-relaxed">
-                It was spoken right in the middle of a battlefield. Between two roaring armies. To a man who dropped his bow, fell to his knees in tears, and said: <em>&lsquo;My mind is trembling. I am paralyzed by grief. I don’t know what to do.&rsquo;</em>
+              <div className="text-base sm:text-lg text-[#D4C7B8] leading-relaxed space-y-2">
+                <p>It was not:</p>
+                <ul className="list-disc list-inside space-y-1.5 pl-2 text-[#FAF7F2]">
+                  <li>spoken inside a temple,</li>
+                  <li>handed down on stone tablets to a priest,</li>
+                  <li>telling anyone to run away from reality.</li>
+                </ul>
+              </div>
+              <p className="text-base sm:text-lg text-[#D4C7B8] leading-relaxed pt-2">
+                Instead, it was spoken right in the middle of a battlefield. Between two roaring armies. To a man who dropped his bow, fell to his knees in tears, and said: <em>&lsquo;My mind is trembling. I am paralyzed by grief. I don&apos;t know what to do.&rsquo;</em>
               </p>
               <p className="text-base sm:text-lg text-[#E06D43] font-sans font-semibold">
-                That man is you. That man is every founder, every student, every father, every seeker who ever stared at the ceiling at 3 AM crushed by burnout, moral doubt, and the fear of failure.
+                That seeker represents anyone at life&apos;s crossroads—every student, worker, parent, creator, or seeker who has ever felt overwhelmed by doubt, burnout, and fear of failure.
               </p>
             </div>
 
             <p className="text-xl sm:text-2xl text-white font-normal text-center py-4 border-y border-[#3E3832]/60">
               &ldquo;And what the Gita gave him was not a religion. <br />
-              <span className="text-[#E06D43] font-semibold italic">It gave him an operating system for the human mind.&rdquo;</span>
+              <span className="text-[#E06D43] font-semibold italic">It gave him a universal guide and clear compass for the human mind.&rdquo;</span>
             </p>
           </div>
 
@@ -321,7 +318,7 @@ export default function ArchitecturePage() {
           <div className="relative z-10 max-w-4xl mx-auto space-y-12">
             <div className="text-center">
               <h3 className="text-2xl sm:text-4xl font-serif text-white mb-2">
-                &ldquo;Why Read the Gita Over Any Other Scripture in the World?&rdquo;
+                &ldquo;Why Read the Gita Over Any Other Book in the World?&rdquo;
               </h3>
               <p className="text-xs sm:text-sm font-sans uppercase tracking-[0.2em] text-[#A89F91]">
                 4 Shastric Pillars of Sovereign Intellect
@@ -333,7 +330,7 @@ export default function ArchitecturePage() {
               <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border border-[#3E3832] space-y-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/20 text-[#E06D43] text-xs font-mono font-semibold">
-                    <span>(Steve walks across the stage. A slide clicks: 1. Absolute Intellectual Freedom)</span>
+                    <span>1. Absolute Intellectual Freedom</span>
                   </div>
                   <span className="text-xs font-mono text-[#A89F91]">Bhagavad Gita 18.63</span>
                 </div>
@@ -369,7 +366,7 @@ export default function ArchitecturePage() {
               <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border border-[#3E3832] space-y-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/20 text-[#E06D43] text-xs font-mono font-semibold">
-                    <span>(Slide clicks: 2. Freedom From Religious Tribalism)</span>
+                    <span>2. Freedom From Religious Tribalism</span>
                   </div>
                   <span className="text-xs font-mono text-[#A89F91]">Bhagavad Gita 4.11</span>
                 </div>
@@ -405,7 +402,7 @@ export default function ArchitecturePage() {
               <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border border-[#3E3832] space-y-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/20 text-[#E06D43] text-xs font-mono font-semibold">
-                    <span>(Slide clicks: 3. The Ultimate Antidote to Modern Burnout)</span>
+                    <span>3. The Ultimate Antidote to Modern Burnout</span>
                   </div>
                   <span className="text-xs font-mono text-[#A89F91]">Bhagavad Gita 2.47</span>
                 </div>
@@ -429,7 +426,7 @@ export default function ArchitecturePage() {
 
                 <div className="text-sm sm:text-base font-serif text-[#D4C7B8] leading-relaxed space-y-3">
                   <p>
-                    &ldquo;We live in a world driven by metrics, stock prices, likes, and outcomes. And it’s making humanity sick. People are paralyzed by anxiety because their identity is tied to the result. The Gita diagnosed this 5,000 years before modern psychiatry.
+                    &ldquo;Modern life is driven by metrics, stock prices, likes, and outcomes. And it’s making society sick. People are paralyzed by anxiety because their identity is tied to the result. The Gita diagnosed this 5,000 years before modern psychiatry.
                   </p>
                   <p>
                     This is the definition of peak performance. When you pour 100% of your soul into the craftsmanship of the work and completely detach your ego from the applause or the failure, you become invincible. That is Nishkama Karma.&rdquo;
@@ -441,7 +438,7 @@ export default function ArchitecturePage() {
               <div className="p-6 sm:p-8 rounded-2xl bg-[#1A1613] border border-[#3E3832] space-y-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/20 text-[#E06D43] text-xs font-mono font-semibold">
-                    <span>(Slide clicks: 4. Cognitive Architecture: The Mind as Friend or Enemy)</span>
+                    <span>4. Cognitive Architecture: The Mind as Friend or Enemy</span>
                   </div>
                   <span className="text-xs font-mono text-[#A89F91]">Bhagavad Gita 6.5–6</span>
                 </div>
@@ -474,25 +471,21 @@ export default function ArchitecturePage() {
               </div>
             </div>
 
-            {/* Act 3: Why Should Even a Hindu Read the Gita Today? */}
+            {/* Act 3: Why Does One Need to Read the Gita Today? */}
             <div className="mt-16 p-8 sm:p-10 rounded-2xl bg-[#181411] border border-[#3E3832] space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/20 text-[#E06D43] text-xs font-mono font-semibold">
-                <span>(Steve pauses. He looks directly at the audience.)</span>
-              </div>
-
               <h4 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-                &ldquo;Why Should Even a Hindu Read the Gita Today?&rdquo;
+                &ldquo;Why Does One Need to Read the Gita Today?&rdquo;
               </h4>
 
               <div className="text-base sm:text-lg font-serif text-[#D4C7B8] leading-relaxed space-y-4">
                 <p>
-                  &ldquo;Now, you might ask: <em>&lsquo;Steve, what about Hindus? They already have temples, rituals, festivals, and traditions. Why do they need to read the Gita?&rsquo;</em>
+                  &ldquo;Now, one might ask: <em>&lsquo;What about me or the reader? One can already visit temples, do rituals, enjoy festivals, and follow traditions. Why does one need to read the Gita?&rsquo;</em>
                 </p>
                 <p className="text-white font-medium">
                   Here’s the hard truth:
                 </p>
                 <p>
-                  Most people inherit their tradition as ceremony, not as technology. They light an incense stick, ring a bell, recite a shloka like a magic spell, but their mind remains in chaos. They confuse mythology with methodology.
+                  Most people inherit their tradition as ceremony. They light an incense stick, ring a bell, recite a shloka like a magic spell, but their mind remains in chaos. They confuse mythology with methodology.
                 </p>
                 <p>
                   Look at what the classical tradition itself says about the Gita in the sacred Gītā Dhyānam:
@@ -514,33 +507,29 @@ export default function ArchitecturePage() {
 
               <div className="text-base sm:text-lg font-serif text-[#D4C7B8] leading-relaxed space-y-3">
                 <p>
-                  You don’t need to wander through 108 Upanishads or thousands of Vedic hymns. The entire metaphysical essence of Sanatana Dharma has been concentrated into 700 clean, elegant verses.
+                  One doesn’t need to wander through 108 Upanishads or thousands of Vedic hymns. The entire metaphysical essence of Sanatana Dharma has been concentrated into 700 clean, elegant verses.
                 </p>
                 <p className="text-white font-medium">
-                  If a Hindu doesn’t read the Gita, they are living in a palace while begging for bread outside. Reading the Gita transforms your heritage from an ancestral superstition into an unshakable intellectual armor.&rdquo;
+                  If a reader doesn’t read the Gita, one is living in a palace while begging for bread outside. Reading the Gita transforms a reader&apos;s heritage from an ancestral superstition into an unshakable intellectual armor.&rdquo;
                 </p>
               </div>
             </div>
 
-            {/* Act 4: The Climax — Why We Built NityaGeeta */}
+            {/* Act 4: The Climax — Why NityaGeeta Was Built */}
             <div className="mt-16 p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#1C1713] to-[#12100E] border-2 border-[#C25E38]/50 text-center space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#12100E] border border-[#3E3832] text-xs font-mono text-[#D4C7B8]">
-                <span>(Slide: An empty, quiet room with the NityaGeeta logo.)</span>
-              </div>
-
               <h4 className="text-3xl sm:text-5xl font-serif text-white">
-                &ldquo;And that brings us to why we built NityaGeeta.&rdquo;
+                &ldquo;This Solution Is Why NityaGeeta Was Built&rdquo;
               </h4>
 
               <div className="max-w-3xl mx-auto text-base sm:text-lg font-serif text-[#D4C7B8] leading-relaxed space-y-4 text-left sm:text-center">
                 <p>
-                  When modern AI came along, people started asking LLMs for spiritual guidance. And what did ChatGPT or Claude do? They hallucinated fake verses. They gave motivational clichés. They gave black-box answers with zero proof.
+                  When modern AI came along, people started asking generic LLMs for spiritual guidance. And what did they do? They hallucinated fake verses. They gave motivational clichés. They gave black-box answers with zero proof.
                 </p>
                 <p className="text-white font-bold text-xl sm:text-2xl">
-                  We said: No. That is unacceptable.
+                  NityaGeeta said: No. That is unacceptable.
                 </p>
                 <p>
-                  If you&apos;re going to touch something this sacred, you treat it with uncompromising reverence. You index all 700 verses into memory. You link every single line back to the original Gita Press and Acharya manuscripts. You have 5 elite models cross-examine each other so no single AI can hallucinate.
+                  If one is going to touch something this sacred, one treats it with uncompromising reverence. One indexes all 700 verses into memory. One links every single line back to the original Gita Press and Acharya manuscripts. NityaGeeta has 5 elite models cross-examine each other so no single AI can hallucinate.
                 </p>
                 <p className="text-xl sm:text-2xl font-serif text-[#E06D43] font-semibold pt-4">
                   &ldquo;That is NityaGeeta. Timeless clarity, delivered through technology worthy of the soul.&rdquo;
