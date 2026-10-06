@@ -1071,6 +1071,16 @@ Start or verify the backend server:
       icon: theme === "dark" ? Sun : Moon,
       action: () => setTheme(theme === "dark" ? "light" : "dark"),
     },
+    ...(pinnedMessages.length > 0
+      ? [
+          {
+            id: "pinned",
+            label: `Pinned (${pinnedMessages.length})`,
+            icon: Bookmark,
+            action: () => setShowPinnedDrawer(true),
+          },
+        ]
+      : []),
     {
       id: "home",
       label: "Go Home",
@@ -1223,6 +1233,20 @@ Start or verify the backend server:
 
             {/* Discreet Floating Sidebar Trigger (Only visible when sidebar is collapsed) */}
             <FloatingSidebarTrigger />
+
+            {/* Discreet Floating Pinned Reflections Button (Only visible when pinned messages exist) */}
+            {pinnedMessages.length > 0 && (
+              <div className="absolute top-3 right-4 z-30 pointer-events-auto">
+                <button
+                  onClick={() => setShowPinnedDrawer(true)}
+                  title="View pinned reflections"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#FAF7F2]/60 dark:bg-[#1A1816]/60 backdrop-blur-md text-[#C25E38] dark:text-[#E06D43] border border-[#E6DDD0]/40 dark:border-[#2D2825]/40 hover:bg-[#EFE9DF]/80 dark:hover:bg-[#262320]/80 transition-colors shadow-2xs cursor-pointer"
+                >
+                  <Bookmark className="w-3.5 h-3.5 fill-current" />
+                  <span>{pinnedMessages.length} Pinned</span>
+                </button>
+              </div>
+            )}
 
             {/* Full-width Scrollable Container: Mouse scrolling works anywhere on the window */}
             <div className="relative z-10 flex-1 overflow-y-auto scrollbar-hide w-full h-full">
