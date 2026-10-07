@@ -1623,8 +1623,8 @@ Start or verify the backend server:
 
             <div className="relative z-10 w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 pb-3 pt-2 flex flex-col gap-1.5 items-center">
               {renderInputBox(false)}
-              <p className="text-[11px] sm:text-xs text-center text-[#8C7B70] dark:text-[#8E8E8E] leading-normal select-none px-2 tracking-normal">
-                Our canonical scripture sources are authentic, eternal, and flawless. The intelligence models are experimental tools in active beta development — any mistakes belong to the software, never the sacred word. Always cross-verify reflections with original verses.
+              <p className="text-[11px] sm:text-xs text-center text-[#8C7B70] dark:text-[#8E8E8E] select-none px-2 tracking-tight">
+                The scripture is flawless. The technology is in beta — NityaGeeta may make mistakes.
               </p>
             </div>
 
