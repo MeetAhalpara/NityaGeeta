@@ -611,8 +611,17 @@ ${safeMessage}
     let resUser: { ok: boolean; status?: number; error?: string } = { ok: false };
     let resInternal: { ok: boolean; status?: number; error?: string } = { ok: false };
 
-    // Method A: Resend API
-    if (resendApiKey) {
+    const isResendSandbox = noReplySender.includes("resend.dev");
+    const canUseSmtp = Boolean(smtpHost && smtpUser && smtpPass);
+
+    // Method A: SMTP Direct (Prioritized when Resend is in unverified sandbox mode or Resend key is absent)
+    if (canUseSmtp && (isResendSandbox || !resendApiKey)) {
+      resUser = await sendEmailViaSmtp(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
+      resInternal = await sendEmailViaSmtp(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
+      deliveryStatus = resUser.ok && resInternal.ok ? "smtp_dispatched" : "attempted";
+    }
+    // Method B: Resend API (Used when custom verified domain is configured)
+    else if (resendApiKey) {
       const resendEndpoint = "https://api.resend.com/emails";
       const sendEmailViaResend = async (
         to: string,
@@ -670,7 +679,7 @@ ${safeMessage}
       resUser = await sendEmailViaResend(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
 
       // If Resend failed for user receipt, attempt SMTP fallback if configured
-      if (!resUser.ok && smtpHost && smtpUser && smtpPass) {
+      if (!resUser.ok && canUseSmtp) {
         console.warn(`[Contact API] Resend failed for customer (${trimmedEmail}). Attempting SMTP fallback...`);
         const smtpAttempt = await sendEmailViaSmtp(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
         if (smtpAttempt.ok) {
@@ -682,7 +691,7 @@ ${safeMessage}
       resInternal = await sendEmailViaResend(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
 
       // If Resend failed for desk alert, attempt SMTP fallback if configured
-      if (!resInternal.ok && smtpHost && smtpUser && smtpPass) {
+      if (!resInternal.ok && canUseSmtp) {
         console.warn(`[Contact API] Resend failed for desk alert (${OFFICIAL_EMAIL}). Attempting SMTP fallback...`);
         const smtpAttempt = await sendEmailViaSmtp(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
         if (smtpAttempt.ok) {
@@ -691,12 +700,6 @@ ${safeMessage}
       }
 
       deliveryStatus = resUser.ok && resInternal.ok ? "resend_dispatched" : "attempted";
-    }
-    // Method B: SMTP Direct (when Resend is not configured)
-    else if (smtpHost && smtpUser && smtpPass) {
-      resUser = await sendEmailViaSmtp(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
-      resInternal = await sendEmailViaSmtp(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
-      deliveryStatus = resUser.ok && resInternal.ok ? "smtp_dispatched" : "attempted";
     }
     // Method C: Twilio SendGrid
     else if (sendgridApiKey) {
