@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Send,
@@ -32,7 +33,6 @@ import {
   Bookmark,
   Check,
 } from "lucide-react";
-import Link from "next/link";
 import { RadialContextMenu, RadialMenuItem } from "@/components/ui/radial-context-menu";
 import {
   AnimatedSidebarProvider,
@@ -1624,7 +1624,16 @@ Start or verify the backend server:
             <div className="relative z-10 w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 pb-3 pt-2 flex flex-col gap-1.5 items-center">
               {renderInputBox(false)}
               <p className="text-[11px] sm:text-xs text-center text-[#8C7B70] dark:text-[#8E8E8E] select-none px-2 tracking-tight">
-                The scripture is flawless. The technology is in beta — NityaGeeta may make mistakes.
+                NityaGeeta is in beta and can make mistakes. Please verify with{" "}
+                <Link
+                  href="/sources"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-colors cursor-pointer"
+                >
+                  provided scripture sources
+                </Link>
+                .
               </p>
             </div>
 
