@@ -63,6 +63,7 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [ticketRef, setTicketRef] = useState<string>("");
+  const [deliveryWarning, setDeliveryWarning] = useState<string>("");
 
   useEffect(() => {
     setMounted(true);
@@ -255,22 +256,33 @@ export default function ContactPage() {
     setUploadError("");
 
     try {
+      const bodyFormData = new FormData();
+      bodyFormData.append("name", formData.name);
+      bodyFormData.append("email", formData.email);
+      bodyFormData.append("category", formData.category);
+      if (formData.otherCategory) {
+        bodyFormData.append("otherCategory", formData.otherCategory);
+      }
+      bodyFormData.append("message", formData.message);
+      uploadedImages.forEach((img) => {
+        bodyFormData.append("screenshots", img.file);
+      });
+
       const res = await fetch("/api/contact", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          category: formData.category,
-          otherCategory: formData.otherCategory,
-          message: formData.message,
-          screenshotsCount: uploadedImages.length,
-        }),
+        body: bodyFormData,
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
         setTicketRef(data.ticketId || "");
+        if (data.deliveryStatus === "partial") {
+          setDeliveryWarning(
+            data.warning || "Your inquiry was safely received by our editorial desk. Note: Customer acknowledgment receipt email could not be confirmed."
+          );
+        } else {
+          setDeliveryWarning("");
+        }
         setSubmitted(true);
         setTimeout(() => {
           setSubmitted(false);
@@ -280,6 +292,7 @@ export default function ContactPage() {
           setUploadedImages([]);
           setUploadError("");
           setTicketRef("");
+          setDeliveryWarning("");
         }, 8000);
       } else {
         setUploadError(data.error || "Failed to process inquiry. Please try again or email directly.");
@@ -335,7 +348,8 @@ export default function ContactPage() {
                   </p>
                 )}
                 <p className="text-sm text-emerald-700 dark:text-emerald-300 leading-relaxed max-w-lg mx-auto">
-                  Thank you for contributing to the accuracy and integrity of NityaGeeta. An acknowledgment confirmation has been sent to your email, and the NityaGeeta project desk has been notified.
+                  {deliveryWarning ||
+                    "Thank you for contributing to the accuracy and integrity of NityaGeeta. An acknowledgment confirmation has been sent to your email, and the NityaGeeta project desk has been notified."}
                 </p>
               </div>
             ) : (
@@ -559,7 +573,7 @@ export default function ContactPage() {
                         Click to upload screenshots or drag & drop images
                       </p>
                       <p className="text-[11px] text-[#8C7B70] dark:text-[#A89F91] mt-1">
-                        Only image files allowed (PNG, JPG, WEBP, GIF • Max 10MB each • PDFs not supported)
+                        Only image files allowed (PNG, JPG, WEBP, GIF • Max 5MB each • PDFs not supported)
                       </p>
                       <input
                         id="contact-page-images"

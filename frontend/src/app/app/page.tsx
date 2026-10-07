@@ -567,6 +567,12 @@ export default function AppMainPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages]);
 
+  // Security: Preview bypass is strictly gated to development environments
+  const isPreview =
+    process.env.NODE_ENV === "development" &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("preview") === "true";
+
   // On mount + pathname change: restore session from URL, or reset to blank
   useEffect(() => {
     const match = pathname?.match(/\/app\/search\/([a-zA-Z0-9_-]+)/);
@@ -600,7 +606,10 @@ export default function AppMainPage() {
             const pendingQuery = sessionStorage.getItem("nitya_pending_query");
             if (pendingQuery) {
               initialQ = pendingQuery;
-              sessionStorage.removeItem("nitya_pending_query");
+              // Clear stored value only after the authenticated composer has received it
+              if (status === "authenticated" || isPreview) {
+                sessionStorage.removeItem("nitya_pending_query");
+              }
             }
           } catch {}
 
@@ -610,11 +619,15 @@ export default function AppMainPage() {
             if (rawParam) {
               // Bounds-check and sanitize input against injection
               initialQ = rawParam.slice(0, 1000).replace(/[<>]/g, "").trim();
-              // Clean address bar immediately so sensitive prompts do not linger in browser URL bar
-              window.history.replaceState({}, document.title, window.location.pathname);
+              if (status === "authenticated" || isPreview) {
+                // Clean address bar immediately so sensitive prompts do not linger in browser URL bar
+                window.history.replaceState({}, document.title, window.location.pathname);
+              }
             }
           }
-          setQuery(initialQ);
+          if (status === "authenticated" || isPreview) {
+            setQuery(initialQ);
+          }
         } else {
           setQuery("");
         }
@@ -624,7 +637,31 @@ export default function AppMainPage() {
       console.error("Failed to load conversation history:", e);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, status]);
+
+  // Retain and hydrate pending dilemma query once user becomes authenticated
+  useEffect(() => {
+    if ((status === "authenticated" || isPreview) && !activeSessionId) {
+      if (typeof window !== "undefined") {
+        try {
+          const pending = sessionStorage.getItem("nitya_pending_query");
+          if (pending) {
+            setQuery(pending);
+            sessionStorage.removeItem("nitya_pending_query");
+            return;
+          }
+        } catch {}
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawParam = urlParams.get("q") || urlParams.get("prompt") || "";
+        if (rawParam) {
+          const sanitized = rawParam.slice(0, 1000).replace(/[<>]/g, "").trim();
+          setQuery(sanitized);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+    }
+  }, [status, isPreview, activeSessionId]);
 
   useEffect(() => {
     router.prefetch("/");
@@ -633,15 +670,17 @@ export default function AppMainPage() {
     router.prefetch("/signup");
   }, [router]);
 
-  // Security: Preview bypass is strictly gated to development environments
-  const isPreview =
-    process.env.NODE_ENV === "development" &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("preview") === "true";
-
   useEffect(() => {
     if (status === "unauthenticated" && !isPreview) {
-      router.push("/signup");
+      let returnUrl = "/app";
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawParam = urlParams.get("prompt") || urlParams.get("q");
+        if (rawParam) {
+          returnUrl = `/app?prompt=${encodeURIComponent(rawParam)}`;
+        }
+      }
+      router.push(`/signup?returnTo=${encodeURIComponent(returnUrl)}`);
     }
   }, [status, router, isPreview]);
 

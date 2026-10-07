@@ -22,9 +22,14 @@ export function GoogleButton({ callbackUrl = "http://localhost:1870", className,
     let finalCallbackUrl = callbackUrl;
     
     if (source === "signup") {
-      // If callbackUrl already ends with /profile, don't add it again
-      const baseUrl = callbackUrl.replace(/\/profile$/, "");
-      finalCallbackUrl = `${baseUrl}/profile?source=signup`;
+      // If a specific return route like /app was requested (e.g. from dilemma prompt), honor it
+      if (callbackUrl.includes("/app")) {
+        const separator = callbackUrl.includes("?") ? "&" : "?";
+        finalCallbackUrl = `${callbackUrl}${separator}source=signup`;
+      } else {
+        const baseUrl = callbackUrl.replace(/\/profile$/, "");
+        finalCallbackUrl = `${baseUrl}/profile?source=signup`;
+      }
     }
     
     setIsChecking(true);

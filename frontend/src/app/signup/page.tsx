@@ -144,8 +144,17 @@ function SignUpContent() {
               </div>
             )}
 
-            {/* Google sign-up — uses shared GoogleButton component */}
-            <GoogleButton callbackUrl="http://localhost:1870/profile" source="signup" className="w-full" />
+            {/* Google sign-up — returns users to dialogue if a dilemma was chosen, otherwise /profile */}
+            <GoogleButton
+              callbackUrl={
+                searchParams.get("returnTo") ||
+                (typeof window !== "undefined" && Boolean(sessionStorage.getItem("nitya_pending_query"))
+                  ? "/app"
+                  : "/profile")
+              }
+              source="signup"
+              className="w-full"
+            />
 
             {/* Why Google only */}
             <p className="mt-4 text-[11px] text-[#8C7B70] dark:text-[#A89F91] text-center leading-relaxed">
