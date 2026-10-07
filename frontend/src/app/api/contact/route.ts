@@ -311,12 +311,12 @@ Reply directly to this user at: ${trimmedEmail}
 
           if (!resp.ok) {
             const errBody = await resp.text();
-            console.error(`[SendGrid Error] Failed sending to ${to} (status ${resp.status}):`, errBody);
+            console.error("[SendGrid Error] Failed sending message. Status:", resp.status, errBody);
             return { ok: false, status: resp.status, error: errBody };
           }
           return { ok: true, status: resp.status };
         } catch (err) {
-          console.error(`[SendGrid Network Error] to ${to}:`, err);
+          console.error("[SendGrid Network Error]:", err);
           return { ok: false, status: 500, error: String(err) };
         }
       };
@@ -422,13 +422,12 @@ Reply directly to this user at: ${trimmedEmail}
       }
 
       // Dev & Test Mode Fallback: Server Audit Log
-      console.log(`\n======================================================================`);
-      console.log(`[CONTACT EMAIL DISPATCH - DEV SIMULATION]`);
-      console.log(`Ticket: ${ticketId}`);
-      console.log(`To Customer: ${trimmedEmail} | Subject: ${userSubject}`);
-      console.log(`To NityaGeeta: ${OFFICIAL_EMAIL} | Subject: ${internalSubject}`);
-      console.log(`Attachments: ${attachments.length} files`);
-      console.log(`======================================================================\n`);
+      console.log("[CONTACT EMAIL DISPATCH - DEV SIMULATION]", {
+        ticket: ticketId,
+        customerEmail: trimmedEmail,
+        officialEmail: OFFICIAL_EMAIL,
+        attachmentsCount: attachments.length,
+      });
       deliveryStatus = "simulated_success";
     }
 
