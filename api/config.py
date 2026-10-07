@@ -57,8 +57,8 @@ if not GROQ_API_KEYS:
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 
 # Model Selection Config (Updated to active high-performance Groq models)
-DEFAULT_MODEL  = os.getenv("DEFAULT_MODEL",  "groq/compound-mini")
-FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "groq/compound-mini")
+DEFAULT_MODEL  = os.getenv("DEFAULT_MODEL",  "openai/gpt-oss-120b")
+FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "qwen/qwen3.8-27b")
 
 # ── OpenRouter model IDs for each Brain ──────────────────────────────────────
 # Each Brain uses a genuinely different model from a different provider/family.
