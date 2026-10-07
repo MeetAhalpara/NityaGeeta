@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
@@ -42,7 +43,7 @@ interface Advisor {
   tradition: string;
   bookTitle: string;
   publisher: string;
-  pdfUrl: string;
+  sourceUrl: string;
   coreBelief: string;
   quote: string;
   lens: string;
@@ -59,7 +60,7 @@ const ADVISORS_DATA: Advisor[] = [
     tradition: "Classical Sanskrit Baseline (Zero Sectarian Bias)",
     bookTitle: "Srimad Bhagavad Gita (Gita Press Original)",
     publisher: "Gita Press Gorakhpur • Centenary Heritage Archive (Est. 1923)",
-    pdfUrl: "https://storage.googleapis.com/nityageeta-library/Srimad%20Bhagavad%20Gita%20Press%20Gorakhpur.pdf",
+    sourceUrl: "/sources#geeta-1",
     coreBelief:
       "Truth cannot be improvised. Every answer must be anchored directly in the uncorrupted 700 Devanagari Sanskrit verses, free of speculative interpretations or modern revisions.",
     quote:
@@ -76,7 +77,7 @@ const ADVISORS_DATA: Advisor[] = [
     tradition: "Academic Sanskrit Grammar (SUNY Press)",
     bookTitle: "The Bhagavad Gita: Interlinear Translation & Grammar",
     publisher: "State University of New York Press • Ed. Christopher Key Chapple",
-    pdfUrl: "https://storage.googleapis.com/nityageeta-library/The%20Bhagavad%20Gita%20Winthrop%20Sargeant%20(Word-for-Word%20English).pdf",
+    sourceUrl: "/sources#geeta-2",
     coreBelief:
       "Every Sanskrit word contains an exact verbal root (Dhātu), grammatical case, mood, and tense. English renderings must faithfully preserve the precise morphological architecture of the sacred language.",
     quote:
@@ -93,7 +94,7 @@ const ADVISORS_DATA: Advisor[] = [
     tradition: "Advaita Vedanta (Classical Non-Dualism)",
     bookTitle: "Srimad Bhagavad Gita Shankara Bhashya",
     publisher: "Adi Shankaracharya • Translated by Alladi Mahadeva Sastry",
-    pdfUrl: "https://storage.googleapis.com/nityageeta-library/Bhagavad%20Gita%20with%20the%20Commentary%20of%20Adi%20Shankaracharya.pdf",
+    sourceUrl: "/sources#geeta-3",
     coreBelief:
       "Suffering is born of false identification (Adhyāsa) between the eternal witness (Sākṣī Ātman) and the agitated mind. Liberation is not achieved through restless doing, but through immediate Self-knowledge (Jñāna).",
     quote:
@@ -110,7 +111,7 @@ const ADVISORS_DATA: Advisor[] = [
     tradition: "Gita Press Gorakhpur (Practical Householder Vedanta)",
     bookTitle: "Srimad Bhagavad Gita (Sadhaka-Sanjivani)",
     publisher: "Gita Press Gorakhpur • 1,100+ Verse-by-Verse Analytical Pages",
-    pdfUrl: "https://storage.googleapis.com/nityageeta-library/Gita-Sadhak-Sanjevani-English.pdf",
+    sourceUrl: "/sources#geeta-4",
     coreBelief:
       "The Gita was spoken in the middle of a battlefield, not on a quiet mountain. Nishkama Karma Yoga means performing one's prescribed duty with wholehearted dedication while renouncing anxiety over outcomes.",
     quote:
@@ -127,7 +128,7 @@ const ADVISORS_DATA: Advisor[] = [
     tradition: "Applied Vedic Science & Cognitive Discipline",
     bookTitle: "B.O.S.S : Basics of Sanatan Sanskriti",
     publisher: "Prateeik Prajapati & Veducation Cultural Research",
-    pdfUrl: "https://storage.googleapis.com/nityageeta-library/BOSS.pdf",
+    sourceUrl: "/sources#ved-1",
     coreBelief:
       "Ancient Vedic disciplines are not blind rituals—they are neuroscience and behavioral psychology proven across millennia. Dincharya and mental mastery must be seamlessly integrated into modern high-performance life.",
     quote:
@@ -157,10 +158,10 @@ const COMPARISON_DATA: ComparisonRow[] = [
     nityaGeeta: { text: "OCR-verified Sadhaka-Sanjivani + Acharya Bhashyas", ref: "2" },
   },
   {
-    dimension: "Multi-Model Consensus",
-    genericAi: { text: "Single model (single point of cognitive failure)", ref: "3" },
-    singleRag: { text: "Single prompt wrapper around one LLM" },
-    nityaGeeta: { text: "5-Model Council (Gemini, DeepSeek, Claude, Llama, Qwen debating live)", ref: "3" },
+    dimension: "Multi-Perspective Consensus",
+    genericAi: { text: "Single unanchored prompt (single point of cognitive failure)", ref: "3" },
+    singleRag: { text: "Single prompt wrapper without cross-examination" },
+    nityaGeeta: { text: "The Council of 5 (Vidvan, Prof., Acharya, Swami, Dr. + The 6th Mind)", ref: "3" },
   },
   {
     dimension: "Hallucination Defense",
@@ -189,9 +190,9 @@ const SIMULATION_CASES = [
     chapter: "Chapter 2 • Verse 47",
     sanskrit: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥",
     steps: [
-      { id: "s1", type: "step" as const, label: "Scanning Sadhaka-Sanjivani for Nishkama Karma Yoga principles", status: "complete" as const },
-      { id: "s2", type: "step" as const, label: "Consulting 5 AI models (Gemini, DeepSeek, Claude, Llama, Qwen)", status: "complete" as const, meta: "5/5 scored" },
-      { id: "s3", type: "step" as const, label: "Calculating groundedness: 98.6/100 • Synthesizing daily actionable protocol", status: "complete" as const },
+      { id: "s1", type: "step" as const, label: "Scanning canonical verses for Nishkama Karma Yoga principles", status: "complete" as const },
+      { id: "s2", type: "step" as const, label: "Consulting the Council: Vidvan (Scripture), Prof. (Linguistic), Acharya (Inner), Swami (Practical), Dr. (Modern)", status: "complete" as const, meta: "5/5 scored" },
+      { id: "s3", type: "step" as const, label: "The Sixth Mind synthesis: Calculating 98.6/100 groundedness • Unifying actionable protocol", status: "complete" as const },
     ],
     citations: [
       {
@@ -201,7 +202,7 @@ const SIMULATION_CASES = [
         verse: "47",
         page: 142,
         domain: "gita-press.org",
-        url: "/sources#sadhaka-sanjivani",
+        url: "/sources#geeta-4",
         quote: "You have a right to perform your prescribed duty, but never to the fruits of action. Never consider yourself the cause of the results, nor be attached to inaction.",
       },
       {
@@ -210,7 +211,7 @@ const SIMULATION_CASES = [
         chapter: "2",
         verse: "47",
         domain: "advaita-vedanta.org",
-        url: "/sources#shankara-bhashya",
+        url: "/sources#geeta-3",
         quote: "Psychological liberation occurs when the ego releases ownership of outcome.",
       },
     ],
@@ -222,8 +223,8 @@ const SIMULATION_CASES = [
     sanskrit: "न जायते म्रियते वा कदाचिन्\nनायं भूत्वा भविता वा न भूयः।",
     steps: [
       { id: "s1", type: "step" as const, label: "Mapping Atman immortality commentary across Advaita traditions", status: "complete" as const },
-      { id: "s2", type: "step" as const, label: "Cross-verifying Sanskrit syntax with Winthrop Sargeant linguistic corpus", status: "complete" as const },
-      { id: "s3", type: "step" as const, label: "Consensus winner: Claude 3.5 + DeepSeek-R1 synthesis", status: "complete" as const, meta: "99.2% consensus" },
+      { id: "s2", type: "step" as const, label: "Cross-verifying Sanskrit syntax with Prof. (Linguistic) concordance", status: "complete" as const },
+      { id: "s3", type: "step" as const, label: "The Sixth Mind synthesis: Unifying Vidvan (Scripture), Acharya (Inner), and Swami (Practical)", status: "complete" as const, meta: "99.2% consensus" },
     ],
     citations: [
       {
@@ -233,7 +234,7 @@ const SIMULATION_CASES = [
         verse: "20",
         page: 86,
         domain: "gita-press.org",
-        url: "/sources#sadhaka-sanjivani",
+        url: "/sources#geeta-4",
         quote: "The soul is never born, nor does it ever die. Unborn, eternal, ever-existing and primeval, it is not slain when the body is slain.",
       },
     ],
@@ -786,18 +787,16 @@ export default function ArchitecturePage() {
                     </div>
                   </div>
 
-                  {/* Clean, Simple Read PDF Button */}
+                  {/* Redirect directly to book in sources library */}
                   <div className="pt-4 border-t border-[#DFD5C6] dark:border-[#38332E]">
-                    <a
-                      href={activeAdvisor.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href={activeAdvisor.sourceUrl}
                       className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#C25E38] dark:bg-[#E06D43] text-white font-sans text-xs sm:text-sm font-bold shadow-md hover:brightness-110 active:scale-98 transition-all cursor-pointer"
                     >
                       <BookOpen className="w-4 h-4" />
-                      <span>Read Canonical PDF</span>
-                      <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                    </a>
+                      <span>Read in Sources Library</span>
+                      <ArrowRight className="w-4 h-4 opacity-80" />
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -970,10 +969,10 @@ export default function ArchitecturePage() {
               Rigorous Benchmarking
             </span>
             <h3 className="text-3xl sm:text-4xl font-serif text-[#2D2622] dark:text-[#F5F2EB]">
-              NityaGeeta vs Generic AI Wrappers
+              NityaGeeta vs Ungrounded Chatbots
             </h3>
             <p className="mt-3 text-sm sm:text-base text-[#5C4F45] dark:text-[#D4C7B8]">
-              Why ordinary chatbots fail on ancient scripture, and how our architecture guarantees fidelity.
+              Why ordinary chatbots fail on ancient scripture, and how NityaGeeta guarantees fidelity.
             </p>
           </div>
 
@@ -982,9 +981,9 @@ export default function ArchitecturePage() {
               <thead>
                 <tr className="border-b border-[#DFD5C6] dark:border-[#38332E] bg-[#EFE9DF]/70 dark:bg-[#262320]/70 text-[#2D2622] dark:text-[#F5F2EB]">
                   <th className="p-4 sm:p-5 font-serif font-bold">Dimension</th>
-                  <th className="p-4 sm:p-5 font-serif font-bold text-red-700 dark:text-red-400">Generic AI (ChatGPT / Gemini)</th>
-                  <th className="p-4 sm:p-5 font-serif font-bold text-[#8C7B70] dark:text-[#A89F91]">Single-Model RAG</th>
-                  <th className="p-4 sm:p-5 font-serif font-bold text-[#C25E38] dark:text-[#E06D43]">NityaGeeta Multi-Agent Council</th>
+                  <th className="p-4 sm:p-5 font-serif font-bold text-red-700 dark:text-red-400">Generic Chatbots</th>
+                  <th className="p-4 sm:p-5 font-serif font-bold text-[#8C7B70] dark:text-[#A89F91]">Single-Model Search</th>
+                  <th className="p-4 sm:p-5 font-serif font-bold text-[#C25E38] dark:text-[#E06D43]">NityaGeeta Council of Clarity</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E8E1D7] dark:divide-[#38332E]">
