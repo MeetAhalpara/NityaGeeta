@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         </div>
 
         <h1 className="text-4xl sm:text-5xl font-normal leading-tight text-[#2D2622] dark:text-[#F5F2EB] mb-4 font-serif">
-          Our Sacred <span className="text-[#C25E38] dark:text-[#E06D43] font-medium italic">Privacy Pledge</span>
+          Sacred <span className="text-[#C25E38] dark:text-[#E06D43] font-medium italic">Privacy Pledge</span>
         </h1>
 
         <p className="text-base text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed max-w-2xl mx-auto">
@@ -57,14 +57,14 @@ export default function PrivacyPage() {
         {/* Section 1 */}
         <section className="space-y-3 p-6 sm:p-8 rounded-3xl bg-[#FAF7F2] dark:bg-[#262320] border border-[#E8E1D7] dark:border-[#38332E] shadow-sm">
           <h2 className="text-xl font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB]">
-            1. Information We Collect
+            1. Information Collected
           </h2>
           <p>
-            We collect only the minimal information strictly required to authenticate you and preserve your personal study sessions:
+            Minimal information is collected strictly as required to authenticate users and preserve personal study sessions:
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs text-[#5C4F45] dark:text-[#D4C7B8]">
-            <li><strong>Authentication Data:</strong> When signing in via Google OAuth, we receive your name, email address, and profile avatar URL via NextAuth.js. We never receive or store your Google password.</li>
-            <li><strong>Session & Chat History:</strong> Your prompts, questions, and AI-synthesized responses are saved in your local browser cache (localStorage) and mirrored to our secure PostgreSQL database to allow seamless cross-device synchronization.</li>
+            <li><strong>Authentication Data:</strong> When signing in via Google OAuth, name, email address, and profile avatar URL are received via NextAuth.js. Google passwords are never received or stored.</li>
+            <li><strong>Session & Chat History:</strong> Prompts, questions, and AI-synthesized responses are saved in the local browser cache (localStorage) and mirrored to the secure PostgreSQL database to allow seamless cross-device synchronization.</li>
             <li><strong>Technical Telemetry:</strong> Minimal error telemetry (such as API latency and error codes) to diagnose server crashes and maintain platform reliability.</li>
           </ul>
         </section>
@@ -72,16 +72,16 @@ export default function PrivacyPage() {
         {/* Section 2 */}
         <section className="space-y-3 p-6 sm:p-8 rounded-3xl bg-[#FAF7F2] dark:bg-[#262320] border border-[#E8E1D7] dark:border-[#38332E] shadow-sm">
           <h2 className="text-xl font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB]">
-            2. How We Use Your Information
+            2. Use of Information
           </h2>
           <p>
-            Your information is used strictly to fulfill the sacred and educational mission of NityaGeeta:
+            Information is used strictly to fulfill the sacred and educational mission of NityaGeeta:
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs text-[#5C4F45] dark:text-[#D4C7B8]">
-            <li>To match your questions against our in-memory 700 Bhagavad Gita Sanskrit verses and 5 classical commentary bhashyas.</li>
-            <li>To dispatch parallel inference requests across our 5 AI models (Groq 70B, Gemini 2.0, OpenRouter MoA) in stateless API calls.</li>
-            <li>To maintain your personal dialogue history and profile bookmarks.</li>
-            <li><strong>We NEVER use your private spiritual inquiries to train public AI foundational models without explicit consent.</strong></li>
+            <li>To match questions against the in-memory 700 Bhagavad Gita Sanskrit verses and 5 classical commentary bhashyas.</li>
+            <li>To dispatch parallel inference requests across the 5 AI models (Groq 70B, Gemini 2.0, OpenRouter MoA) in stateless API calls.</li>
+            <li>To maintain personal dialogue history and profile bookmarks.</li>
+            <li><strong>NityaGeeta NEVER uses private spiritual inquiries to train public AI foundational models without explicit consent.</strong></li>
           </ul>
         </section>
 
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
             3. AI Inference & Third-Party APIs
           </h2>
           <p>
-            When you ask a question in NityaGeeta Dialogue, our backend sends the query along with retrieved Sanskrit shlokas to our enterprise API providers (such as Groq, Google Gemini, and OpenRouter). These calls are governed by enterprise zero-data-retention agreements where API inputs are processed transiently and not retained to train third-party public models.
+            When asking a question in NityaGeeta Dialogue, the backend sends the query along with retrieved Sanskrit shlokas to enterprise API providers (such as Groq, Google Gemini, and OpenRouter). These calls are governed by enterprise zero-data-retention agreements where API inputs are processed transiently and not retained to train third-party public models.
           </p>
         </section>
 
@@ -101,7 +101,7 @@ export default function PrivacyPage() {
             4. Data Security & Storage
           </h2>
           <p>
-            All network communication between your browser, our Next.js frontend, and our FastAPI Python backend is encrypted using TLS/SSL (HTTPS). Session data in PostgreSQL is protected by role-based access controls and encrypted at rest.
+            All network communication between the browser, the Next.js frontend, and the FastAPI Python backend is encrypted using TLS/SSL (HTTPS). Session data in PostgreSQL is protected by role-based access controls and encrypted at rest.
           </p>
         </section>
 
@@ -115,21 +115,21 @@ export default function PrivacyPage() {
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs text-[#5C4F45] dark:text-[#D4C7B8]">
             <li><strong>Clear Chat History:</strong> You can delete any individual conversation or wipe all history directly from the sidebar.</li>
-            <li><strong>Delete Account:</strong> You can request permanent removal of your account and all associated records by contacting us.</li>
+            <li><strong>Delete Account:</strong> Users can request permanent removal of accounts and all associated records via the contact portal.</li>
           </ul>
         </section>
 
         {/* Section 6 */}
         <section className="p-6 sm:p-8 rounded-3xl bg-[#EFE9DF] dark:bg-[#262320] border border-[#DFD5C6] dark:border-[#38332E] text-center space-y-3">
           <h3 className="text-base font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB]">
-            Questions About Our Privacy Practices?
+            Questions About Privacy Practices?
           </h3>
           <p className="text-xs text-[#5C4F45] dark:text-[#D4C7B8]">
             If you have questions, feedback, or concerns regarding your privacy or data protection, please reach out directly:
           </p>
           <div className="pt-2">
             <Link
-              href="/#support"
+              href="/contact"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:opacity-90 transition shadow-md"
             >
               <Mail className="w-3.5 h-3.5" />
