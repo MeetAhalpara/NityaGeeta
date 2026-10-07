@@ -1,0 +1,500 @@
+{
+  "info": {
+    "_postman_id": "c7a8b9d0-1234-5678-90ab-cdef12345678",
+    "name": "NityaGeeta REST API & QA Contract Suite",
+    "description": "Comprehensive functional REST API collection for NityaGeeta FastAPI Neural Backend (port 8000) and Next.js BFF (port 1870), executable via Postman Desktop or Newman CLI.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "System Health",
+      "item": [
+        {
+          "name": "GET /health - System Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Service reports healthy status\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"healthy\");",
+                  "    pm.expect(jsonData.service).to.eql(\"NityaGeeta API\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/health",
+              "host": ["{{backend_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "GET /non-existent - 404 Route Guard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Non-existent endpoint returns 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/api/v1/non_existent_route",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "non_existent_route"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scripture & Search",
+      "item": [
+        {
+          "name": "POST /api/v1/search - Natural Language Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Search returns structured results array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"results\");",
+                  "    pm.expect(Array.isArray(jsonData.results)).to.be.true;",
+                  "    pm.expect(jsonData.results.length).to.be.at.most(3);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"karma yoga\",\n  \"limit\": 3\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/v1/search",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "search"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/search - Min Length Validation (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Undersized search query returns 422 Unprocessable\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"a\",\n  \"limit\": 3\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/v1/search",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "search"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/pages/47 - Canonical Scripture Page",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Page object contains canonical data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"page_num\");",
+                  "    pm.expect(jsonData.page_num).to.eql(47);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/api/v1/pages/47",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "pages", "47"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/pages/999999 - Out of Bounds Page (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Invalid page returns 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/api/v1/pages/999999",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "pages", "999999"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication & Lookup",
+      "item": [
+        {
+          "name": "POST /api/v1/auth/lookup - Account Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Returns boolean exists flag\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"exists\");",
+                  "    pm.expect(typeof jsonData.exists).to.eql(\"boolean\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_user_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/v1/auth/lookup",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "auth", "lookup"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/auth/login - Empty Credentials (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Missing credentials returns 422 Unprocessable\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/v1/auth/login",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conversation Sessions CRUD",
+      "item": [
+        {
+          "name": "POST /api/v1/sessions/save - Save Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Returns success response\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{test_session_id}}\",\n  \"user_email\": \"{{test_user_email}}\",\n  \"title\": \"Postman Newman Dialogue Test\",\n  \"messages\": [\n    {\n      \"id\": \"msg-1\",\n      \"sender\": \"user\",\n      \"text\": \"What is Nishkama Karma in Chapter 2?\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/v1/sessions/save",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "sessions", "save"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/sessions/list - List User Sessions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Returns list of sessions\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"sessions\");",
+                  "    pm.expect(Array.isArray(jsonData.sessions)).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_email\": \"{{test_user_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/v1/sessions/list",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "sessions", "list"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/sessions/:id/messages - Invalid UUID Guard (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Malformed UUID returns 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/api/v1/sessions/invalid-uuid-format/messages",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "sessions", "invalid-uuid-format", "messages"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Next.js BFF & Contact Form",
+      "item": [
+        {
+          "name": "POST /api/contact - Valid Submission Contract",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK or 503 (if unconfigured in prod)\", function () {",
+                  "    pm.expect([200, 503]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData).to.have.property(\"ticketId\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Newman Automated Runner\",\n  \"email\": \"newman@nityageeta.internal\",\n  \"category\": \"ai_feedback\",\n  \"message\": \"Automated API test submission via Newman test suite.\"\n}"
+            },
+            "url": {
+              "raw": "{{frontend_url}}/api/contact",
+              "host": ["{{frontend_url}}"],
+              "path": ["api", "contact"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/contact - Invalid Email Validation (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Invalid email returns 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Newman Runner\",\n  \"email\": \"not-an-email\",\n  \"category\": \"ai_feedback\",\n  \"message\": \"Test invalid email rejection.\"\n}"
+            },
+            "url": {
+              "raw": "{{frontend_url}}/api/contact",
+              "host": ["{{frontend_url}}"],
+              "path": ["api", "contact"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/pdf-proxy - Unauthorized Target Rejection (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Unauthorized proxy request returns 403 Forbidden\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}/api/pdf-proxy?url=http://attacker.com/malicious.pdf",
+              "host": ["{{frontend_url}}"],
+              "path": ["api", "pdf-proxy"],
+              "query": [
+                {
+                  "key": "url",
+                  "value": "http://attacker.com/malicious.pdf"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
