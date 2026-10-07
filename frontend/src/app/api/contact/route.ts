@@ -15,6 +15,25 @@ interface ContactRequestBody {
   screenshotsCount?: number;
 }
 
+// HTML entity escaper to guard against HTML injection / XSS in email clients (CWE-79, CWE-116)
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+const VALID_CATEGORIES: Record<string, string> = {
+  ai_feedback: "AI Dialogue Feedback & Prompt Grounding",
+  verse_correction: "Sanskrit Verse / OCR Typo Correction",
+  commentary_insight: "Share Commentary Insights / Traditional Bhashya",
+  bug_report: "UI Glitch or Technical Bug Report",
+  report_misuse: "Report Misuse / Misinterpretation",
+  other: "Other Inquiry",
+};
+
 export async function POST(request: Request) {
   try {
     const body: ContactRequestBody = await request.json();
@@ -42,12 +61,34 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!category || typeof category !== "string" || category.length > 50) {
+      return NextResponse.json(
+        { success: false, error: "Valid category is required." },
+        { status: 400 }
+      );
+    }
+
+    if (otherCategory !== undefined && (typeof otherCategory !== "string" || otherCategory.length > 100)) {
+      return NextResponse.json(
+        { success: false, error: "Other category description must be 100 characters or fewer." },
+        { status: 400 }
+      );
+    }
+
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
     const trimmedMessage = message.trim();
-    const topicLabel = category === "other" && otherCategory?.trim()
+    const rawCategory = category.trim();
+    const baseCategoryLabel = VALID_CATEGORIES[rawCategory] || "General Inquiry";
+    const topicLabel = rawCategory === "other" && otherCategory?.trim()
       ? `Other: ${otherCategory.trim().slice(0, 80)}`
-      : category || "General Inquiry";
+      : baseCategoryLabel;
+
+    // Escaped variables for safe HTML interpolation
+    const safeName = escapeHtml(trimmedName);
+    const safeEmail = escapeHtml(trimmedEmail);
+    const safeTopic = escapeHtml(topicLabel);
+    const safeMessage = escapeHtml(trimmedMessage);
 
     // Ticket Reference ID
     const ticketId = `NG-MSG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -63,18 +104,18 @@ export async function POST(request: Request) {
           <p style="color: #FFE6D9; margin: 4px 0 0 0; font-size: 13px;">Universal Bhagavad Gita Intelligence</p>
         </div>
         <div style="padding: 32px 28px;">
-          <p style="font-size: 16px; line-height: 1.6; margin-top: 0;">Namaste <strong>${trimmedName}</strong>,</p>
+          <p style="font-size: 16px; line-height: 1.6; margin-top: 0;">Namaste <strong>${safeName}</strong>,</p>
           <p style="font-size: 14px; line-height: 1.7; color: #5C4F45;">
-            Thank you for reaching out. We confirm that NityaGeeta has received your inquiry regarding <strong>${topicLabel}</strong>.
+            Thank you for reaching out. We confirm that NityaGeeta has received your inquiry regarding <strong>${safeTopic}</strong>.
           </p>
           <div style="background-color: #FFFFFF; border: 1px solid #E8E1D7; border-radius: 12px; padding: 18px 20px; margin: 24px 0;">
             <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #C25E38; font-weight: bold; margin-bottom: 8px;">Submission Summary</div>
             <p style="margin: 4px 0; font-size: 13px;"><strong>Reference ID:</strong> <span style="font-family: monospace;">${ticketId}</span></p>
-            <p style="margin: 4px 0; font-size: 13px;"><strong>Topic / Category:</strong> ${topicLabel}</p>
+            <p style="margin: 4px 0; font-size: 13px;"><strong>Topic / Category:</strong> ${safeTopic}</p>
             <p style="margin: 4px 0; font-size: 13px;"><strong>Date Received:</strong> ${timestamp}</p>
             <p style="margin: 4px 0; font-size: 13px;"><strong>Screenshots Attached:</strong> ${screenshotsCount}</p>
             <hr style="border: none; border-top: 1px solid #EFE9DF; margin: 12px 0;" />
-            <p style="font-size: 13px; line-height: 1.6; color: #4A4038; margin: 0; white-space: pre-wrap;">${trimmedMessage}</p>
+            <p style="font-size: 13px; line-height: 1.6; color: #4A4038; margin: 0; white-space: pre-wrap;">${safeMessage}</p>
           </div>
           <p style="font-size: 13px; line-height: 1.6; color: #6B5E55;">
             The NityaGeeta editorial desk will review your report and apply any verified shloka or commentary updates accordingly.
@@ -99,13 +140,13 @@ export async function POST(request: Request) {
         <p><strong>Reference Ticket:</strong> ${ticketId}</p>
         <p><strong>Timestamp:</strong> ${timestamp}</p>
         <hr style="border: 1px solid #DFD5C6;" />
-        <p><strong>From:</strong> ${trimmedName} &lt;<a href="mailto:${trimmedEmail}">${trimmedEmail}</a>&gt;</p>
-        <p><strong>Topic / Category:</strong> ${topicLabel}</p>
+        <p><strong>From:</strong> ${safeName} &lt;<a href="mailto:${safeEmail}">${safeEmail}</a>&gt;</p>
+        <p><strong>Topic / Category:</strong> ${safeTopic}</p>
         <p><strong>Attached Screenshots:</strong> ${screenshotsCount}</p>
         <hr style="border: 1px solid #DFD5C6;" />
         <p><strong>Message Body:</strong></p>
-        <pre style="background: #FFFFFF; padding: 15px; border-radius: 8px; border: 1px solid #DFD5C6; white-space: pre-wrap; font-family: inherit;">${trimmedMessage}</pre>
-        <p style="font-size: 11px; color: #8C7B70;">Reply directly to this user at: ${trimmedEmail}</p>
+        <pre style="background: #FFFFFF; padding: 15px; border-radius: 8px; border: 1px solid #DFD5C6; white-space: pre-wrap; font-family: inherit;">${safeMessage}</pre>
+        <p style="font-size: 11px; color: #8C7B70;">Reply directly to this user at: ${safeEmail}</p>
       </div>
     `;
 

@@ -38,6 +38,8 @@ def test(name: str):
         return wrapper
     return decorator
 
+test.__test__ = False
+
 
 # ==============================================================================
 # SECTION 1: SOURCES PAGE & CITATIONS AUDIT
@@ -242,7 +244,8 @@ def test_footer_streamlining():
     assert "AI Dialogue" in content or "Dialogue" in content, "Missing concise Dialogue link"
     assert "Life Dilemmas" in content, "Missing Life Dilemmas link"
     assert "Sources Library" in content, "Missing Sources Library link"
-    assert "Thinking & Architecture" in content or "System Architecture" in content or "Architecture" in content, "Missing Architecture link"
+    assert "Thinking & Architecture" in content, "Missing Thinking & Architecture label"
+    assert "/architecture" in content, "Missing /architecture route in footer"
     assert "Contact & Feedback" in content, "Missing Contact link"
     assert "Privacy Policy" in content, "Missing Privacy Policy link"
     assert "Terms of Service" in content, "Missing Terms of Service link"
