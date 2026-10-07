@@ -15,15 +15,7 @@ interface ContactRequestBody {
   screenshotsCount?: number;
 }
 
-// HTML entity escaper to guard against HTML injection / XSS in email clients (CWE-79, CWE-116)
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+
 
 const VALID_CATEGORIES: Record<string, string> = {
   ai_feedback: "AI Dialogue Feedback & Prompt Grounding",
@@ -84,71 +76,51 @@ export async function POST(request: Request) {
       ? `Other: ${otherCategory.trim().slice(0, 80)}`
       : baseCategoryLabel;
 
-    // Escaped variables for safe HTML interpolation
-    const safeName = escapeHtml(trimmedName);
-    const safeEmail = escapeHtml(trimmedEmail);
-    const safeTopic = escapeHtml(topicLabel);
-    const safeMessage = escapeHtml(trimmedMessage);
-
     // Ticket Reference ID
     const ticketId = `NG-MSG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
     const timestamp = new Date().toUTCString();
 
-    // 2. Generate Email Templates
+    // 2. Generate Email Messages (Plain text format to guarantee zero XSS / HTML injection vectors)
     // A) Customer Confirmation Email (Reverent, Clear, Transparent)
     const userSubject = `NityaGeeta | Received: Inquiry regarding "${topicLabel}" [Ref: ${ticketId}]`;
-    const userHtml = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FAF7F2; border: 1px solid #DFD5C6; border-radius: 16px; overflow: hidden; color: #2D2622;">
-        <div style="background-color: #C25E38; padding: 24px; text-align: center;">
-          <h1 style="color: #FFFFFF; margin: 0; font-size: 24px; font-weight: normal; letter-spacing: 0.5px;">NityaGeeta</h1>
-          <p style="color: #FFE6D9; margin: 4px 0 0 0; font-size: 13px;">Universal Bhagavad Gita Intelligence</p>
-        </div>
-        <div style="padding: 32px 28px;">
-          <p style="font-size: 16px; line-height: 1.6; margin-top: 0;">Namaste <strong>${safeName}</strong>,</p>
-          <p style="font-size: 14px; line-height: 1.7; color: #5C4F45;">
-            Thank you for reaching out. We confirm that NityaGeeta has received your inquiry regarding <strong>${safeTopic}</strong>.
-          </p>
-          <div style="background-color: #FFFFFF; border: 1px solid #E8E1D7; border-radius: 12px; padding: 18px 20px; margin: 24px 0;">
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #C25E38; font-weight: bold; margin-bottom: 8px;">Submission Summary</div>
-            <p style="margin: 4px 0; font-size: 13px;"><strong>Reference ID:</strong> <span style="font-family: monospace;">${ticketId}</span></p>
-            <p style="margin: 4px 0; font-size: 13px;"><strong>Topic / Category:</strong> ${safeTopic}</p>
-            <p style="margin: 4px 0; font-size: 13px;"><strong>Date Received:</strong> ${timestamp}</p>
-            <p style="margin: 4px 0; font-size: 13px;"><strong>Screenshots Attached:</strong> ${screenshotsCount}</p>
-            <hr style="border: none; border-top: 1px solid #EFE9DF; margin: 12px 0;" />
-            <p style="font-size: 13px; line-height: 1.6; color: #4A4038; margin: 0; white-space: pre-wrap;">${safeMessage}</p>
-          </div>
-          <p style="font-size: 13px; line-height: 1.6; color: #6B5E55;">
-            The NityaGeeta editorial desk will review your report and apply any verified shloka or commentary updates accordingly.
-          </p>
-          <p style="font-size: 13px; color: #8C7B70; margin-bottom: 0;">
-            With reverence,<br />
-            <strong>The NityaGeeta Project Desk</strong>
-          </p>
-        </div>
-        <div style="background-color: #EFE9DF; padding: 16px; text-align: center; font-size: 11px; color: #8C7B70; border-top: 1px solid #DFD5C6;">
-          NityaGeeta • Dedicated to Canonical Scriptural Fidelity & Algorithmic Transparency<br />
-          Official Contact: <a href="mailto:${OFFICIAL_EMAIL}" style="color: #C25E38; text-decoration: none;">${OFFICIAL_EMAIL}</a>
-        </div>
-      </div>
-    `;
+    const userText = `Namaste ${trimmedName},
+
+Thank you for reaching out. We confirm that NityaGeeta has received your inquiry regarding "${topicLabel}".
+
+Submission Summary:
+-------------------
+Reference ID: ${ticketId}
+Topic / Category: ${topicLabel}
+Date Received: ${timestamp}
+Screenshots Attached: ${screenshotsCount}
+
+Message:
+${trimmedMessage}
+
+---------------------------------------------------
+The NityaGeeta editorial desk will review your report and apply any verified shloka or commentary updates accordingly.
+
+With reverence,
+The NityaGeeta Project Desk
+Morved.NityaGeeta@outlook.com
+https://nityageeta.com
+`;
 
     // B) NityaGeeta Internal Notification Email
     const internalSubject = `[NityaGeeta Alert] New Inquiry: ${topicLabel} from ${trimmedName} [${ticketId}]`;
-    const internalHtml = `
-      <div style="font-family: monospace; max-width: 650px; margin: 0 auto; padding: 20px; background: #FAF7F2; border: 1px solid #C25E38; border-radius: 12px; color: #2D2622;">
-        <h2 style="color: #C25E38; margin-top: 0;">[NityaGeeta Contact Alert]</h2>
-        <p><strong>Reference Ticket:</strong> ${ticketId}</p>
-        <p><strong>Timestamp:</strong> ${timestamp}</p>
-        <hr style="border: 1px solid #DFD5C6;" />
-        <p><strong>From:</strong> ${safeName} &lt;<a href="mailto:${safeEmail}">${safeEmail}</a>&gt;</p>
-        <p><strong>Topic / Category:</strong> ${safeTopic}</p>
-        <p><strong>Attached Screenshots:</strong> ${screenshotsCount}</p>
-        <hr style="border: 1px solid #DFD5C6;" />
-        <p><strong>Message Body:</strong></p>
-        <pre style="background: #FFFFFF; padding: 15px; border-radius: 8px; border: 1px solid #DFD5C6; white-space: pre-wrap; font-family: inherit;">${safeMessage}</pre>
-        <p style="font-size: 11px; color: #8C7B70;">Reply directly to this user at: ${safeEmail}</p>
-      </div>
-    `;
+    const internalText = `[NITYAGEETA CONTACT ALERT]
+Reference Ticket: ${ticketId}
+Timestamp: ${timestamp}
+--------------------------------------------------
+From: ${trimmedName} <${trimmedEmail}>
+Topic / Category: ${topicLabel}
+Attached Screenshots: ${screenshotsCount}
+--------------------------------------------------
+Message Body:
+${trimmedMessage}
+
+Reply directly to this user at: ${trimmedEmail}
+`;
 
     // 3. Dispatch Delivery
     const smtpHost = process.env.SMTP_HOST;
@@ -161,7 +133,7 @@ export async function POST(request: Request) {
     // Method A: Twilio SendGrid (From GitHub Student Developer Pack)
     if (sendgridApiKey) {
       const sendgridEndpoint = "https://api.sendgrid.com/v3/mail/send";
-      const sendEmailViaSendGrid = async (to: string, subject: string, html: string) => {
+      const sendEmailViaSendGrid = async (to: string, subject: string, text: string) => {
         const resp = await fetch(sendgridEndpoint, {
           method: "POST",
           headers: {
@@ -172,15 +144,15 @@ export async function POST(request: Request) {
             personalizations: [{ to: [{ email: to }] }],
             from: { email: OFFICIAL_EMAIL, name: "NityaGeeta" },
             subject,
-            content: [{ type: "text/html", value: html }],
+            content: [{ type: "text/plain", value: text }],
           }),
         });
         return resp.ok;
       };
 
       const [resUser, resInternal] = await Promise.all([
-        sendEmailViaSendGrid(trimmedEmail, userSubject, userHtml),
-        sendEmailViaSendGrid(OFFICIAL_EMAIL, internalSubject, internalHtml),
+        sendEmailViaSendGrid(trimmedEmail, userSubject, userText),
+        sendEmailViaSendGrid(OFFICIAL_EMAIL, internalSubject, internalText),
       ]);
 
       if (resUser && resInternal) {
@@ -205,7 +177,7 @@ export async function POST(request: Request) {
           from: `"NityaGeeta Desk" <${smtpUser}>`,
           to: trimmedEmail,
           subject: userSubject,
-          html: userHtml,
+          text: userText,
         }),
         // Send to Official NityaGeeta mailbox
         transporter.sendMail({
@@ -213,7 +185,7 @@ export async function POST(request: Request) {
           to: OFFICIAL_EMAIL,
           replyTo: trimmedEmail,
           subject: internalSubject,
-          html: internalHtml,
+          text: internalText,
         }),
       ]);
 
