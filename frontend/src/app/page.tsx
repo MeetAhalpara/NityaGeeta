@@ -581,12 +581,19 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      let saved = false;
+                      const promptText = modernDilemmas[activeDilemma].promptQuery;
                       if (typeof window !== "undefined") {
                         try {
-                          sessionStorage.setItem("nitya_pending_query", modernDilemmas[activeDilemma].promptQuery);
+                          sessionStorage.setItem("nitya_pending_query", promptText);
+                          saved = true;
                         } catch {}
                       }
-                      router.push("/app");
+                      if (saved) {
+                        router.push("/app");
+                      } else {
+                        router.push(`/app?prompt=${encodeURIComponent(promptText)}`);
+                      }
                     }}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-sm font-bold hover:opacity-90 transition shadow-md group cursor-pointer"
                   >
