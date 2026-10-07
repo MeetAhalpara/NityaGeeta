@@ -92,6 +92,7 @@ interface ProcessedAttachment {
   contentType: string;
   size: number;
   contentId?: string;
+  publicUrl?: string;
 }
 
 function escapeHtml(str: string): string {
@@ -220,7 +221,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // Ticket Reference ID & Timestamp (Generated prior to file processing so storage and URLs can use ticketId)
+    const ticketId = `NG-MSG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const timestamp = new Date().toUTCString();
+
+    const host = request.headers.get("host") || "localhost:1870";
+    const proto = request.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+    const siteBaseUrl = process.env.NEXTAUTH_URL || `${proto}://${host}`;
+
     const attachments: ProcessedAttachment[] = [];
+    const cwd = process.cwd();
+    const publicDir = fs.existsSync(path.join(cwd, "public"))
+      ? path.join(cwd, "public")
+      : path.join(cwd, "frontend", "public");
+    const ticketUploadsDir = path.join(publicDir, "uploads", "contact", ticketId);
+
+    let fileIdx = 0;
     for (const file of rawFiles) {
       if (file.size > MAX_FILE_SIZE_BYTES) {
         return NextResponse.json(
@@ -238,19 +254,31 @@ export async function POST(request: Request) {
       }
 
       const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || `evidence_${fileIdx + 1}.png`;
+      const contentId = `evidence_${fileIdx + 1}_${ticketId}@nityageeta.tech`;
+      const publicUrl = `${siteBaseUrl}/uploads/contact/${ticketId}/${encodeURIComponent(sanitizedName)}`;
+
+      // Save to disk for static serving / permanent access
+      try {
+        fs.mkdirSync(ticketUploadsDir, { recursive: true });
+        fs.writeFileSync(path.join(ticketUploadsDir, sanitizedName), buffer);
+      } catch (fsErr) {
+        console.error("[Attachment Storage Warning] Failed to write file to disk:", fsErr);
+      }
+
       attachments.push({
-        filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "screenshot.png",
-        buffer: Buffer.from(arrayBuffer),
+        filename: sanitizedName,
+        buffer,
         contentType: mimeType,
         size: file.size,
+        contentId,
+        publicUrl,
       });
+      fileIdx++;
     }
 
     const BRAND_LOGO_URL = "https://raw.githubusercontent.com/MeetAhalpara/NityaGeeta/feat/postman-collection-and-api-testing-suite/frontend/public/images/optimized-logo.png";
-
-    // Ticket Reference ID & Timestamp
-    const ticketId = `NG-MSG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-    const timestamp = new Date().toUTCString();
 
     // Sanitized values for HTML email templates
     const safeName = escapeHtml(trimmedName);
@@ -390,7 +418,16 @@ Submitter Email: ${trimmedEmail}
 Topic / Category: ${topicLabel}
 Client IP: ${clientIp}
 Screenshots Attached: ${attachments.length} file(s)
-${attachments.length > 0 ? `Attached Files: ${attachments.map((a) => `${a.filename} (${formatBytes(a.size)})`).join(", ")}\n` : ""}--------------------------------------------------
+${
+  attachments.length > 0
+    ? `\nAttached Evidence Files:\n${attachments
+        .map(
+          (a, idx) =>
+            `[#${idx + 1}] ${a.filename} (${formatBytes(a.size)})\n  Direct URL: ${a.publicUrl}\n`
+        )
+        .join("")}\n`
+    : ""
+}--------------------------------------------------
 User Message:
 ${trimmedMessage}
 --------------------------------------------------
@@ -469,29 +506,47 @@ Hit Reply in your email client to answer ${trimmedName} directly at: ${trimmedEm
                     ${
                       attachments.length > 0
                         ? `
-                    <!-- Uploaded Files Breakdown -->
-                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed #E0D7CB;">
-                      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72; margin-bottom: 10px;">
-                        Attached Files (${attachments.length}):
+                    <!-- Uploaded Files Breakdown & Visual Evidence -->
+                    <div style="margin-top: 18px; padding-top: 18px; border-top: 1px dashed #E0D7CB;">
+                      <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72; margin-bottom: 12px;">
+                        Attached Evidence Files (${attachments.length}):
                       </div>
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                        ${attachments
-                          .map(
-                            (a, idx) => `
+                      ${attachments
+                        .map(
+                          (a, idx) => `
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FFFFFF; border: 1px solid #ECE6DB; border-radius: 12px; margin-bottom: 14px; overflow: hidden;">
                         <tr>
-                          <td style="padding: 6px 0; font-size: 13px; color: #1C1917;">
-                            <span style="display: inline-block; width: 22px; color: #C25E38; font-weight: 700;">#${idx + 1}</span>
-                            <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 600;">${escapeHtml(a.filename)}</span>
+                          <td style="padding: 12px 16px; border-bottom: 1px solid #F2ECE3; background-color: #FAF7F2;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                              <tr>
+                                <td>
+                                  <span style="display: inline-block; background-color: #C25E38; color: #FFFFFF; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-right: 8px;">FILE #${idx + 1}</span>
+                                  <strong style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #1C1917;">${escapeHtml(a.filename)}</strong>
+                                  <span style="font-size: 12px; color: #78716C; margin-left: 6px;">(${formatBytes(a.size)})</span>
+                                </td>
+                                <td align="right">
+                                  <a href="${a.publicUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #C25E38; color: #FFFFFF; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; text-decoration: none;">
+                                    📥 Download / View
+                                  </a>
+                                </td>
+                              </tr>
+                            </table>
                           </td>
-                          <td align="right" style="padding: 6px 0; font-size: 12px; color: #78716C;">
-                            ${formatBytes(a.size)}
+                        </tr>
+                        <tr>
+                          <td style="padding: 16px; text-align: center; background-color: #FFFFFF;">
+                            <!-- Inline Visual Preview via CID -->
+                            <img src="cid:${a.contentId}" alt="${escapeHtml(a.filename)}" style="max-width: 100%; max-height: 460px; height: auto; border-radius: 8px; border: 1px solid #EFEAE1; object-fit: contain; display: block; margin: 0 auto;" />
+                            <div style="margin-top: 10px; font-size: 11px; color: #8C7E72;">
+                              Direct URL: <a href="${a.publicUrl}" target="_blank" rel="noopener noreferrer" style="color: #C25E38; text-decoration: underline; word-break: break-all;">${a.publicUrl}</a>
+                            </div>
                           </td>
-                        </tr>`
-                          )
-                          .join("")}
-                      </table>
-                      <div style="font-size: 11px; color: #8C7E72; margin-top: 10px; font-style: italic;">
-                        * All original uploaded file(s) are attached directly to this email for full inspection.
+                        </tr>
+                      </table>`
+                        )
+                        .join("")}
+                      <div style="font-size: 11px; color: #8C7E72; margin-top: 6px; font-style: italic;">
+                        * Triple-layer availability: (1) Downloadable attachment in Outlook, (2) Rendered inline preview, and (3) Permanent direct web link above.
                       </div>
                     </div>`
                         : `
@@ -598,6 +653,8 @@ ${safeMessage}
             filename: a.filename,
             content: a.buffer,
             contentType: a.contentType,
+            cid: a.contentId,
+            contentDisposition: "attachment",
           })),
         });
 
