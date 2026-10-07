@@ -180,7 +180,7 @@ export default function LandingPage() {
       verseSanskrit: "कार्पण्यदोषोपहतस्वभावः पृच्छामि त्वां धर्मसंमूढचेताः।\nयच्छ्रेयः स्यान्निश्चितं ब्रूहि तन्मे शिष्यस्तेऽहं शाधि मां त्वां प्रपन्नम्॥",
       verseTransliteration: "kārpaṇya-doṣopahata-svabhāvaḥ pṛcchāmi tvāṁ dharma-sammūḍha-cetāḥ | yac chreyaḥ syān niścitaṁ brūhi tan me śiṣyas te 'haṁ śādhi māṁ tvāṁ prapannam",
       coreInsight: "Arjuna collapsed in total moral paralysis on Kurukshetra. The Gita teaches that admitting confusion and surrendering emotional bias to eternal Dharma is the gateway to resolute action.",
-      promptQuery: "I am facing a difficult moral conflict where my duty conflicts with emotional attachments. How does Arjuna's dilemma in Chapter 2 Verse 7 teach us to find clarity?",
+      promptQuery: "I am facing a difficult moral conflict where my duty conflicts with emotional attachments. How does Arjuna's dilemma in Chapter 2 Verse 7 teach one to find clarity?",
       tag: "Dharma & Duty",
       icon: Scale
     },
@@ -1069,7 +1069,7 @@ export default function LandingPage() {
             How <span className="text-[#C25E38] dark:text-[#E06D43]">NityaGeeta Works</span>
           </h2>
           <p className="mt-4 text-[#6B5E55] dark:text-[#A89F91] font-sans text-base leading-relaxed">
-            Scroll down to watch the light beam illuminate each step of our grounded wisdom engine.
+            Scroll down to watch the light beam illuminate each step of the grounded wisdom engine.
           </p>
         </div>
 
@@ -1102,7 +1102,7 @@ export default function LandingPage() {
                 num: 2,
                 badge: "Step 02",
                 title: "Verse Alignment",
-                desc: "Our neural retrieval matches your situation to exact canonical Bhagavad Gita Sanskrit verses.",
+                desc: "Neural retrieval matches the situation to exact canonical Bhagavad Gita Sanskrit verses.",
               },
               {
                 num: 3,
@@ -1424,7 +1424,7 @@ export default function LandingPage() {
               scholarlyAuthorityRatio: "(97) out of (100)",
               scholarlyAuthorityDetail: "Veducation Official Master Collection.",
               summary: "The ultimate 5-in-1 master set bringing together the core foundational texts, daily Ayurvedic discipline manuals, willpower training, and supplementary Vedic wisdom guides.",
-              whyThisNumber: "Positioned at #4 as the complete 5-book bundle referenced across our knowledge base."
+              whyThisNumber: "Positioned at #4 as the complete 5-book bundle referenced across the knowledge base."
             }
           ]).map((source) => {
             const isExpanded = expandedSourceId === source.id;
@@ -1661,7 +1661,7 @@ export default function LandingPage() {
                 Verse Accuracy
               </div>
               <p className="text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
-                Report OCR typos in shlokas or translations. We cross-verify with physical Gita Press editions within 24h.
+                Report OCR typos in shlokas or translations. Cross-verified with physical Gita Press editions within 24h.
               </p>
             </div>
 
@@ -1671,7 +1671,7 @@ export default function LandingPage() {
                 Visual Bug Reports
               </div>
               <p className="text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
-                Attach screenshots of UI glitches or chat anomalies directly in our high-res image submission portal.
+                Attach screenshots of UI glitches or chat anomalies directly in the high-res image submission portal.
               </p>
             </div>
 
@@ -1709,7 +1709,7 @@ export default function LandingPage() {
             Everything You Need To <span className="text-[#C25E38] dark:text-[#E06D43]">Know</span>
           </h2>
           <p className="mt-2 text-[#6B5E55] dark:text-[#D4C7B8] font-sans text-sm max-w-xl mx-auto">
-            Clear insights on our verified scriptural grounding, 5-model AI architecture, and privacy commitments.
+            Clear insights on verified scriptural grounding, 5-model AI architecture, and privacy commitments.
           </p>
         </div>
 
@@ -1733,7 +1733,7 @@ export default function LandingPage() {
                   NityaGeeta utilizes a strict Retrieval-Augmented Generation (RAG) system grounded in authenticated Sanskrit Gita commentaries—primarily the monumental <em>Sadhaka-Sanjivani</em> commentary by Swami Ramsukhdas (Gita Press Gorakhpur) and Winthrop Sargeant&apos;s SUNY Press interlinear grammar.
                 </p>
                 <p>
-                  When you ask a question, our engine performs hybrid vector search across all 700 canonical Sanskrit verses in RAM (&lt;2ms) before prompting the AI, ensuring every answer is anchored to verified chapters, verses, and traditional purports without hallucination.
+                  When asking a question, the in-memory engine performs hybrid vector search across all 700 canonical Sanskrit verses in RAM (&lt;2ms) before prompting the AI, ensuring every answer is anchored to verified chapters, verses, and traditional purports without hallucination.
                 </p>
               </div>
             )}
@@ -1809,10 +1809,10 @@ export default function LandingPage() {
             {openFaq === 3 && (
               <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed border-t border-[#E8E1D7]/60 dark:border-[#38332E] space-y-2">
                 <p>
-                  NityaGeeta is 100% free, non-commercial, and ad-free. We adhere to a strict <Link href="/privacy" className="text-[#C25E38] dark:text-[#E06D43] font-bold underline">Sacred Privacy Pledge</Link>:
+                  NityaGeeta is 100% free, non-commercial, and ad-free, adhering to a strict <Link href="/privacy" className="text-[#C25E38] dark:text-[#E06D43] font-bold underline">Sacred Privacy Pledge</Link>:
                 </p>
                 <p>
-                  We will never run commercial banner ads, sell user data to advertising networks, or use your private spiritual inquiries to train public AI models. You have complete control over your session history and account data.
+                  Commercial banner ads are never displayed, user data is never sold to advertising networks, and private spiritual inquiries are never used to train public AI models. Users retain complete control over session history and account data.
                 </p>
               </div>
             )}
@@ -1834,7 +1834,7 @@ export default function LandingPage() {
             {openFaq === 4 && (
               <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed border-t border-[#E8E1D7]/60 dark:border-[#38332E] space-y-2">
                 <p>
-                  Yes! We believe transparency is the highest virtue. Visit our dedicated <Link href="/sources" className="text-[#C25E38] dark:text-[#E06D43] font-bold underline">Resources & Sources Page</Link> to access the in-app PDF reader and archive links for original Gita Press, SUNY Press, and Acharya manuscripts.
+                  Yes. Canonical transparency is paramount. Visit the dedicated <Link href="/sources" className="text-[#C25E38] dark:text-[#E06D43] font-bold underline">Resources & Sources Page</Link> to access the in-app PDF reader and archive links for original Gita Press, SUNY Press, and Acharya manuscripts.
                 </p>
               </div>
             )}
@@ -1856,7 +1856,7 @@ export default function LandingPage() {
             {openFaq === 5 && (
               <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed border-t border-[#E8E1D7]/60 dark:border-[#38332E] space-y-2">
                 <p>
-                  We actively welcome scholarly contributions and feedback. You can visit our{" "}
+                  Scholarly contributions and feedback are actively welcomed. Visit the{" "}
                   <button
                     type="button"
                     onClick={() => router.push("/contact")}

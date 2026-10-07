@@ -165,18 +165,15 @@ def test_contact_brand_voice():
     assert "we cross-check" not in lowered, "Found forbidden first-person 'we cross-check'"
 
 
-@test("Architecture: Zero Competitor Mentions in Table Header")
+@test("Architecture: Zero Competitor Mentions (ChatGPT, Claude, Gemini)")
 def test_architecture_competitor_branding():
     with open("frontend/src/app/architecture/page.tsx", "r", encoding="utf-8") as f:
         arch_source = f.read()
 
-    # The table header must be 'Generic AI' without ChatGPT or Claude in the header
-    assert "Generic AI (ChatGPT / Claude)" not in arch_source, (
-        "Table header still contains 'Generic AI (ChatGPT / Claude)'"
-    )
-    assert '<th className="p-4 sm:p-6 text-red-600 dark:text-red-400">Generic AI</th>' in arch_source, (
-        "Missing cleaned 'Generic AI' table header in architecture page"
-    )
+    # Competitor mentions must be removed
+    assert "ChatGPT" not in arch_source, "Architecture page still contains 'ChatGPT'"
+    assert "Claude" not in arch_source, "Architecture page still contains 'Claude'"
+    assert "Gemini" not in arch_source, "Architecture page still contains 'Gemini'"
 
 
 if __name__ == "__main__":

@@ -466,7 +466,7 @@ export default function SourcesPage() {
         "sacred spiritual narratives", "sacred narratives", "itihasa", "pure fiction", "fiction"
       ],
       chapters: [
-        { num: 1, title: "Basics of Soul (Atma, Jeev)", pages: "1–18", description: "Who are we, nature of Atman, gross body vs subtle body, and spiritual consciousness.", keywords: ["soul", "atma", "atman", "jeev", "jiva", "subtle body", "gross body", "death", "consciousness"] },
+        { num: 1, title: "Basics of Soul (Atma, Jeev)", pages: "1–18", description: "Nature of the Self (Atman), individual soul (Jeeva), gross body vs subtle body, and spiritual consciousness.", keywords: ["soul", "atma", "atman", "jeev", "jiva", "subtle body", "gross body", "death", "consciousness"] },
         { num: 2, title: "Basics of God (Ishwar, Parmatma, Bhagavan)", pages: "19–39", description: "The 3 aspects of Supreme Reality (Brahman, Paramatma, Bhagavan) and divine reciprocation.", keywords: ["god", "ishwar", "parmatma", "bhagavan", "supreme", "krishna", "vishnu", "brahman"] },
         { num: 3, title: "Basics of Demigods (Devi Devta)", pages: "40–66", description: "Ganas, 12 Adityas, 8 Vasus, 11 Rudras, Shiva, Indra, and universal administration.", keywords: ["demigods", "devi devta", "devas", "shiva", "indra", "rudras", "adityas", "vasus"] },
         { num: 4, title: "Basics of Nature (Prakriti)", pages: "67–68", description: "Material nature, 3 Gunas (Sattva, Rajas, Tamas), and 24 cosmic elements.", keywords: ["nature", "prakriti", "gunas", "material world", "sattva", "rajas", "tamas"] },
@@ -864,7 +864,7 @@ export default function SourcesPage() {
       devanagari: "श्रद्धात्रयविभागयोग",
       verses: 28,
       theme: "The Threefold Faith & Diet",
-      focus: "How Sattva, Rajas, and Tamas influence our faith, food, charity, and austerity.",
+      focus: "How Sattva, Rajas, and Tamas influence faith, diet, charity, and austerity.",
       keywords: ["chapter 17", "chapter 17", "shraddhatraya vibhaga yoga", "threefold faith", "diet", "sattvic food", "rajasic food", "tamasic food", "charity", "austerity", "om tat sat", "food habits", "faith"]
     },
     {

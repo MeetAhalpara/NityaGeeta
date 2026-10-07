@@ -61,6 +61,8 @@ export default function ContactPage() {
   const [mounted, setMounted] = useState(false);
 
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ticketRef, setTicketRef] = useState<string>("");
 
   useEffect(() => {
     setMounted(true);
@@ -181,7 +183,7 @@ export default function ContactPage() {
     setEmailError("");
   };
 
-  // Strictly accept only image files (PNG, JPG, WEBP, GIF)
+  // Strictly accept only image files (PNG, JPG, WEBP, GIF) with max 5MB size limit
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploadError("");
     if (!e.target.files) return;
@@ -200,6 +202,19 @@ export default function ContactPage() {
       return;
     }
 
+    // Defensive check: prevent client memory exhaustion (max 5MB per image)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    const oversizedFiles = validImageFiles.filter((file) => file.size > MAX_FILE_SIZE);
+    if (oversizedFiles.length > 0) {
+      setUploadError("Each screenshot image must be 5MB or smaller.");
+    }
+
+    const eligibleImageFiles = validImageFiles.filter((file) => file.size <= MAX_FILE_SIZE);
+    if (eligibleImageFiles.length === 0) {
+      e.target.value = "";
+      return;
+    }
+
     const remainingSlots = 5 - uploadedImages.length;
     if (remainingSlots <= 0) {
       setUploadError("Maximum limit of 5 screenshots reached.");
@@ -207,7 +222,7 @@ export default function ContactPage() {
       return;
     }
 
-    const newImages = validImageFiles.slice(0, remainingSlots).map((file) => ({
+    const newImages = eligibleImageFiles.slice(0, remainingSlots).map((file) => ({
       id: Math.random().toString(36).substring(2, 9),
       file,
       preview: URL.createObjectURL(file),
@@ -227,7 +242,7 @@ export default function ContactPage() {
     });
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateEmail(formData.email)) {
       setEmailTouched(true);
@@ -236,15 +251,44 @@ export default function ContactPage() {
     }
     if (!formData.message.trim()) return;
 
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: "", email: "", category: "ai_feedback", otherCategory: "", message: "" });
-      setEmailError("");
-      setEmailTouched(false);
-      setUploadedImages([]);
-      setUploadError("");
-    }, 5000);
+    setIsSubmitting(true);
+    setUploadError("");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          category: formData.category,
+          otherCategory: formData.otherCategory,
+          message: formData.message,
+          screenshotsCount: uploadedImages.length,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTicketRef(data.ticketId || "");
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          setFormData({ name: "", email: "", category: "ai_feedback", otherCategory: "", message: "" });
+          setEmailError("");
+          setEmailTouched(false);
+          setUploadedImages([]);
+          setUploadError("");
+          setTicketRef("");
+        }, 8000);
+      } else {
+        setUploadError(data.error || "Failed to process inquiry. Please try again or email directly.");
+      }
+    } catch {
+      setUploadError("Network error occurred. Please check your connection or reach out directly via email.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selectedCategoryLabel =
@@ -263,10 +307,10 @@ export default function ContactPage() {
             <MessageSquare className="w-3.5 h-3.5" /> Sacred Feedback & Collaboration
           </div>
           <h1 className="text-4xl sm:text-5xl font-serif font-normal text-[#2D2622] dark:text-[#F5F2EB] tracking-tight">
-            Contact Us & <span className="text-[#C25E38] dark:text-[#E06D43]">Submit Feedback</span>
+            Contact & <span className="text-[#C25E38] dark:text-[#E06D43]">Submit Feedback</span>
           </h1>
           <p className="mt-3.5 text-[#6B5E55] dark:text-[#D4C7B8] text-sm sm:text-base leading-relaxed">
-            NityaGeeta is built with reverence for canonical Sanskrit traditions and algorithmic transparency. Whether you noticed a nuance in commentary, discovered a glitch, or want to contribute bhashyas, your input directly shapes this project.
+            NityaGeeta is built with reverence for canonical Sanskrit traditions and algorithmic transparency. Whether one noticed a nuance in commentary, discovered a glitch, or wishes to contribute bhashyas, reader input directly shapes this project.
           </p>
         </div>
 
@@ -278,15 +322,20 @@ export default function ContactPage() {
               Submit Your Message or Bug Report
             </h2>
             <p className="text-xs sm:text-sm text-[#6B5E55] dark:text-[#A89F91] mb-8">
-              Fill out the details below and attach screenshots of the program or text to help us improve.
+              Fill out the details below and attach screenshots of the program or text to help improve the platform.
             </p>
 
             {submitted ? (
               <div className="p-8 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-700/50 text-center font-sans">
                 <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto mb-3" />
-                <h4 className="text-xl font-bold text-emerald-900 dark:text-emerald-200 mb-1">Feedback Received!</h4>
-                <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                  Thank you for contributing to the accuracy and integrity of NityaGeeta. Our team will review your report and apply updates accordingly.
+                <h4 className="text-xl font-bold text-emerald-900 dark:text-emerald-200 mb-1">Feedback Received & Notifications Dispatched!</h4>
+                {ticketRef && (
+                  <p className="text-xs font-mono font-bold text-emerald-800 dark:text-emerald-300 mb-2">
+                    Reference ID: {ticketRef}
+                  </p>
+                )}
+                <p className="text-sm text-emerald-700 dark:text-emerald-300 leading-relaxed max-w-lg mx-auto">
+                  Thank you for contributing to the accuracy and integrity of NityaGeeta. An acknowledgment confirmation has been sent to your email, and the NityaGeeta project desk has been notified.
                 </p>
               </div>
             ) : (
@@ -302,6 +351,7 @@ export default function ContactPage() {
                     <input
                       type="text"
                       required
+                      maxLength={100}
                       placeholder="Enter your name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -322,6 +372,7 @@ export default function ContactPage() {
                     <input
                       type="text"
                       required
+                      maxLength={150}
                       placeholder="name@gmail.com"
                       value={formData.email}
                       onChange={(e) => handleEmailChange(e.target.value)}
@@ -459,6 +510,7 @@ export default function ContactPage() {
                         <input
                           type="text"
                           required
+                          maxLength={100}
                           placeholder="Please describe other category..."
                           value={formData.otherCategory}
                           onChange={(e) => setFormData({ ...formData, otherCategory: e.target.value })}
@@ -475,6 +527,7 @@ export default function ContactPage() {
                   </label>
                   <textarea
                     required
+                    maxLength={3000}
                     rows={5}
                     placeholder="Describe your issue, suggested verse clarification, or commentary recommendation in detail..."
                     value={formData.message}
@@ -567,7 +620,8 @@ export default function ContactPage() {
 
                 <InteractiveHoverButton
                   type="submit"
-                  text="Submit Feedback"
+                  disabled={isSubmitting}
+                  text={isSubmitting ? "Sending Notification..." : "Submit Feedback"}
                   icon={<Send className="w-4 h-4" />}
                   className="w-full py-4 text-sm font-sans font-bold shadow-lg mt-6"
                 />
