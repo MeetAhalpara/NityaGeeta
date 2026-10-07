@@ -564,7 +564,54 @@ ${safeMessage}
 
     let deliveryStatus = "simulated";
 
-    // Method A: Resend API (Recommended)
+    // Helper for SMTP Delivery (Gmail / Outlook / Custom SMTP)
+    const sendEmailViaSmtp = async (
+      to: string,
+      replyTo: string,
+      subject: string,
+      text: string,
+      htmlContent: string,
+      filesToSend: ProcessedAttachment[] = []
+    ) => {
+      if (!smtpHost || !smtpUser || !smtpPass) {
+        return { ok: false, status: 500, error: "SMTP credentials not configured." };
+      }
+      try {
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: Number(process.env.SMTP_PORT) || 587,
+          secure: process.env.SMTP_SECURE === "true",
+          auth: {
+            user: smtpUser,
+            pass: smtpPass,
+          },
+        });
+
+        await transporter.sendMail({
+          from: `"NityaGeeta" <${smtpUser}>`,
+          to,
+          replyTo,
+          subject,
+          text,
+          html: htmlContent,
+          attachments: filesToSend.map((a) => ({
+            filename: a.filename,
+            content: a.buffer,
+            contentType: a.contentType,
+          })),
+        });
+
+        return { ok: true, status: 200 };
+      } catch (err: unknown) {
+        console.error(`[SMTP Error] Delivery to ${to} failed:`, err);
+        return { ok: false, status: 500, error: String(err) };
+      }
+    };
+
+    let resUser: { ok: boolean; status?: number; error?: string } = { ok: false };
+    let resInternal: { ok: boolean; status?: number; error?: string } = { ok: false };
+
+    // Method A: Resend API
     if (resendApiKey) {
       const resendEndpoint = "https://api.resend.com/emails";
       const sendEmailViaResend = async (
@@ -609,85 +656,56 @@ ${safeMessage}
 
           if (!resp.ok) {
             const errBody = await resp.text();
-            console.error("[Resend Error] Failed sending message. Status:", resp.status, errBody);
+            console.error(`[Resend Error] Delivery to ${to} failed. Status:`, resp.status, errBody);
             return { ok: false, status: resp.status, error: errBody };
           }
           return { ok: true, status: resp.status };
         } catch (err) {
-          console.error("[Resend Network Error]:", err);
+          console.error(`[Resend Network Error] Delivery to ${to} failed:`, err);
           return { ok: false, status: 500, error: String(err) };
         }
       };
 
-      // 1. Send customer receipt (0 attachments so customer inbox is not cluttered)
-      let resUser = await sendEmailViaResend(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
+      // 1. Send customer receipt strictly to trimmedEmail (0 attachments)
+      resUser = await sendEmailViaResend(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
 
-      // If user receipt failed due to sandbox restriction (recipient not registered in sandbox)
-      if (!resUser.ok && resUser.error?.includes("only send testing emails to your own email address")) {
-        console.warn(`[Resend Sandbox] Customer receipt to ${trimmedEmail} redirected to sandbox owner for preview.`);
-        resUser = await sendEmailViaResend(
-          "meetahalpara1@gmail.com",
-          OFFICIAL_EMAIL,
-          `[Customer Receipt Preview for: ${trimmedEmail}] ${userSubject}`,
-          userText,
-          userHtml,
-          []
-        );
-      }
-
-      // 2. Send official desk alert (with ALL attachments and complete dossiers)
-      let resInternal = await sendEmailViaResend(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
-
-      // If desk alert to Morved.NityaGeeta@outlook.com failed due to sandbox restriction
-      if (!resInternal.ok && resInternal.error?.includes("only send testing emails to your own email address")) {
-        console.warn(`[Resend Sandbox] Desk alert to ${OFFICIAL_EMAIL} redirected to sandbox owner.`);
-        resInternal = await sendEmailViaResend(
-          "meetahalpara1@gmail.com",
-          trimmedEmail,
-          `[Desk Alert Copy -> ${OFFICIAL_EMAIL}] ${internalSubject}`,
-          internalText,
-          internalHtml,
-          attachments
-        );
-      }
-
-      // If the desk alert fails completely
-      if (!resInternal.ok) {
-        if (resUser.ok) {
-          return NextResponse.json({
-            success: true,
-            ticketId,
-            deliveryStatus: "user_receipt_dispatched",
-            warning: "Customer receipt delivered successfully. (Desk alert pending custom domain DNS verification on Resend).",
-            timestamp,
-          });
+      // If Resend failed for user receipt, attempt SMTP fallback if configured
+      if (!resUser.ok && smtpHost && smtpUser && smtpPass) {
+        console.warn(`[Contact API] Resend failed for customer (${trimmedEmail}). Attempting SMTP fallback...`);
+        const smtpAttempt = await sendEmailViaSmtp(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
+        if (smtpAttempt.ok) {
+          resUser = { ok: true, status: 200 };
         }
-        return NextResponse.json(
-          { success: false, error: "Failed to dispatch notification to the editorial desk. Please try again later." },
-          { status: 502 }
-        );
       }
 
-      // If internal succeeded but user receipt failed
-      if (resInternal.ok && !resUser.ok) {
-        return NextResponse.json({
-          success: true,
-          ticketId,
-          deliveryStatus: "partial",
-          warning: "Your inquiry was safely delivered to our editorial desk, but the customer acknowledgment email could not be sent.",
-          timestamp,
-        });
+      // 2. Send desk alert strictly to OFFICIAL_EMAIL (with ALL attachments)
+      resInternal = await sendEmailViaResend(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
+
+      // If Resend failed for desk alert, attempt SMTP fallback if configured
+      if (!resInternal.ok && smtpHost && smtpUser && smtpPass) {
+        console.warn(`[Contact API] Resend failed for desk alert (${OFFICIAL_EMAIL}). Attempting SMTP fallback...`);
+        const smtpAttempt = await sendEmailViaSmtp(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
+        if (smtpAttempt.ok) {
+          resInternal = { ok: true, status: 200 };
+        }
       }
 
-      deliveryStatus = "resend_dispatched";
+      deliveryStatus = resUser.ok && resInternal.ok ? "resend_dispatched" : "attempted";
     }
-    // Method B: Twilio SendGrid
+    // Method B: SMTP Direct (when Resend is not configured)
+    else if (smtpHost && smtpUser && smtpPass) {
+      resUser = await sendEmailViaSmtp(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
+      resInternal = await sendEmailViaSmtp(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
+      deliveryStatus = resUser.ok && resInternal.ok ? "smtp_dispatched" : "attempted";
+    }
+    // Method C: Twilio SendGrid
     else if (sendgridApiKey) {
       const sendgridEndpoint = "https://api.sendgrid.com/v3/mail/send";
       const sendEmailViaSendGrid = async (
         to: string,
         subject: string,
         text: string,
+        htmlContent: string,
         filesToSend: ProcessedAttachment[] = []
       ) => {
         try {
@@ -695,7 +713,10 @@ ${safeMessage}
             personalizations: [{ to: [{ email: to }] }],
             from: { email: OFFICIAL_EMAIL, name: "NityaGeeta" },
             subject,
-            content: [{ type: "text/plain", value: text }],
+            content: [
+              { type: "text/plain", value: text },
+              { type: "text/html", value: htmlContent },
+            ],
           };
 
           if (filesToSend.length > 0) {
@@ -718,135 +739,76 @@ ${safeMessage}
 
           if (!resp.ok) {
             const errBody = await resp.text();
-            console.error("[SendGrid Error] Failed sending message. Status:", resp.status, errBody);
+            console.error(`[SendGrid Error] Delivery to ${to} failed. Status:`, resp.status, errBody);
             return { ok: false, status: resp.status, error: errBody };
           }
           return { ok: true, status: resp.status };
         } catch (err) {
-          console.error("[SendGrid Network Error]:", err);
+          console.error(`[SendGrid Network Error] Delivery to ${to} failed:`, err);
           return { ok: false, status: 500, error: String(err) };
         }
       };
 
-      const [resUser, resInternal] = await Promise.all([
-        sendEmailViaSendGrid(trimmedEmail, userSubject, userText),
-        sendEmailViaSendGrid(OFFICIAL_EMAIL, internalSubject, internalText, attachments),
-      ]);
-
-      // If the desk alert fails, report error with HTTP 502
-      if (!resInternal.ok) {
-        return NextResponse.json(
-          { success: false, error: "Failed to dispatch notification to the editorial desk. Please try again later." },
-          { status: 502 }
-        );
-      }
-
-      // If internal succeeded but user receipt failed, return partial delivery status
-      if (resInternal.ok && !resUser.ok) {
-        return NextResponse.json({
-          success: true,
-          ticketId,
-          deliveryStatus: "partial",
-          warning: "Your inquiry was safely delivered to our editorial desk, but the customer acknowledgment email could not be sent.",
-          timestamp,
-        });
-      }
-
-      deliveryStatus = "sendgrid_dispatched";
+      resUser = await sendEmailViaSendGrid(trimmedEmail, userSubject, userText, userHtml, []);
+      resInternal = await sendEmailViaSendGrid(OFFICIAL_EMAIL, internalSubject, internalText, internalHtml, attachments);
+      deliveryStatus = resUser.ok && resInternal.ok ? "sendgrid_dispatched" : "attempted";
     }
-    // Method B: SMTP (Outlook / Office 365 / SES)
-    else if (smtpHost && smtpUser && smtpPass) {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
+
+    // Evaluate Delivery Results
+    if (resUser.ok && resInternal.ok) {
+      return NextResponse.json({
+        success: true,
+        ticketId,
+        deliveryStatus,
+        message: "Inquiry successfully recorded and notifications sent to both parties.",
+        timestamp,
+      });
+    }
+
+    // If Desk Alert succeeded but User receipt failed
+    if (resInternal.ok && !resUser.ok) {
+      return NextResponse.json({
+        success: true,
+        ticketId,
+        deliveryStatus: "partial",
+        warning: `Your inquiry was delivered to our editorial desk (${OFFICIAL_EMAIL}), but confirmation to ${trimmedEmail} could not be sent.`,
+        timestamp,
+      });
+    }
+
+    // If User receipt succeeded but Desk alert failed
+    if (resUser.ok && !resInternal.ok) {
+      return NextResponse.json({
+        success: true,
+        ticketId,
+        deliveryStatus: "user_receipt_dispatched",
+        warning: `Customer receipt delivered to ${trimmedEmail}. Desk alert to ${OFFICIAL_EMAIL} is pending domain verification.`,
+        timestamp,
+      });
+    }
+
+    // Both failed
+    const isSandboxError =
+      resUser.error?.includes("only send testing emails") ||
+      resInternal.error?.includes("only send testing emails");
+
+    if (isSandboxError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Resend Sandbox Restriction: Resend's free tier currently only allows sending from onboarding@resend.dev to its registered account owner (meetahalpara1@gmail.com). To deliver emails to ${trimmedEmail} and ${OFFICIAL_EMAIL}, please either verify a custom domain on resend.com/domains or provide working Gmail SMTP credentials in .env.local.`,
         },
-      });
-
-      // Send to Official NityaGeeta mailbox with attachments
-      let internalOk = false;
-      try {
-        await transporter.sendMail({
-          from: `"NityaGeeta Alert" <${smtpUser}>`,
-          to: OFFICIAL_EMAIL,
-          replyTo: trimmedEmail,
-          subject: internalSubject,
-          text: internalText,
-          html: internalHtml,
-          attachments: attachments.map((a) => ({
-            filename: a.filename,
-            content: a.buffer,
-            contentType: a.contentType,
-          })),
-        });
-        internalOk = true;
-      } catch (err) {
-        console.error("[SMTP Error] Failed to send desk alert:", err);
-        return NextResponse.json(
-          { success: false, error: "Failed to dispatch notification to the editorial desk. Please try again later." },
-          { status: 502 }
-        );
-      }
-
-      // Send Customer Receipt
-      let userOk = false;
-      try {
-        await transporter.sendMail({
-          from: `"NityaGeeta Desk" <${smtpUser}>`,
-          to: trimmedEmail,
-          subject: userSubject,
-          text: userText,
-          html: userHtml,
-        });
-        userOk = true;
-      } catch (err) {
-        console.error("[SMTP Warning] Failed to send customer receipt:", err);
-      }
-
-      if (internalOk && !userOk) {
-        return NextResponse.json({
-          success: true,
-          ticketId,
-          deliveryStatus: "partial",
-          warning: "Your inquiry was safely delivered to our editorial desk, but the customer acknowledgment email could not be sent.",
-          timestamp,
-        });
-      }
-
-      deliveryStatus = "smtp_dispatched";
-    } else {
-      // In production, reject unconfigured mail service rather than silently faking delivery
-      if (process.env.NODE_ENV === "production") {
-        console.error("[CRITICAL] Contact API invoked in production without mail credentials configured.");
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Outbound contact service is temporarily unavailable in production. Please reach out to Morved.NityaGeeta@outlook.com directly.",
-          },
-          { status: 503 }
-        );
-      }
-
-      // Dev & Test Mode Fallback: Server Audit Log
-      console.log("[CONTACT EMAIL DISPATCH - DEV SIMULATION]", {
-        ticket: ticketId,
-        customerEmail: trimmedEmail,
-        officialEmail: OFFICIAL_EMAIL,
-        attachmentsCount: attachments.length,
-      });
-      deliveryStatus = "simulated_success";
+        { status: 403 }
+      );
     }
 
-    return NextResponse.json({
-      success: true,
-      ticketId,
-      deliveryStatus,
-      message: "Inquiry successfully recorded and notifications processed for both parties.",
-      timestamp,
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Email delivery failed: ${resUser.error || resInternal.error || "Unknown mail service error."}`,
+      },
+      { status: 502 }
+    );
   } catch (error: unknown) {
     console.error("[/api/contact] Internal Server Error:", error);
     return NextResponse.json(
