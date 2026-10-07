@@ -44,7 +44,6 @@ import {
   AnimatedSidebarMenuItem,
   AnimatedSidebarMenuButton,
   AnimatedSidebarInset,
-  AnimatedSidebarTrigger,
   AnimatedSidebarRail,
   useAnimatedSidebar,
 } from "@/components/motion/animated-sidebar";
@@ -451,16 +450,6 @@ function NityaGeetaChatSidebar({
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function FloatingSidebarTrigger() {
-  const { open } = useAnimatedSidebar();
-  if (open) return null;
-  return (
-    <div className="absolute top-3 left-3 z-30 pointer-events-auto">
-      <AnimatedSidebarTrigger className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] bg-[#FAF7F2]/40 dark:bg-[#1A1816]/40 backdrop-blur-md border border-[#E6DDD0]/30 dark:border-[#2D2825]/30 hover:bg-[#EFE9DF]/80 dark:hover:bg-[#262320]/80 transition-colors shadow-2xs cursor-pointer" />
     </div>
   );
 }
@@ -1286,9 +1275,6 @@ Start or verify the backend server:
               className="absolute inset-0 bg-cover bg-center opacity-5 dark:opacity-10 pointer-events-none z-0"
               style={{ backgroundImage: "url('/assets/images/ChatBG/BG.png')" }}
             />
-
-            {/* Discreet Floating Sidebar Trigger (Only visible when sidebar is collapsed) */}
-            <FloatingSidebarTrigger />
 
             {/* Discreet Floating Pinned Reflections Button (Only visible when pinned messages exist) */}
             {pinnedMessages.length > 0 && (
