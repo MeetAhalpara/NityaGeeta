@@ -923,7 +923,6 @@ export default function SourcesPage() {
     sloka: "shloka",
     geeta: "gita",
     bhagvat: "bhagavad",
-    univers: "universe",
     universes: "universe"
   }), []);
 
@@ -1587,7 +1586,7 @@ export default function SourcesPage() {
                   type="button"
                   onClick={() => {
                     if (topMatchCategory && activeTab !== "all" && activeTab !== topMatchCategory) {
-                      setActiveTab(topMatchCategory);
+                      setActiveTab(topMatchCategory as "geeta" | "veducation");
                     }
                     setExpandedSourceId(topMatch.id);
                     setTimeout(() => {
