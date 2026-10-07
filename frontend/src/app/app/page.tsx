@@ -1621,8 +1621,11 @@ Start or verify the backend server:
 
             {/* Fixed Bottom Input Bar (Disabled when loading) */}
 
-            <div className="relative z-10 w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 pb-6 pt-2 flex flex-col gap-3">
+            <div className="relative z-10 w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 pb-3 pt-2 flex flex-col gap-1.5 items-center">
               {renderInputBox(false)}
+              <p className="text-[11px] sm:text-xs text-center text-[#8C7B70] dark:text-[#8E8E8E] leading-normal select-none px-2">
+                NityaGeeta may make mistakes. Canonical scripture sources are authentic and faultless; any inaccuracies stem from AI models currently in active beta testing during ongoing development, not the sacred sources.
+              </p>
             </div>
 
             {/* PINNED MESSAGES SLIDE-OVER DRAWER */}
