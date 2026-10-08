@@ -9,7 +9,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # =============================================================================
-# Stage 2: Production builder
+# Stage 2: Next.js Production Builder
 # =============================================================================
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -24,7 +24,7 @@ ENV NODE_ENV=production
 RUN npm run build
 
 # =============================================================================
-# Stage 3: Minimal unprivileged runner (Ultra-lightweight ~120MB)
+# Stage 3: Minimal Standalone Production Runner (Ultra-lightweight ~120MB)
 # =============================================================================
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -34,14 +34,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Security: Create non-root system user and group (UID 1001)
+# Security: Run as unprivileged non-root user (UID 1001)
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy static assets and public directory
+# Copy static assets and standalone bundle with non-root ownership
 COPY --from=builder /app/public ./public
-
-# Copy standalone output and static assets with non-root ownership
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 

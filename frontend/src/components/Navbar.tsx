@@ -6,14 +6,21 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronRight, ExternalLink, User, LogOut } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import { useTheme } from "next-themes";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 
 export function Navbar({ activePage = "" }: { activePage?: string }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Pre-load all primary routes in background for instant 0ms page switching
   useEffect(() => {
@@ -121,7 +128,10 @@ export function Navbar({ activePage = "" }: { activePage?: string }) {
 
         {/* RIGHT SIDE: Animated Theme Toggle, Auth buttons */}
         <div className="flex items-center space-x-3 font-sans">
-          <AnimatedThemeToggler />
+          <AnimatedThemeToggler
+            theme={mounted ? (resolvedTheme === "dark" ? "dark" : "light") : "light"}
+            onThemeChange={(newTheme) => setTheme(newTheme)}
+          />
 
           {session?.user ? (
             /* ── Authenticated: Profile Button with Dropdown ── */

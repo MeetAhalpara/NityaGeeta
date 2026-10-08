@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Send,
@@ -32,7 +33,6 @@ import {
   Bookmark,
   Check,
 } from "lucide-react";
-import Link from "next/link";
 import { RadialContextMenu, RadialMenuItem } from "@/components/ui/radial-context-menu";
 import {
   AnimatedSidebarProvider,
@@ -44,7 +44,6 @@ import {
   AnimatedSidebarMenuItem,
   AnimatedSidebarMenuButton,
   AnimatedSidebarInset,
-  AnimatedSidebarTrigger,
   AnimatedSidebarRail,
   useAnimatedSidebar,
 } from "@/components/motion/animated-sidebar";
@@ -55,10 +54,8 @@ import { FormattedChatMessage } from "@/components/ui/formatted-chat-message";
 import { AgentActivity, type AgentActivityItem } from "@/components/agents/agent-activity";
 import { Citations, Citation } from "@/components/agents/citations";
 import { EmptyState } from "@/components/ui/empty-state";
-import { TopicBreadcrumb } from "@/components/agents/topic-breadcrumb";
 import { TangentAccordion, type TangentSummaryItem } from "@/components/agents/tangent-accordion";
-
-
+import { SteveJobsFollowUp } from "@/components/agents/steve-jobs-followup";
 
 interface CitationItem {
   type?: string;
@@ -102,6 +99,16 @@ interface Message {
   candidates?: CandidateItem[];
   citations?: CitationItem[];
   web_citations?: CitationItem[];
+  steve_jobs_followup?: {
+    resonance_check: string;
+    pathways: Array<{
+      id: string;
+      icon: string;
+      label: string;
+      prompt: string;
+      description: string;
+    }>;
+  };
   isPinned?: boolean;
   isStreaming?: boolean;
 }
@@ -165,6 +172,8 @@ function NityaGeetaChatSidebar({
   imageError,
   setImageError,
   router,
+  pinnedMessagesCount = 0,
+  onOpenPinnedDrawer,
 }: {
   conversations: ConversationSession[];
   activeSessionId: string | null;
@@ -182,6 +191,8 @@ function NityaGeetaChatSidebar({
   imageError: boolean;
   setImageError: (err: boolean) => void;
   router: any;
+  pinnedMessagesCount?: number;
+  onOpenPinnedDrawer?: () => void;
 }) {
   const { open, setOpen, toggleSidebar } = useAnimatedSidebar();
   const [searchQuery, setSearchQuery] = useState("");
@@ -250,7 +261,7 @@ function NityaGeetaChatSidebar({
       </div>
 
       {/* ── PERSISTENT NEW DIALOGUE BUTTON (Locked Coordinates in Both States) ── */}
-      <div className="px-2.5 pt-2 shrink-0 w-full overflow-hidden">
+      <div className="px-2.5 pt-2 shrink-0 w-full overflow-hidden space-y-1.5">
         <button
           onClick={createNewDialogue}
           disabled={loading}
@@ -264,6 +275,24 @@ function NityaGeetaChatSidebar({
             New Dialogue
           </span>
         </button>
+
+        {pinnedMessagesCount > 0 && onOpenPinnedDrawer && (
+          <button
+            onClick={onOpenPinnedDrawer}
+            title={`Pinned Reflections (${pinnedMessagesCount})`}
+            className="w-full h-9 rounded-xl bg-[#C25E38]/10 dark:bg-[#E06D43]/15 hover:bg-[#C25E38]/20 dark:hover:bg-[#E06D43]/25 text-[#C25E38] dark:text-[#E06D43] transition-colors shadow-2xs cursor-pointer border border-[#C25E38]/20 flex items-center overflow-hidden"
+          >
+            <div className="w-[34px] h-full shrink-0 flex items-center justify-center">
+              <Bookmark className="w-4 h-4 fill-current text-[#C25E38] dark:text-[#E06D43]" />
+            </div>
+            <span className="group-data-[state=collapsed]/sidebar:hidden flex-1 text-left text-xs font-semibold truncate pr-2">
+              Pinned Reflections
+            </span>
+            <span className="group-data-[state=collapsed]/sidebar:hidden mr-2.5 text-[10px] px-1.5 py-0.5 rounded-full bg-[#C25E38]/20 dark:bg-[#E06D43]/30 font-bold shrink-0">
+              {pinnedMessagesCount}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* ── COLLAPSED MIDDLE: History Button Tightly Stacked Below New Dialogue ── */}
@@ -312,10 +341,10 @@ function NityaGeetaChatSidebar({
 
         {/* Recents Section */}
         <div>
-          <div className="px-1.5 pb-1 flex items-center justify-between text-[11px] font-semibold text-[#8C7B70] dark:text-[#8E8E8E]">
+          <div className="px-1.5 pb-1 flex items-center justify-between text-xs font-semibold text-[#8C7B70] dark:text-[#8E8E8E]">
             <span className="tracking-wide">Recents</span>
             {filteredConversations.length > 0 && (
-              <span className="text-[10px] font-mono opacity-60">{filteredConversations.length}</span>
+              <span className="text-xs font-mono opacity-60">{filteredConversations.length}</span>
             )}
           </div>
 
@@ -346,7 +375,7 @@ function NityaGeetaChatSidebar({
               <div className="space-y-2.5 mt-1">
                 {groups.map(({ label, items }) => (
                   <div key={label}>
-                    <p className="px-1.5 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-[#8C7B70]/60 dark:text-[#8E8E8E]/60">
+                    <p className="px-1.5 pt-1 pb-0.5 text-xs font-bold uppercase tracking-wider text-[#8C7B70]/60 dark:text-[#8E8E8E]/60">
                       {label}
                     </p>
                     <div className="space-y-0.5">
@@ -397,7 +426,7 @@ function NityaGeetaChatSidebar({
                 className="size-7 rounded-full object-cover shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all"
               />
             ) : (
-              <div className="size-7 rounded-full bg-[#525E62] dark:bg-[#3F484A] flex items-center justify-center text-white font-medium text-[11px] shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all">
+              <div className="size-7 rounded-full bg-[#525E62] dark:bg-[#3F484A] flex items-center justify-center text-white font-medium text-xs shrink-0 select-none shadow-sm group-hover:ring-2 group-hover:ring-[#C25E38]/50 transition-all">
                 {userInitial}
               </div>
             )}
@@ -405,7 +434,7 @@ function NityaGeetaChatSidebar({
               <div className="truncate text-xs font-semibold text-[#2D2622] dark:text-[#ECECEC] group-hover:text-[#C25E38] dark:group-hover:text-[#E06D43] transition-colors">
                 {userName}
               </div>
-              <div className="truncate text-[10px] text-[#8C7B70] dark:text-[#8E8E8E]">
+              <div className="truncate text-xs text-[#8C7B70] dark:text-[#8E8E8E]">
                 {session?.user?.email ? "Seeker Account" : "Free"}
               </div>
             </div>
@@ -527,6 +556,12 @@ export default function AppMainPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages]);
 
+  // Security: Preview bypass is strictly gated to development environments
+  const isPreview =
+    process.env.NODE_ENV === "development" &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("preview") === "true";
+
   // On mount + pathname change: restore session from URL, or reset to blank
   useEffect(() => {
     const match = pathname?.match(/\/app\/search\/([a-zA-Z0-9_-]+)/);
@@ -555,9 +590,33 @@ export default function AppMainPage() {
         setActiveSessionId(null);
         setMessages([]);
         if (typeof window !== "undefined") {
-          const urlParams = new URLSearchParams(window.location.search);
-          const initialQ = urlParams.get("q") || urlParams.get("prompt") || "";
-          setQuery(initialQ);
+          let initialQ = "";
+          try {
+            const pendingQuery = sessionStorage.getItem("nitya_pending_query");
+            if (pendingQuery) {
+              initialQ = pendingQuery;
+              // Clear stored value only after the authenticated composer has received it
+              if (status === "authenticated" || isPreview) {
+                sessionStorage.removeItem("nitya_pending_query");
+              }
+            }
+          } catch {}
+
+          if (!initialQ) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawParam = urlParams.get("q") || urlParams.get("prompt") || "";
+            if (rawParam) {
+              // Bounds-check and sanitize input against injection
+              initialQ = rawParam.slice(0, 1000).replace(/[<>]/g, "").trim();
+              if (status === "authenticated" || isPreview) {
+                // Clean address bar immediately so sensitive prompts do not linger in browser URL bar
+                window.history.replaceState({}, document.title, window.location.pathname);
+              }
+            }
+          }
+          if (status === "authenticated" || isPreview) {
+            setQuery(initialQ);
+          }
         } else {
           setQuery("");
         }
@@ -567,7 +626,31 @@ export default function AppMainPage() {
       console.error("Failed to load conversation history:", e);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, status]);
+
+  // Retain and hydrate pending dilemma query once user becomes authenticated
+  useEffect(() => {
+    if ((status === "authenticated" || isPreview) && !activeSessionId) {
+      if (typeof window !== "undefined") {
+        try {
+          const pending = sessionStorage.getItem("nitya_pending_query");
+          if (pending) {
+            setQuery(pending);
+            sessionStorage.removeItem("nitya_pending_query");
+            return;
+          }
+        } catch {}
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawParam = urlParams.get("q") || urlParams.get("prompt") || "";
+        if (rawParam) {
+          const sanitized = rawParam.slice(0, 1000).replace(/[<>]/g, "").trim();
+          setQuery(sanitized);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+    }
+  }, [status, isPreview, activeSessionId]);
 
   useEffect(() => {
     router.prefetch("/");
@@ -576,15 +659,17 @@ export default function AppMainPage() {
     router.prefetch("/signup");
   }, [router]);
 
-  // Security: Preview bypass is strictly gated to development environments
-  const isPreview =
-    process.env.NODE_ENV === "development" &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("preview") === "true";
-
   useEffect(() => {
     if (status === "unauthenticated" && !isPreview) {
-      router.push("/signup");
+      let returnUrl = "/app";
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawParam = urlParams.get("prompt") || urlParams.get("q");
+        if (rawParam) {
+          returnUrl = `/app?prompt=${encodeURIComponent(rawParam)}`;
+        }
+      }
+      router.push(`/signup?returnTo=${encodeURIComponent(returnUrl)}`);
     }
   }, [status, router, isPreview]);
 
@@ -765,6 +850,7 @@ export default function AppMainPage() {
           let streamDone = false;
           let accumulatedText = "";
           let streamCitations: CitationItem[] = [];
+          let streamFollowup: any = null;
           const streamingBotId = (Date.now() + 1).toString();
 
           // Optimistically append streaming message container
@@ -805,6 +891,18 @@ export default function AppMainPage() {
                 } catch {
                   // Keep citations intact
                 }
+              } else if (eventName === "followup" && rawData) {
+                try {
+                  const parsed = JSON.parse(rawData);
+                  streamFollowup = parsed;
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === streamingBotId ? { ...m, steve_jobs_followup: streamFollowup } : m
+                    )
+                  );
+                } catch {
+                  // Keep followup intact
+                }
               } else if (eventName === "token" && rawData) {
                 try {
                   const parsed = JSON.parse(rawData);
@@ -834,6 +932,7 @@ export default function AppMainPage() {
               sender: "bot",
               text: cleanMarkdownText(accumulatedText),
               citations: streamCitations,
+              steve_jobs_followup: streamFollowup,
               isStreaming: false,
             };
             const finalMessages = [...nextMessages, completedBotMsg];
@@ -872,6 +971,7 @@ export default function AppMainPage() {
             scorecards: data.scorecards || [],
             candidates: data.candidates || [],
             citations: data.citations || [],
+            steve_jobs_followup: data.steve_jobs_followup,
             isStreaming: false,
           };
           const finalMessages = [...nextMessages, botMsg];
@@ -938,8 +1038,8 @@ Start or verify the backend server:
     }
   };
 
-  const userName = session?.user?.name || (isPreview ? "Meet Ahalpara" : "User");
-  const userInitial = session?.user?.name ? userName.charAt(0).toUpperCase() : "ME";
+  const userName = session?.user?.name || (isPreview ? "Seeker" : "User");
+  const userInitial = session?.user?.name ? userName.charAt(0).toUpperCase() : "S";
   // ID of the most recent bot message — only this one gets the animate-in effect
   const latestBotId = [...messages].reverse().find(m => m.sender === "bot")?.id ?? null;
 
@@ -1016,6 +1116,16 @@ Start or verify the backend server:
       icon: theme === "dark" ? Sun : Moon,
       action: () => setTheme(theme === "dark" ? "light" : "dark"),
     },
+    ...(pinnedMessages.length > 0
+      ? [
+          {
+            id: "pinned",
+            label: `Pinned (${pinnedMessages.length})`,
+            icon: Bookmark,
+            action: () => setShowPinnedDrawer(true),
+          },
+        ]
+      : []),
     {
       id: "home",
       label: "Go Home",
@@ -1071,6 +1181,8 @@ Start or verify the backend server:
             imageError={imageError}
             setImageError={setImageError}
             router={router}
+            pinnedMessagesCount={pinnedMessages.length}
+            onOpenPinnedDrawer={() => setShowPinnedDrawer(true)}
           />
           <AnimatedSidebarRail />
         </AnimatedSidebar>
@@ -1092,7 +1204,7 @@ Start or verify the backend server:
                 className="fixed bottom-16 left-3 md:left-4 z-[9999] min-w-[220px] rounded-2xl bg-[#FAF7F2]/95 dark:bg-[#1f1d1b]/95 backdrop-blur-2xl border border-[#DFD5C6] dark:border-[#38332E] shadow-[0_16px_48px_-12px_rgba(0,0,0,0.45)] p-2 space-y-1 text-xs overflow-hidden"
               >
                 <div className="px-3 py-2.5 border-b border-[#E6DDD0]/60 dark:border-[#38332E]/60 mb-1">
-                  <p className="font-bold text-[#2D2622] dark:text-[#F5F2EB] truncate text-sm">{userName || "Meet Ahalpara"}</p>
+                  <p className="font-bold text-[#2D2622] dark:text-[#F5F2EB] truncate text-sm">{userName || "Seeker"}</p>
                   <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] truncate font-mono">{session?.user?.email || "Seeker Account"}</p>
                 </div>
 
@@ -1164,44 +1276,23 @@ Start or verify the backend server:
               style={{ backgroundImage: "url('/assets/images/ChatBG/BG.png')" }}
             />
 
-            {/* TOP APPLE-STYLE MINIMALIST HEADER */}
-            <header className="relative z-20 w-full flex items-center justify-between px-4 sm:px-6 h-14 border-b border-[#E6DDD0]/40 dark:border-[#2D2825]/40 bg-[#FAF7F2]/80 dark:bg-[#1A1816]/80 backdrop-blur-xl shrink-0">
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <AnimatedSidebarTrigger className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#262320]/60 transition-colors shrink-0" />
-                <TopicBreadcrumb
-                  mainTopic={activeTopicName}
-                  activeTangent={activeTangent}
-                  onPopTangent={handleReturnToMain}
-                  className="max-w-xs sm:max-w-md border-none bg-transparent dark:bg-transparent px-1 py-0 shadow-none"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                {pinnedMessages.length > 0 && (
-                  <button
-                    onClick={() => setShowPinnedDrawer(true)}
-                    title="View pinned reflections"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#C25E38]/10 dark:bg-[#E06D43]/15 text-[#C25E38] dark:text-[#E06D43] border border-[#C25E38]/20 hover:bg-[#C25E38]/20 transition-all cursor-pointer"
-                  >
-                    <Bookmark className="w-3.5 h-3.5 fill-[#C25E38] dark:fill-[#E06D43]" />
-                    <span>{pinnedMessages.length} Pinned</span>
-                  </button>
-                )}
+            {/* Discreet Floating Pinned Reflections Button (Only visible when pinned messages exist) */}
+            {pinnedMessages.length > 0 && (
+              <div className="absolute top-3 right-4 z-30 pointer-events-auto">
                 <button
-                  onClick={() => createNewDialogue()}
-                  title="Start fresh dialogue"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#5C4F45] dark:text-[#D4C7B8] hover:text-[#C25E38] dark:hover:text-[#E06D43] hover:bg-[#EFE9DF]/60 dark:hover:bg-[#262320]/60 transition-colors cursor-pointer"
+                  onClick={() => setShowPinnedDrawer(true)}
+                  title="View pinned reflections"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#FAF7F2]/60 dark:bg-[#1A1816]/60 backdrop-blur-md text-[#C25E38] dark:text-[#E06D43] border border-[#E6DDD0]/40 dark:border-[#2D2825]/40 hover:bg-[#EFE9DF]/80 dark:hover:bg-[#262320]/80 transition-colors shadow-2xs cursor-pointer"
                 >
-                  <SquarePen className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">New Dialogue</span>
+                  <Bookmark className="w-3.5 h-3.5 fill-current" />
+                  <span>{pinnedMessages.length} Pinned</span>
                 </button>
-                <AnimatedThemeToggler />
               </div>
-            </header>
+            )}
 
-            {/* Full-width Scrollable Container: Mouse scrolling works anywhere on the window */}
+            {/* Full-width Scrollable Container: Inset below floating dialogue controls */}
             <div className="relative z-10 flex-1 overflow-y-auto scrollbar-hide w-full h-full">
-              <div className="px-4 sm:px-8 py-6 space-y-6 flex flex-col w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto min-h-full">
+              <div className="px-4 sm:px-8 pt-14 sm:pt-16 pb-6 space-y-6 flex flex-col w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto min-h-full">
 
                 {/* SŪTRA COLLAPSED TANGENTS ACCORDION */}
                 {collapsedTangents.length > 0 && (
@@ -1300,7 +1391,7 @@ Start or verify the backend server:
                                             }`}
                                           >
                                             <span>{cand.model_name}</span>
-                                            <span className="text-[10px] opacity-75">({cand.score ?? msg.scorecards?.find(s => s.model_name === cand.model_name)?.score ?? 90}/100)</span>
+                                            <span className="text-xs opacity-75">({cand.score ?? msg.scorecards?.find(s => s.model_name === cand.model_name)?.score ?? 90}/100)</span>
                                           </button>
                                         );
                                       })}
@@ -1312,7 +1403,7 @@ Start or verify the backend server:
                                           <span className="font-bold text-[#C25E38] dark:text-[#E06D43]">
                                             {msg.candidates[activeCandidateTab].model_name} Full Response
                                           </span>
-                                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] font-bold">
+                                          <span className="text-xs px-2.5 py-0.5 rounded bg-[#C25E38]/10 text-[#C25E38] dark:text-[#E06D43] font-bold">
                                             Score: {msg.candidates[activeCandidateTab].score}/100
                                           </span>
                                         </div>
@@ -1425,7 +1516,17 @@ Start or verify the backend server:
                           )}
                         </motion.div>
 
-
+                        {/* THE STEVE JOBS FOLLOW-UP PATHWAYS */}
+                        {msg.steve_jobs_followup && !msg.isStreaming && (
+                          <SteveJobsFollowUp
+                            resonanceCheck={msg.steve_jobs_followup.resonance_check}
+                            pathways={msg.steve_jobs_followup.pathways}
+                            onSelectPathway={(prompt) => {
+                              setQuery(prompt);
+                              handleSend(prompt);
+                            }}
+                          />
+                        )}
 
                         {/* CITATIONS & SOURCES DRAWER */}
                         {msg.citations && msg.citations.length > 0 && (
@@ -1520,8 +1621,20 @@ Start or verify the backend server:
 
             {/* Fixed Bottom Input Bar (Disabled when loading) */}
 
-            <div className="relative z-10 w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 pb-6 pt-2 flex flex-col gap-3">
+            <div className="relative z-10 w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 pb-3 pt-2 flex flex-col gap-1.5 items-center">
               {renderInputBox(false)}
+              <p className="text-[11px] sm:text-xs text-center text-[#8C7B70] dark:text-[#8E8E8E] select-none px-2 tracking-tight">
+                NityaGeeta is in beta and can make mistakes. Please verify with{" "}
+                <Link
+                  href="/sources"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-colors cursor-pointer"
+                >
+                  provided scripture sources
+                </Link>
+                .
+              </p>
             </div>
 
             {/* PINNED MESSAGES SLIDE-OVER DRAWER */}

@@ -1,11 +1,11 @@
-fastapi>=0.142.0
+fastapi>=0.142.2
 uvicorn[standard]>=0.54.0
-pydantic>=2.6.0
+pydantic>=2.13.5
 groq>=1.7.0
-weaviate-client>=4.5.0
+weaviate-client>=4.23.1
 python-dotenv>=1.2.3
 httpx>=0.28.1
-psycopg2-binary>=2.9.9
+psycopg2-binary>=2.9.13
 redis>=8.1.0
 requests>=2.34.2
 passlib[bcrypt]>=1.7.4

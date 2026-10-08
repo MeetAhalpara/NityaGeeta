@@ -466,7 +466,7 @@ export default function SourcesPage() {
         "sacred spiritual narratives", "sacred narratives", "itihasa", "pure fiction", "fiction"
       ],
       chapters: [
-        { num: 1, title: "Basics of Soul (Atma, Jeev)", pages: "1–18", description: "Who are we, nature of Atman, gross body vs subtle body, and spiritual consciousness.", keywords: ["soul", "atma", "atman", "jeev", "jiva", "subtle body", "gross body", "death", "consciousness"] },
+        { num: 1, title: "Basics of Soul (Atma, Jeev)", pages: "1–18", description: "Nature of the Self (Atman), individual soul (Jeeva), gross body vs subtle body, and spiritual consciousness.", keywords: ["soul", "atma", "atman", "jeev", "jiva", "subtle body", "gross body", "death", "consciousness"] },
         { num: 2, title: "Basics of God (Ishwar, Parmatma, Bhagavan)", pages: "19–39", description: "The 3 aspects of Supreme Reality (Brahman, Paramatma, Bhagavan) and divine reciprocation.", keywords: ["god", "ishwar", "parmatma", "bhagavan", "supreme", "krishna", "vishnu", "brahman"] },
         { num: 3, title: "Basics of Demigods (Devi Devta)", pages: "40–66", description: "Ganas, 12 Adityas, 8 Vasus, 11 Rudras, Shiva, Indra, and universal administration.", keywords: ["demigods", "devi devta", "devas", "shiva", "indra", "rudras", "adityas", "vasus"] },
         { num: 4, title: "Basics of Nature (Prakriti)", pages: "67–68", description: "Material nature, 3 Gunas (Sattva, Rajas, Tamas), and 24 cosmic elements.", keywords: ["nature", "prakriti", "gunas", "material world", "sattva", "rajas", "tamas"] },
@@ -515,7 +515,6 @@ export default function SourcesPage() {
       tradition: "Classical Ayurvedic & Smriti Daily Discipline",
       tagline: "Daily Shastric Discipline",
       desc: "Step-by-step actionable guide on traditional daily routines (Dincharya), morning Brahmamuhurta habits, energy conservation, and mental purity.",
-      pdfUrl: "https://storage.googleapis.com/nityageeta-library/Vedic%20Dincharya.pdf",
       storeUrl: "https://www.amazon.in/dp/9359164534?ref=cm_sw_r_ffobk_cso_cp_mwn_dp_S1PZD5B2XQX1CZJSQ64R&ref_=cm_sw_r_ffobk_cso_cp_mwn_dp_S1PZD5B2XQX1CZJSQ64R&social_share=cm_sw_r_ffobk_cso_cp_mwn_dp_S1PZD5B2XQX1CZJSQ64R&bestFormat=true",
       totalVerses: "Daily Routine Manual",
       score: 94,
@@ -579,7 +578,6 @@ export default function SourcesPage() {
       tradition: "Patanjali Yoga Sutra Self-Mastery & Focus",
       tagline: "Self-Mastery Action Manual",
       desc: "Practical action manual focusing on mental discipline, energy conservation, focus mastery, and overcoming compulsive digital distractions.",
-      pdfUrl: "https://storage.googleapis.com/nityageeta-library/Brahmacharya-the-Ultimate-Action-Book-for-Brahmacharya.pdf",
       storeUrl: "https://www.veducation.world/store/Brahmcharya-Hindi",
       totalVerses: "Action Guide",
       score: 92,
@@ -866,7 +864,7 @@ export default function SourcesPage() {
       devanagari: "श्रद्धात्रयविभागयोग",
       verses: 28,
       theme: "The Threefold Faith & Diet",
-      focus: "How Sattva, Rajas, and Tamas influence our faith, food, charity, and austerity.",
+      focus: "How Sattva, Rajas, and Tamas influence faith, diet, charity, and austerity.",
       keywords: ["chapter 17", "chapter 17", "shraddhatraya vibhaga yoga", "threefold faith", "diet", "sattvic food", "rajasic food", "tamasic food", "charity", "austerity", "om tat sat", "food habits", "faith"]
     },
     {
@@ -924,7 +922,30 @@ export default function SourcesPage() {
     shlok: "shloka",
     sloka: "shloka",
     geeta: "gita",
-    bhagvat: "bhagavad"
+    bhagvat: "bhagavad",
+    universes: "universe"
+  }), []);
+
+  // Semantic concept synonym dictionary for multi-concept natural queries
+  const SYNONYM_MAP: Record<string, string[]> = useMemo(() => ({
+    time: ["kaal", "yuga", "kalpa", "cycles", "brahma", "pralaya"],
+    kaal: ["time", "cosmic time", "yugas", "kalpa"],
+    universe: ["brahmand", "cosmos", "cosmic", "creation", "lokas", "planetary", "space", "dimensions"],
+    univers: ["universe", "brahmand", "cosmos", "cosmic", "creation", "lokas", "planetary", "space", "dimensions"],
+    cosmos: ["universe", "brahmand", "cosmology", "lokas", "planetary", "space", "creation", "dimensions"],
+    cosmic: ["cosmos", "universe", "brahmand", "kaal", "time", "cycles", "dimensions"],
+    routine: ["dincharya", "brahmamuhurta", "habits", "daily", "ayurveda"],
+    dincharya: ["routine", "daily", "brahmamuhurta", "habits", "discipline"],
+    discipline: ["dincharya", "brahmacharya", "routine", "focus", "willpower"],
+    focus: ["brahmacharya", "mind", "concentration", "meditation", "willpower"],
+    brahmacharya: ["focus", "willpower", "discipline", "mind control", "energy"],
+    duty: ["dharma", "karma", "swadharma", "action"],
+    dharma: ["duty", "righteousness", "ethics", "purushartha", "swadharma"],
+    karma: ["action", "destiny", "duty", "reincarnation", "deeds"],
+    mind: ["manas", "buddhi", "chitta", "control", "focus", "meditation", "dhyana"],
+    meditation: ["dhyana", "mind", "focus", "yoga", "stillness"],
+    grammar: ["linguistics", "roots", "dhatu", "interlinear", "sargeant", "parsing"],
+    boss: ["sanatan", "sanskriti", "basics", "foundations", "vedas", "purusharthas", "samskaras"]
   }), []);
 
   // Multi-tier semantic and fuzzy scoring function
@@ -932,28 +953,27 @@ export default function SourcesPage() {
     query: string,
     corpus: string,
     keywords: string[],
-    title: string
+    title: string,
+    chapterTitles: string[] = []
   ): number => {
     if (!query.trim()) return 1;
 
     const rawQuery = query.toLowerCase().trim();
     const collapsedQuery = rawQuery.replace(/[^a-z0-9]/g, "");
     const collapsedTitle = title.toLowerCase().replace(/[^a-z0-9]/g, "");
-    const collapsedKeywords = keywords.map(k => k.toLowerCase().replace(/[^a-z0-9]/g, "")).join(" ");
-    const collapsedCorpus = corpus.toLowerCase().replace(/[^a-z0-9]/g, "");
 
     let score = 0;
 
     // 1. Direct Acronym / Title Collapsed Match (e.g. "boss" matches "b.o.s.s.")
     if (collapsedQuery.length >= 2) {
-      if (collapsedTitle === collapsedQuery) score += 150;
-      else if (collapsedTitle.includes(collapsedQuery)) score += 90;
-      else if (collapsedKeywords.includes(collapsedQuery)) score += 80;
-      else if (collapsedCorpus.includes(collapsedQuery)) score += 50;
+      if (collapsedTitle === collapsedQuery) score += 180;
+      else if (collapsedTitle.includes(collapsedQuery)) score += 110;
+      else if (keywords.some(k => k.toLowerCase().replace(/[^a-z0-9]/g, "") === collapsedQuery)) score += 90;
     }
 
-    // 2. Exact phrase match in raw corpus or keywords
-    if (corpus.toLowerCase().includes(rawQuery)) {
+    // 2. Exact phrase match in corpus for multi-word queries
+    const isMultiWord = rawQuery.includes(" ");
+    if (isMultiWord && corpus.toLowerCase().includes(rawQuery)) {
       score += 70;
     }
 
@@ -969,24 +989,52 @@ export default function SourcesPage() {
       const cleanToken = token.replace(/[^a-z0-9]/g, "");
       if (!cleanToken) return;
       const normalizedToken = TYPO_MAP[cleanToken] || cleanToken;
+      const synonyms = SYNONYM_MAP[cleanToken] || SYNONYM_MAP[normalizedToken] || [];
 
       let tokenMatched = false;
 
+      // Word boundary regex for cleanToken and normalizedToken
+      const tokenRegex = new RegExp(`(^|[^a-z0-9])(${cleanToken}|${normalizedToken})([^a-z0-9]|$)`, "i");
+
       // Check title
-      if (title.toLowerCase().includes(token) || title.toLowerCase().includes(normalizedToken) || collapsedTitle.includes(cleanToken) || collapsedTitle.includes(normalizedToken)) {
-        score += 40;
+      if (tokenRegex.test(title) || collapsedTitle.includes(cleanToken) || collapsedTitle.includes(normalizedToken)) {
+        score += 50;
+        tokenMatched = true;
+      }
+
+      // Check dedicated chapter titles (exceptional evidence that this book specifically covers the topic)
+      const chMatch = chapterTitles.some(ct => {
+        const ctLower = ct.toLowerCase();
+        return tokenRegex.test(ctLower) ||
+               ctLower.includes(token) || 
+               ctLower.includes(normalizedToken) ||
+               synonyms.some(syn => ctLower.includes(syn));
+      });
+      if (chMatch) {
+        score += 65;
         tokenMatched = true;
       }
 
       // Check keywords array
-      const kwMatch = keywords.some(k => k.toLowerCase().includes(token) || k.toLowerCase().replace(/[^a-z0-9]/g, "").includes(cleanToken));
+      const kwMatch = keywords.some(k => {
+        const kLower = k.toLowerCase();
+        return tokenRegex.test(kLower) ||
+               kLower.includes(token) || 
+               kLower.replace(/[^a-z0-9]/g, "").includes(cleanToken) ||
+               synonyms.some(syn => kLower.includes(syn));
+      });
       if (kwMatch) {
-        score += 35;
+        score += 40;
         tokenMatched = true;
       }
 
-      // Check overall corpus
-      if (corpus.toLowerCase().includes(token) || collapsedCorpus.includes(cleanToken)) {
+      // Check overall corpus with word boundaries (avoids partial substrings like "univers" matching "universal" blindly)
+      const corpusMatch = tokenRegex.test(corpus) ||
+        synonyms.some(syn => {
+          const synRegex = new RegExp(`(^|[^a-z0-9])${syn}([^a-z0-9]|$)`, "i");
+          return synRegex.test(corpus);
+        });
+      if (corpusMatch) {
         score += 15;
         tokenMatched = true;
       }
@@ -994,16 +1042,29 @@ export default function SourcesPage() {
       if (tokenMatched) matchedTokensCount++;
     });
 
-    // Multi-token synergy boost when multiple concepts match simultaneously
-    if (tokensToUse.length > 1 && matchedTokensCount >= Math.ceil(tokensToUse.length * 0.5)) {
-      score += matchedTokensCount * 25;
+    // Multi-concept density guard:
+    // If the seeker typed 3+ distinct concepts, discard items that only accidentally matched 1 word
+    if (tokensToUse.length >= 3 && matchedTokensCount < 2 && !corpus.toLowerCase().includes(rawQuery) && !title.toLowerCase().includes(rawQuery)) {
+      return 0;
+    }
+    if (tokensToUse.length === 2 && matchedTokensCount < 1 && !corpus.toLowerCase().includes(rawQuery)) {
+      return 0;
+    }
+
+    // Synergy boost when all or most concepts match simultaneously
+    if (tokensToUse.length > 1) {
+      if (matchedTokensCount === tokensToUse.length) {
+        score += matchedTokensCount * 70; // 100% conceptual match
+      } else if (matchedTokensCount >= Math.ceil(tokensToUse.length * 0.5)) {
+        score += matchedTokensCount * 30;
+      }
     }
 
     return score;
   };
 
   // Unified Semantic Search Engine
-  const { filteredGeeta, filteredVeducation, filteredChapters, totalMatches, isSearchActive } = useMemo(() => {
+  const { filteredGeeta, filteredVeducation, filteredChapters, totalMatches, isSearchActive, showVeducationFirst, topMatch, topMatchCategory } = useMemo(() => {
     const rawQ = searchQuery.trim();
     if (!rawQ) {
       return {
@@ -1011,31 +1072,37 @@ export default function SourcesPage() {
         filteredVeducation: veducationSeries,
         filteredChapters: chaptersIndex,
         totalMatches: geetaEditions.length + veducationSeries.length + chaptersIndex.length,
-        isSearchActive: false
+        isSearchActive: false,
+        showVeducationFirst: false,
+        topMatch: null,
+        topMatchCategory: null
       };
     }
 
     const scoredGeeta = geetaEditions
       .map((b) => {
+        const chapterTitles = (b.chapters || []).map((c: any) => c.title);
         const chaptersText = (b.chapters || []).map((c: any) => `${c.title} ${c.description} ${(c.keywords || []).join(" ")}`).join(" ");
         const corpus = `${b.title} ${b.author} ${b.desc} ${b.tradition} ${b.era} ${b.tagline} ${b.summary} ${b.whyChosen} ${b.tierBadge} ${b.tierLabel} ${b.metricName} ${(b.keywords || []).join(" ")} ${chaptersText}`;
-        const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title);
+        const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title, chapterTitles);
         return { item: b, score };
       })
-      .filter((res) => res.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((res) => res.item);
+      .filter((res) => res.score >= 40)
+      .sort((a, b) => b.score - a.score);
+
+    const isBundleSearch = /pack|bundle|5\s*in\s*1|all\s*books|curriculum/i.test(rawQ);
 
     const scoredVeducation = veducationSeries
+      .filter((b) => isBundleSearch || b.id !== "ved-4")
       .map((b) => {
+        const chapterTitles = (b.chapters || []).map((c: any) => c.title);
         const chaptersText = (b.chapters || []).map((c: any) => `${c.title} ${c.description} ${(c.keywords || []).join(" ")}`).join(" ");
         const corpus = `${b.title} ${b.author} ${b.desc} ${b.tradition} ${b.era} ${b.tagline} ${b.summary} ${b.whyChosen} ${b.tierBadge} ${b.tierLabel} ${b.metricName} ${(b.keywords || []).join(" ")} ${chaptersText}`;
-        const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title);
+        const score = scoreSemanticItem(rawQ, corpus, b.keywords || [], b.title, chapterTitles);
         return { item: b, score };
       })
-      .filter((res) => res.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((res) => res.item);
+      .filter((res) => res.score >= 40)
+      .sort((a, b) => b.score - a.score);
 
     const scoredChapters = chaptersIndex
       .map((c) => {
@@ -1043,18 +1110,32 @@ export default function SourcesPage() {
         const score = scoreSemanticItem(rawQ, corpus, c.keywords || [], c.name);
         return { item: c, score };
       })
-      .filter((res) => res.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((res) => res.item);
+      .filter((res) => res.score >= 40)
+      .sort((a, b) => b.score - a.score);
 
     const total = scoredGeeta.length + scoredVeducation.length + scoredChapters.length;
 
+    const topGeetaScore = scoredGeeta[0]?.score || 0;
+    const topVeducationScore = scoredVeducation[0]?.score || 0;
+    const showVeducationFirst = topVeducationScore > topGeetaScore;
+
+    const topCandidate = topVeducationScore > topGeetaScore
+      ? (scoredVeducation[0] || scoredGeeta[0] || null)
+      : (scoredGeeta[0] || scoredVeducation[0] || null);
+
+    const topMatchCategory = topCandidate
+      ? (scoredVeducation.some((s) => s.item.id === topCandidate.item.id) ? "veducation" : "geeta")
+      : null;
+
     return {
-      filteredGeeta: scoredGeeta,
-      filteredVeducation: scoredVeducation,
-      filteredChapters: scoredChapters,
+      filteredGeeta: scoredGeeta.map((res) => res.item),
+      filteredVeducation: scoredVeducation.map((res) => res.item),
+      filteredChapters: scoredChapters.map((res) => res.item),
       totalMatches: total,
-      isSearchActive: true
+      isSearchActive: true,
+      showVeducationFirst,
+      topMatch: topCandidate ? topCandidate.item : null,
+      topMatchCategory
     };
   }, [searchQuery, geetaEditions, veducationSeries, chaptersIndex]);
 
@@ -1264,9 +1345,9 @@ export default function SourcesPage() {
         </p>
 
         {/* Global Search Bar */}
-        <div className="max-w-xl mx-auto relative font-sans mb-10">
+        <div className="max-w-2xl sm:max-w-3xl mx-auto relative font-sans mb-10">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-[#8C7B70] dark:text-[#A89F91] absolute left-4 pointer-events-none shrink-0" />
+            <Search className="w-5 h-5 text-[#8C7B70] dark:text-[#A89F91] absolute left-4 sm:left-5 pointer-events-none shrink-0" />
             <input
               type="text"
               placeholder="Search books, topics, cosmic time, Sanskrit grammar, chapters..."
@@ -1278,14 +1359,14 @@ export default function SourcesPage() {
                   setActiveTab("all");
                 }
               }}
-              className="w-full pl-11 pr-28 py-2.5 rounded-2xl bg-[#EFE9DF] dark:bg-[#262320] border border-[#DFD5C6] dark:border-[#38332E] text-[#2D2622] dark:text-[#F5F2EB] placeholder-[#8C7B70] dark:placeholder-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#C25E38] dark:focus:ring-[#E06D43] transition shadow-inner text-sm"
+              className="w-full pl-12 sm:pl-14 pr-36 sm:pr-44 py-3.5 sm:py-4 rounded-2xl sm:rounded-3xl bg-[#EFE9DF] dark:bg-[#262320] border border-[#DFD5C6] dark:border-[#38332E] text-[#2D2622] dark:text-[#F5F2EB] placeholder-[#8C7B70] dark:placeholder-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#C25E38] dark:focus:ring-[#E06D43] transition-all shadow-inner text-sm sm:text-base caret-[#C25E38] dark:caret-[#E06D43] font-medium"
             />
             {isSearchActive && (
-              <div className="absolute right-2.5 flex items-center bg-[#E5DCD0] dark:bg-[#332E2A] border border-[#D5C9B9] dark:border-[#423C36] rounded-full px-2.5 py-1 gap-2 shadow-2xs shrink-0 select-none">
-                <span className="text-[11px] font-semibold text-[#C25E38] dark:text-[#E06D43] tracking-tight whitespace-nowrap leading-none">
+              <div className="absolute right-3 sm:right-3.5 flex items-center bg-[#E5DCD0] dark:bg-[#332E2A] border border-[#D5C9B9] dark:border-[#423C36] rounded-full px-3 py-1.5 gap-2 shadow-2xs shrink-0 select-none">
+                <span className="text-[11px] sm:text-xs font-semibold text-[#C25E38] dark:text-[#E06D43] tracking-tight whitespace-nowrap leading-none">
                   {totalMatches} {totalMatches === 1 ? "match" : "matches"}
                 </span>
-                <span className="w-px h-3 bg-[#CBBFB0] dark:bg-[#4E463F]" />
+                <span className="w-px h-3.5 bg-[#CBBFB0] dark:bg-[#4E463F]" />
                 <button
                   type="button"
                   onClick={() => {
@@ -1296,7 +1377,7 @@ export default function SourcesPage() {
                   title="Clear search"
                   aria-label="Clear search"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
@@ -1328,7 +1409,7 @@ export default function SourcesPage() {
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-6xl mx-auto px-6 pb-24 w-full flex-1 font-sans">
+      <main className="max-w-6xl mx-auto px-6 pb-24 w-full flex-1 font-sans flex flex-col">
 
         {/* Clean Empty State when ZERO results found across all categories - ALWAYS DISPLAYED AT THE VERY TOP */}
         {hasNoResults && (
@@ -1470,9 +1551,64 @@ export default function SourcesPage() {
           </div>
         )}
 
+        {/* Top Semantic Recommendation Spotlight Card */}
+        {isSearchActive && topMatch && (activeTab === "all" || activeTab === topMatchCategory) && (
+          <div className="mb-12 p-6 sm:p-7 rounded-3xl bg-[#FAF3EC] dark:bg-[#25201C] border-2 border-[#C25E38]/40 dark:border-[#E06D43]/40 shadow-lg animate-in fade-in duration-200">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#C25E38] dark:bg-[#E06D43] text-white shadow-xs">
+                  ★ Top Shastric Recommendation • Direct Answer
+                </span>
+                <span className="text-xs text-[#8C7B70] dark:text-[#A89F91]">
+                  Best conceptual match for &ldquo;{searchQuery}&rdquo;
+                </span>
+              </div>
+              <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43]">
+                Score {topMatch.scoreLabel || `${topMatch.score} / 100`}
+              </span>
+            </div>
+
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+              <div className="flex-1">
+                <h3 className="text-xl sm:text-2xl font-bold font-serif text-[#2D2622] dark:text-[#F5F2EB] mb-1">
+                  {topMatch.title}
+                </h3>
+                <p className="text-xs font-semibold text-[#C25E38] dark:text-[#E06D43] mb-2">
+                  By {topMatch.author} • {topMatch.era}
+                </p>
+                <p className="text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                  {topMatch.desc || topMatch.summary}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (topMatchCategory && activeTab !== "all" && activeTab !== topMatchCategory) {
+                      setActiveTab(topMatchCategory as "geeta" | "veducation");
+                    }
+                    setExpandedSourceId(topMatch.id);
+                    setTimeout(() => {
+                      const el = document.getElementById(topMatch.id);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }
+                    }, 50);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-sm cursor-pointer flex items-center gap-2"
+                >
+                  <span>Explore Matched Chapters</span>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TAB 1: GEETA COMMENTARIES SECTION */}
         {(activeTab === "all" || activeTab === "geeta") && filteredGeeta.length > 0 && (
-          <section className="mb-20">
+          <section className={`mb-20 ${showVeducationFirst ? "order-2" : "order-1"}`}>
             <div className="flex items-center justify-between border-b border-[#E8E1D7] dark:border-[#38332E] pb-4 mb-8">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43]">
@@ -1483,7 +1619,9 @@ export default function SourcesPage() {
                 </h2>
               </div>
               <span className="text-xs font-mono font-bold text-[#8C7B70] dark:text-[#A89F91] hidden sm:block">
-                {filteredGeeta.length} of {geetaEditions.length} Editions Available
+                {isSearchActive
+                  ? `${filteredGeeta.length} ${filteredGeeta.length === 1 ? "Edition Matched" : "Editions Matched"}`
+                  : `${filteredGeeta.length} of ${geetaEditions.length} Editions Available`}
               </span>
             </div>
 
@@ -1503,11 +1641,8 @@ export default function SourcesPage() {
                       className="p-6 sm:p-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 cursor-pointer group"
                     >
                       <div className="flex items-start sm:items-center gap-5 flex-1">
-                        {/* Apple/Linear-Grade Sleek Rank Badge */}
-                        <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#3E3832] flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:border-[#C25E38]/50 transition-colors">
-                          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43] leading-none mb-1">
-                            {source.tierLabel}
-                          </span>
+                        {/* Clean Rank Badge - Just Number 01..04 */}
+                        <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#3E3832] flex items-center justify-center shrink-0 shadow-sm group-hover:border-[#C25E38]/50 transition-colors">
                           <span className="text-xl sm:text-2xl font-serif font-black text-[#2D2622] dark:text-[#F5F2EB] leading-none">
                             0{source.priority}
                           </span>
@@ -1565,7 +1700,7 @@ export default function SourcesPage() {
 
                         {/* Tagline and Expand Toggle */}
                         <div className="flex items-center justify-between w-full text-xs pt-1">
-                          <span className="font-semibold text-[#5C4F45] dark:text-[#D4C7B8] px-2.5 py-0.5 rounded-md bg-[#EFE9DF] dark:bg-[#332E2A] text-[11px]">
+                          <span className="font-semibold text-[#5C4F45] dark:text-[#D4C7B8] px-2.5 py-0.5 rounded-md bg-[#EFE9DF] dark:bg-[#332E2A] text-xs">
                             {source.tagline}
                           </span>
                           <div className="p-1 rounded-lg text-[#C25E38] dark:text-[#E06D43] hover:bg-[#EFE9DF] dark:hover:bg-[#332E2A]">
@@ -1686,7 +1821,7 @@ export default function SourcesPage() {
                             Open and verify the full manuscript edition:
                           </span>
                           <div className="flex items-center gap-2">
-                            {source.pdfUrl && (
+                            {(source as any).pdfUrl && !(source as any).translationNotice && (
                               <div className="relative group/tooltip">
                                 <button
                                   type="button"
@@ -1734,7 +1869,7 @@ export default function SourcesPage() {
 
         {/* TAB 2: VEDUCATION LITERATURE */}
         {(activeTab === "all" || activeTab === "veducation") && filteredVeducation.length > 0 && (
-          <section className="mb-20">
+          <section className={`mb-20 ${showVeducationFirst ? "order-1" : "order-2"}`}>
             <div className="flex items-center justify-between border-b border-[#E8E1D7] dark:border-[#38332E] pb-4 mb-8">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43]">
@@ -1745,7 +1880,9 @@ export default function SourcesPage() {
                 </h2>
               </div>
               <span className="text-xs font-mono font-bold text-[#8C7B70] dark:text-[#A89F91] hidden sm:block">
-                {filteredVeducation.length} of {veducationSeries.length} Handbooks Available
+                {isSearchActive
+                  ? `${filteredVeducation.length} ${filteredVeducation.length === 1 ? "Handbook Matched" : "Handbooks Matched"}`
+                  : `${filteredVeducation.length} of ${veducationSeries.length} Handbooks Available`}
               </span>
             </div>
 
@@ -1765,11 +1902,8 @@ export default function SourcesPage() {
                       className="p-6 sm:p-7 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 cursor-pointer group"
                     >
                       <div className="flex items-start sm:items-center gap-5 flex-1">
-                        {/* Apple/Linear-Grade Sleek Rank Badge */}
-                        <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#3E3832] flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:border-[#C25E38]/50 transition-colors">
-                          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43] leading-none mb-1">
-                            {source.tierLabel}
-                          </span>
+                        {/* Clean Rank Badge - Just Number 01..04 */}
+                        <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-2xl bg-[#EFE9DF] dark:bg-[#1E1B18] border border-[#DFD5C6] dark:border-[#3E3832] flex items-center justify-center shrink-0 shadow-sm group-hover:border-[#C25E38]/50 transition-colors">
                           <span className="text-xl sm:text-2xl font-serif font-black text-[#2D2622] dark:text-[#F5F2EB] leading-none">
                             0{source.priority}
                           </span>
@@ -2031,7 +2165,7 @@ export default function SourcesPage() {
                             Open and verify this publication:
                           </span>
                           <div className="flex items-center gap-2">
-                            {source.pdfUrl && (
+                            {source.pdfUrl && !source.translationNotice && (
                               <div className="relative group/tooltip">
                                 <button
                                   type="button"
@@ -2079,7 +2213,7 @@ export default function SourcesPage() {
 
         {/* TAB 3: 18 CHAPTERS THEMATIC INDEX */}
         {(activeTab === "all" || activeTab === "chapters") && filteredChapters.length > 0 && (
-          <section className="mb-20">
+          <section className="mb-20 order-3">
             <div className="flex items-center justify-between border-b border-[#E8E1D7] dark:border-[#38332E] pb-4 mb-8">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43]">
@@ -2090,7 +2224,9 @@ export default function SourcesPage() {
                 </h2>
               </div>
               <span className="text-xs font-mono font-bold text-[#8C7B70] dark:text-[#A89F91] hidden sm:block">
-                {filteredChapters.length} of 18 Chapters
+                {isSearchActive
+                  ? `${filteredChapters.length} ${filteredChapters.length === 1 ? "Chapter Matched" : "Chapters Matched"}`
+                  : `${filteredChapters.length} of 18 Chapters`}
               </span>
             </div>
 
@@ -2140,7 +2276,7 @@ export default function SourcesPage() {
 
         {/* TAB 4: EDITORIAL VETTING & AUTHENTICITY CRITERIA */}
         {((activeTab === "all" && !isSearchActive) || activeTab === "vetting") && (
-          <section className="mb-20">
+          <section className="mb-20 order-4">
             <div className="border-b border-[#E8E1D7] dark:border-[#38332E] pb-4 mb-8">
               <span className="text-xs font-bold uppercase tracking-wider text-[#C25E38] dark:text-[#E06D43]">
                 Editorial Integrity
@@ -2247,24 +2383,24 @@ export default function SourcesPage() {
                   {/* Score Highlight Hero Card */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-5 rounded-2xl bg-[#EFE9DF] dark:bg-[#181513] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm">
                     <div>
-                      <div className="text-[11px] font-semibold text-[#8C7B70] dark:text-[#A89F91]">
+                      <div className="text-xs font-semibold text-[#8C7B70] dark:text-[#A89F91]">
                         Metric Classification & Benchmark Tier
                       </div>
                       <div className="text-sm sm:text-base font-bold text-[#2D2622] dark:text-[#F5F2EB] mt-0.5">
                         {activeScoringInfo.metricName}
                       </div>
-                      <span className="inline-block mt-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
+                      <span className="inline-block mt-1 text-xs font-semibold px-2.5 py-0.5 rounded-md bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
                         {activeScoringInfo.tierTag}
                       </span>
                     </div>
                     <div className="sm:text-right shrink-0">
-                      <div className="text-[11px] font-semibold text-[#8C7B70] dark:text-[#A89F91]">
+                      <div className="text-xs font-semibold text-[#8C7B70] dark:text-[#A89F91]">
                         Overall Audit Score
                       </div>
                       <div className="text-3xl font-mono font-black text-[#C25E38] dark:text-[#E06D43]">
                         {activeScoringInfo.scoreLabel}
                       </div>
-                      <div className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] font-sans">
+                      <div className="text-xs text-[#8C7B70] dark:text-[#A89F91] font-sans">
                         Peer-Verified Consensus
                       </div>
                     </div>
@@ -2410,7 +2546,7 @@ export default function SourcesPage() {
                       <h3 className="text-sm sm:text-base font-bold font-serif truncate text-[#2D2622] dark:text-[#F5F2EB]">
                         {selectedBookTitle}
                       </h3>
-                      <div className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] font-mono">
+                      <div className="text-xs text-[#8C7B70] dark:text-[#A89F91] font-mono">
                         Archived Edition • Public Domain Research Preservation
                       </div>
                     </div>

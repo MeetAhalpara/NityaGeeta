@@ -65,10 +65,49 @@ class GoogleSetupRequest(BaseModel):
     preferred_language: Optional[str] = Field(None, max_length=10, description="Preferred display language")
 
 
+class TelemetryEvent(BaseModel):
+    user_id: Optional[str] = Field("anonymous", max_length=100)
+    event_type: str = Field("reading_dwell", max_length=50)
+    shloka_id: Optional[str] = Field(None, max_length=50)
+    chapter: Optional[int] = Field(None, ge=1, le=18)
+    verse: Optional[int] = Field(None, ge=1, le=78)
+    dwell_ms: int = Field(0, ge=0, le=3600000)
+    interactions: Optional[List[str]] = Field(default_factory=list)
+    scroll_velocity: Optional[float] = Field(0.0)
+
+class TelemetryBatchRequest(BaseModel):
+    events: List[TelemetryEvent] = Field(..., max_length=100)
+
+
 @app.get("/health")
 def health_check():
     """Simple API health check endpoint."""
     return {"status": "healthy", "service": "NityaGeeta API"}
+
+from api.services.telemetry_stream import ingest_telemetry_event, get_seeker_affinity
+
+@app.post("/api/v1/telemetry/stream")
+def ingest_telemetry_stream(batch: TelemetryBatchRequest):
+    """Real-time stream processing ingestion endpoint for reading dwell and seeker attention events."""
+    results = []
+    for ev in batch.events:
+        res = ingest_telemetry_event(
+            user_id=ev.user_id,
+            event_type=ev.event_type,
+            shloka_id=ev.shloka_id,
+            chapter=ev.chapter,
+            verse=ev.verse,
+            dwell_ms=ev.dwell_ms,
+            interactions=ev.interactions,
+            scroll_velocity=ev.scroll_velocity or 0.0
+        )
+        results.append(res)
+    return {"status": "ok", "ingested_count": len(results)}
+
+@app.get("/api/v1/telemetry/affinity/{user_id}")
+def get_user_affinity(user_id: str):
+    """Returns aggregated real-time seeker behavioral affinity and contemplation focus."""
+    return get_seeker_affinity(user_id)
 
 from fastapi.responses import StreamingResponse
 from api.services.rag_engine import execute_rag_query, execute_rag_pipeline_async, stream_rag_pipeline_async

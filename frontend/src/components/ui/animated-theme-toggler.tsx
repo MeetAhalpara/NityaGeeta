@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { flushSync } from "react-dom";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 export type TransitionVariant =
@@ -160,9 +161,18 @@ export const AnimatedThemeToggler = ({
   ...props
 }: AnimatedThemeTogglerProps) => {
   const shape = variant ?? "circle";
+  const nextThemes = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const isControlled = theme !== undefined;
   const [internalIsDark, setInternalIsDark] = useState(false);
-  const isDark = isControlled ? theme === "dark" : internalIsDark;
+  const isDark = isControlled
+    ? theme === "dark"
+    : (nextThemes?.resolvedTheme ? nextThemes.resolvedTheme === "dark" : internalIsDark);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isTransitioningRef = useRef(false);
 
@@ -210,12 +220,13 @@ export const AnimatedThemeToggler = ({
 
     const applyTheme = () => {
       const newTheme = !isDark;
-      document.documentElement.classList.toggle("dark");
+      document.documentElement.classList.toggle("dark", newTheme);
       if (isControlled) {
         onThemeChange?.(newTheme ? "dark" : "light");
       } else {
         setInternalIsDark(newTheme);
         localStorage.setItem("theme", newTheme ? "dark" : "light");
+        nextThemes?.setTheme?.(newTheme ? "dark" : "light");
       }
     };
 
@@ -301,6 +312,25 @@ export const AnimatedThemeToggler = ({
     }
   }, [shape, fromCenter, duration, isDark, isControlled, onThemeChange]);
 
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        className={cn(
+          "p-2.5 rounded-xl text-[#5C4F45] dark:text-[#D4C7B8] hover:bg-[#EFE9DF] dark:hover:bg-[#262320] transition border border-transparent hover:border-[#DFD5C6] dark:hover:border-[#38332E] cursor-pointer",
+          className
+        )}
+        aria-label="Toggle theme"
+        title="Toggle Light / Dark Mode"
+        suppressHydrationWarning
+        {...props}
+      >
+        <span className="w-4 h-4 inline-block" aria-hidden="true" />
+        <span className="sr-only">Toggle theme</span>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -312,6 +342,7 @@ export const AnimatedThemeToggler = ({
       )}
       aria-label="Toggle theme"
       title="Toggle Light / Dark Mode"
+      suppressHydrationWarning
       {...props}
     >
       {isDark ? (

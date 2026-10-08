@@ -64,7 +64,7 @@ export default function TermsPage() {
             3. AI Retrieval & Advisory Disclaimer
           </h2>
           <p>
-            NityaGeeta synthesizes canonical commentaries using modern neural RAG and parallel large language models. While our architecture minimizes hallucinations through strict chapter-and-verse grounding:
+            NityaGeeta synthesizes canonical commentaries using modern neural RAG and parallel large language models. While the system architecture minimizes hallucinations through strict chapter-and-verse grounding:
           </p>
           <ul className="list-disc pl-5 space-y-1 text-xs text-[#5C4F45] dark:text-[#D4C7B8]">
             <li><strong>Philosophical Guidance Only:</strong> AI-generated responses are intended for spiritual contemplation, personal study, and education.</li>

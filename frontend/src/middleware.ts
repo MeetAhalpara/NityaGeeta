@@ -9,8 +9,9 @@ interface RateLimitBucket {
 // In-memory IP tracking map with periodic pruning
 const ipLimiters = new Map<string, RateLimitBucket>();
 
-// Maximum request body size: 1 MB
-const MAX_CONTENT_LENGTH_BYTES = 1024 * 1024;
+// Maximum request body size: 1 MB general, 15 MB for contact multipart uploads
+const MAX_GENERAL_CONTENT_LENGTH_BYTES = 1024 * 1024;
+const MAX_CONTACT_CONTENT_LENGTH_BYTES = 15 * 1024 * 1024;
 
 // Periodic cleanup of expired rate limit entries every 5 minutes
 setInterval(() => {
@@ -22,14 +23,23 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
+// Trusted proxy-derived IP extraction to prevent spoofing via forged X-Forwarded-For
+export function getClientIp(request: NextRequest): string {
+  const cfIp = request.headers.get("cf-connecting-ip");
+  if (cfIp) {
+    return cfIp.trim();
   }
   const realIp = request.headers.get("x-real-ip");
   if (realIp) {
     return realIp.trim();
+  }
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const parts = forwarded.split(",").map((p) => p.trim()).filter(Boolean);
+    if (parts.length > 0) {
+      // Return the rightmost entry appended by the trusted proxy rather than an untrusted client-forged prefix
+      return parts[parts.length - 1];
+    }
   }
   return "127.0.0.1";
 }
@@ -38,12 +48,13 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Request Body Size Guard (DoS / Memory Exhaustion defense)
+  const maxBytes = pathname === "/api/contact" ? MAX_CONTACT_CONTENT_LENGTH_BYTES : MAX_GENERAL_CONTENT_LENGTH_BYTES;
   const contentLength = request.headers.get("content-length");
-  if (contentLength && parseInt(contentLength, 10) > MAX_CONTENT_LENGTH_BYTES) {
+  if (contentLength && parseInt(contentLength, 10) > maxBytes) {
     return new NextResponse(
       JSON.stringify({
         error: "Payload Too Large",
-        message: "Request body exceeds maximum permitted limit of 1 MB.",
+        message: `Request body exceeds maximum permitted limit of ${pathname === "/api/contact" ? "15 MB" : "1 MB"}.`,
       }),
       {
         status: 413,
@@ -59,14 +70,40 @@ export function middleware(request: NextRequest) {
     const windowMs = 60 * 1000; // 1 minute window
 
     // Determine route tier limits
-    let maxRequests = 60; // default for general API
-    if (pathname.startsWith("/api/auth/")) {
-      maxRequests = 20; // stricter for authentication/signup/login
+    let maxRequests = 100; // default for general API
+    let bucketType = "api";
+
+    if (pathname === "/api/contact") {
+      maxRequests = 5; // Strict outbound email abuse limit: max 5 requests per minute
+      bucketType = "contact_abuse";
+    } else if (
+      pathname.startsWith("/api/auth/register") ||
+      pathname.includes("/callback/credentials") ||
+      pathname.startsWith("/api/auth/signin")
+    ) {
+      maxRequests = 30; // strict for authentication mutations & brute-force protection
+      bucketType = "auth_mutation";
+    } else if (
+      pathname.startsWith("/api/auth/session") ||
+      pathname.startsWith("/api/auth/csrf") ||
+      pathname.startsWith("/api/auth/providers")
+    ) {
+      maxRequests = 300; // generous for NextAuth client session polling and tab switching
+      bucketType = "auth_session";
+    } else if (pathname.startsWith("/api/auth/")) {
+      maxRequests = 60; // general auth
+      bucketType = "auth";
     } else if (pathname.startsWith("/api/pdf-proxy")) {
-      maxRequests = 180; // generous for chunked PDF byte range requests
+      maxRequests = 240; // generous for chunked PDF byte range requests
+      bucketType = "pdf";
     }
 
-    const key = `${clientIp}:${pathname.startsWith("/api/auth/") ? "auth" : pathname.startsWith("/api/pdf-proxy") ? "pdf" : "api"}`;
+    // In local development or for localhost, elevate limits so developer testing and page refreshing are never blocked
+    if (process.env.NODE_ENV !== "production" || clientIp === "127.0.0.1" || clientIp === "::1" || clientIp === "localhost") {
+      maxRequests = Math.max(maxRequests, 600);
+    }
+
+    const key = `${clientIp}:${bucketType}`;
     let bucket = ipLimiters.get(key);
 
     if (!bucket || now > bucket.resetAt) {

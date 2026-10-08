@@ -1,19 +1,21 @@
-# Git & Version Control
+# Git & CI/CD
 .git
 .gitignore
 .github
 
-# Python Bytecode & Environments
-__pycache__/
-*.py[cod]
-*$py.class
+# Virtual Environments & Python Cache
 .venv/
 venv/
 ENV/
 env/
+__pycache__/
+*.py[cod]
+*$py.class
 .pytest_cache/
+.coverage
+htmlcov
 
-# Frontend (built separately in frontend/Dockerfile)
+# Frontend (containerized separately via frontend/Dockerfile)
 frontend/
 
 # Local databases & heavy data
@@ -21,16 +23,30 @@ data/postgres/
 data/redis/
 data/raw/
 Files/
-docs/
-scratch/
-Errors/
-.agents/
-.specify/
-.vscode/
+*.db
+*.sqlite
 
-# Logs & temporary files
-*.log
+# Testing, Scratch & Logs
+tests/
+scratch/
 *.tmp
+*.log
 image*.png
+boss_out.txt
+*.docx
 .DS_Store
 Thumbs.db
+
+# Documentation & Private Notes
+docs/
+Q&A.txt
+recovery-codes.txt
+Errors/
+
+# Agent & IDE Configurations
+.agents/
+.claude/
+.claude.json
+.specify/
+.idea/
+.vscode/

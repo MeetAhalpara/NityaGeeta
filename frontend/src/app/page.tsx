@@ -50,6 +50,35 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import { TextReveal } from "@/components/ui/text-reveal";
 import { PdfManuscriptReader } from "@/components/ui/pdf-manuscript-reader";
 
+interface HeroWallpaper {
+  src: string;
+  alt: string;
+  objectPosition: string;
+}
+
+const HERO_WALLPAPERS: HeroWallpaper[] = [
+  {
+    src: "/LandingPage/krishna-arjun-lord-krishna-s-blessing-rb0kv4lecke81fqz.jpg",
+    alt: "Lord Krishna Bestowing Divine Blessing upon Arjuna",
+    objectPosition: "center 38%",
+  },
+  {
+    src: "/LandingPage/wp6293190-krishna-mahabharat-wallpapers.jpg",
+    alt: "Lord Krishna Driving the Sacred Chariot with Arjuna",
+    objectPosition: "center 38%",
+  },
+  {
+    src: "/LandingPage/wp6293276-krishna-mahabharat-wallpapers.png",
+    alt: "Lord Krishna and Arjuna in Golden Radiance on Kurukshetra",
+    objectPosition: "center 35%",
+  },
+  {
+    src: "/LandingPage/wp6874871-karna-mahabharat-wallpapers.jpg",
+    alt: "Karna and Arjuna on Kurukshetra Battlefield",
+    objectPosition: "center 55%",
+  },
+];
+
 export default function LandingPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -58,9 +87,13 @@ export default function LandingPage() {
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
   const [selectedBookTitle, setSelectedBookTitle] = useState<string>("");
   const [homeCitationsOpen, setHomeCitationsOpen] = useState(false);
+  const [heroWallpaper, setHeroWallpaper] = useState<HeroWallpaper>(HERO_WALLPAPERS[0]);
 
   useEffect(() => {
     setMounted(true);
+    // Select a random background wallpaper on each page refresh
+    const randomIdx = Math.floor(Math.random() * HERO_WALLPAPERS.length);
+    setHeroWallpaper(HERO_WALLPAPERS[randomIdx]);
   }, []);
 
   const handleOpenPdf = (url: string | null, title: string) => {
@@ -147,7 +180,7 @@ export default function LandingPage() {
       verseSanskrit: "कार्पण्यदोषोपहतस्वभावः पृच्छामि त्वां धर्मसंमूढचेताः।\nयच्छ्रेयः स्यान्निश्चितं ब्रूहि तन्मे शिष्यस्तेऽहं शाधि मां त्वां प्रपन्नम्॥",
       verseTransliteration: "kārpaṇya-doṣopahata-svabhāvaḥ pṛcchāmi tvāṁ dharma-sammūḍha-cetāḥ | yac chreyaḥ syān niścitaṁ brūhi tan me śiṣyas te 'haṁ śādhi māṁ tvāṁ prapannam",
       coreInsight: "Arjuna collapsed in total moral paralysis on Kurukshetra. The Gita teaches that admitting confusion and surrendering emotional bias to eternal Dharma is the gateway to resolute action.",
-      promptQuery: "I am facing a difficult moral conflict where my duty conflicts with emotional attachments. How does Arjuna's dilemma in Chapter 2 Verse 7 teach us to find clarity?",
+      promptQuery: "I am facing a difficult moral conflict where my duty conflicts with emotional attachments. How does Arjuna's dilemma in Chapter 2 Verse 7 teach one to find clarity?",
       tag: "Dharma & Duty",
       icon: Scale
     },
@@ -344,23 +377,27 @@ export default function LandingPage() {
           className="absolute inset-0 z-0 pointer-events-none"
         >
           <Image
-            src="/images/hero_krishna.png"
-            alt="Lord Krishna Bhagavad Gita Chariot"
+            key={heroWallpaper.src}
+            src={heroWallpaper.src}
+            alt={heroWallpaper.alt}
             fill
             priority
-            className="object-cover object-center filter brightness-[0.9] dark:brightness-[0.7] contrast-[1.05]"
+            style={{ objectPosition: heroWallpaper.objectPosition }}
+            className="object-cover filter brightness-[0.80] dark:brightness-[0.75] contrast-[1.08] saturate-[1.12]"
           />
-          {/* Theme-adaptive gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/85 via-[#FAF7F2]/65 to-[#FAF7F2] dark:from-[#1A1816]/90 dark:via-[#1A1816]/75 dark:to-[#1A1816]" />
+          {/* Theme-adaptive subtle gradient overlay: keeps the center open so main characters are brightly visible */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/75 via-[#FAF7F2]/25 to-[#FAF7F2] dark:from-[#1A1816]/80 dark:via-[#1A1816]/30 dark:to-[#1A1816]" />
+          {/* Gentle radial vignette */}
+          <div className="absolute inset-0 bg-radial-[circle_at_center] from-transparent via-[#FAF7F2]/15 to-[#FAF7F2]/50 dark:via-[#1A1816]/15 dark:to-[#1A1816]/50 pointer-events-none" />
         </motion.div>
 
         {/* Foreground Content */}
         <div className="relative z-10 max-w-4xl mx-auto text-center flex flex-col items-center">
-          <h1 className="text-4xl sm:text-6xl font-normal leading-tight tracking-tight text-[#2D2622] dark:text-[#F5F2EB] mb-6 font-serif">
+          <h1 className="text-4xl sm:text-6xl font-normal leading-tight tracking-tight text-[#2D2622] dark:text-[#F5F2EB] mb-6 font-serif drop-shadow-sm">
             Bhagavad Gita in <span className="text-[#C25E38] dark:text-[#E06D43] font-medium italic">Authentic Devotion & Wisdom</span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-[#5C4F45] dark:text-[#D4C7B8] max-w-2xl font-sans leading-relaxed mb-10">
+          <p className="text-lg sm:text-xl text-[#5C4F45] dark:text-[#D4C7B8] max-w-2xl font-sans leading-relaxed mb-10 drop-shadow-xs">
             Read, explore, and converse with eternal wisdom grounded in canonical Sanskrit verses and authentic commentary traditions.
           </p>
 
@@ -419,14 +456,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SECTION 1: Modern Life Dilemmas Grounded in 5,000-Year-Old Wisdom */}
+      {/* SECTION 1: Modern Life Dilemmas Grounded in Over 5,000 Years of Timeless Wisdom */}
       <section id="modern-dilemmas" className="py-24 px-6 max-w-6xl mx-auto w-full border-t border-[#E8E1D7] dark:border-[#38332E]">
         <div className="text-center max-w-3xl mx-auto mb-14">
           <span className="text-xs font-sans font-semibold tracking-widest text-[#C25E38] dark:text-[#E06D43] uppercase block mb-2">
             Timeless Answers For Contemporary Challenges
           </span>
           <h2 className="text-3xl sm:text-4xl text-[#2D2622] dark:text-[#F5F2EB] font-normal font-serif">
-            5,000-Year-Old Wisdom for <span className="text-[#C25E38] dark:text-[#E06D43]">Modern Life Dilemmas</span>
+            Timeless Wisdom Spanning Over 5,000 Years for <span className="text-[#C25E38] dark:text-[#E06D43]">Modern Life Dilemmas</span>
           </h2>
           <p className="mt-4 text-[#6B5E55] dark:text-[#A89F91] font-sans text-base leading-relaxed">
             Select a real-world struggle below to see how canonical Bhagavad Gita verses provide immediate, grounded clarity.
@@ -459,7 +496,7 @@ export default function LandingPage() {
                     <Icon className="w-4 h-4" />
                   </div>
                   <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                       isSelected
                         ? "bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]"
                         : "bg-transparent text-[#8C7B70] dark:text-[#A89F91]"
@@ -470,13 +507,13 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <h3
-                    className={`text-sm font-bold font-serif mb-1 leading-snug ${
+                    className={`text-base font-bold font-serif mb-1 leading-snug ${
                       isSelected ? "text-[#C25E38] dark:text-[#E06D43]" : "text-[#2D2622] dark:text-[#F5F2EB]"
                     }`}
                   >
                     {item.category}
                   </h3>
-                  <p className="text-xs text-[#6B5E55] dark:text-[#A89F91] line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-[#6B5E55] dark:text-[#A89F91] line-clamp-2 leading-relaxed">
                     {item.title}
                   </p>
                 </div>
@@ -491,16 +528,16 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               {/* Left Side: Modern Situation */}
               <div className="lg:col-span-5 space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] text-xs font-bold uppercase tracking-wider">
-                  <AlertCircle className="w-3.5 h-3.5" /> Modern Life Dilemma
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43] text-sm font-bold uppercase tracking-wider">
+                  <AlertCircle className="w-4 h-4" /> Modern Life Dilemma
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-serif text-[#2D2622] dark:text-[#F5F2EB] font-normal leading-snug">
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-[#2D2622] dark:text-[#F5F2EB] font-normal leading-snug">
                   {modernDilemmas[activeDilemma].title}
                 </h3>
-                <div className="p-4 rounded-xl bg-[#EFE9DF]/70 dark:bg-[#1C1917]/70 border border-[#DFD5C6] dark:border-[#38332E] text-sm text-[#5C4F45] dark:text-[#D4C7B8] italic leading-relaxed">
+                <div className="p-4 rounded-xl bg-[#EFE9DF]/70 dark:bg-[#1C1917]/70 border border-[#DFD5C6] dark:border-[#38332E] text-base text-[#5C4F45] dark:text-[#D4C7B8] italic leading-relaxed">
                   &ldquo;{modernDilemmas[activeDilemma].situation}&rdquo;
                 </div>
-                <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] leading-relaxed">
+                <p className="text-sm text-[#8C7B70] dark:text-[#A89F91] leading-relaxed">
                   This conflict mirrors Arjuna&apos;s moral dilemma on Kurukshetra. The Gita addresses this root attachment directly:
                 </p>
               </div>
@@ -508,46 +545,61 @@ export default function LandingPage() {
               {/* Right Side: Canonical Sanskrit Verse & Practical Purport */}
               <div className="lg:col-span-7 p-6 sm:p-8 rounded-2xl bg-[#EFE9DF] dark:bg-[#1C1917] border border-[#DFD5C6] dark:border-[#38332E] shadow-sm space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#DFD5C6] dark:border-[#38332E] pb-3">
-                  <span className="text-xs font-mono font-bold text-[#C25E38] dark:text-[#E06D43] flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5" /> {modernDilemmas[activeDilemma].verseCitation}
+                  <span className="text-sm font-mono font-bold text-[#C25E38] dark:text-[#E06D43] flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4" /> {modernDilemmas[activeDilemma].verseCitation}
                   </span>
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#C25E38]/15 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
+                  <span className="text-xs font-semibold px-3 py-1 rounded-md bg-[#C25E38]/15 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
                     100% Canonical Grounding
                   </span>
                 </div>
 
                 {/* Devanagari Shloka */}
-                <div className="font-serif text-lg sm:text-xl text-[#2D2622] dark:text-[#F5F2EB] font-medium leading-loose text-center py-2 bg-[#FAF7F2]/60 dark:bg-[#262320]/60 rounded-xl border border-[#DFD5C6]/60 dark:border-[#38332E]/60 whitespace-pre-line">
+                <div className="font-serif text-xl sm:text-2xl lg:text-3xl text-[#2D2622] dark:text-[#F5F2EB] font-medium leading-loose text-center py-3 bg-[#FAF7F2]/60 dark:bg-[#262320]/60 rounded-xl border border-[#DFD5C6]/60 dark:border-[#38332E]/60 whitespace-pre-line">
                   {modernDilemmas[activeDilemma].verseSanskrit}
                 </div>
 
                 {/* Transliteration */}
-                <p className="text-xs font-mono text-[#8C7B70] dark:text-[#A89F91] text-center italic">
+                <p className="text-sm font-mono text-[#8C7B70] dark:text-[#A89F91] text-center italic">
                   {modernDilemmas[activeDilemma].verseTransliteration}
                 </p>
 
                 {/* Core Insight */}
                 <div className="pt-2">
-                  <div className="text-xs font-bold uppercase tracking-wider text-[#2D2622] dark:text-[#F5F2EB] mb-1">
+                  <div className="text-sm font-bold uppercase tracking-wider text-[#2D2622] dark:text-[#F5F2EB] mb-1">
                     Core Philosophical Insight:
                   </div>
-                  <p className="text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
+                  <p className="text-base text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed">
                     {modernDilemmas[activeDilemma].coreInsight}
                   </p>
                 </div>
 
                 {/* Action CTA */}
                 <div className="pt-3 border-t border-[#DFD5C6] dark:border-[#38332E] flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-xs text-[#8C7B70] dark:text-[#A89F91]">
+                  <span className="text-sm text-[#8C7B70] dark:text-[#A89F91]">
                     Ask NityaGeeta to synthesize this verse with all 5 classical bhashyas:
                   </span>
-                  <Link
-                    href={`/app?q=${encodeURIComponent(modernDilemmas[activeDilemma].promptQuery)}`}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:opacity-90 transition shadow-md group"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      let saved = false;
+                      const promptText = modernDilemmas[activeDilemma].promptQuery;
+                      if (typeof window !== "undefined") {
+                        try {
+                          sessionStorage.setItem("nitya_pending_query", promptText);
+                          saved = true;
+                        } catch {}
+                      }
+                      if (saved) {
+                        router.push("/app");
+                      } else {
+                        router.push(`/app?prompt=${encodeURIComponent(promptText)}`);
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-sm font-bold hover:opacity-90 transition shadow-md group cursor-pointer"
                   >
                     <span>Converse in Dialogue</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -801,9 +853,9 @@ export default function LandingPage() {
 
             <div className="mt-8 pt-4 border-t border-[#DFD5C6] dark:border-[#38332E] flex items-center justify-between text-xs text-[#C25E38] dark:text-[#E06D43] font-bold">
               <span>Result: Uncompromised Authenticity & Sacred Trust</span>
-              <a href="#sources" className="inline-flex items-center gap-1 hover:underline">
+              <Link href="/sources" className="inline-flex items-center gap-1 hover:underline">
                 Inspect Sources <ChevronRight className="w-3.5 h-3.5" />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -822,7 +874,7 @@ export default function LandingPage() {
               <span className="font-bold text-sm text-[#2D2622] dark:text-[#F5F2EB] font-serif">
                 Academic Research & Empirical Citations
               </span>
-              <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#C25E38]/10 dark:bg-[#E06D43]/20 text-[#C25E38] dark:text-[#E06D43]">
                 4 Verified Citations
               </span>
             </div>
@@ -1024,7 +1076,7 @@ export default function LandingPage() {
             How <span className="text-[#C25E38] dark:text-[#E06D43]">NityaGeeta Works</span>
           </h2>
           <p className="mt-4 text-[#6B5E55] dark:text-[#A89F91] font-sans text-base leading-relaxed">
-            Scroll down to watch the light beam illuminate each step of our grounded wisdom engine.
+            Scroll down to watch the light beam illuminate each step of the grounded wisdom engine.
           </p>
         </div>
 
@@ -1057,7 +1109,7 @@ export default function LandingPage() {
                 num: 2,
                 badge: "Step 02",
                 title: "Verse Alignment",
-                desc: "Our neural retrieval matches your situation to exact canonical Bhagavad Gita Sanskrit verses.",
+                desc: "Neural retrieval matches the situation to exact canonical Bhagavad Gita Sanskrit verses.",
               },
               {
                 num: 3,
@@ -1379,7 +1431,7 @@ export default function LandingPage() {
               scholarlyAuthorityRatio: "(97) out of (100)",
               scholarlyAuthorityDetail: "Veducation Official Master Collection.",
               summary: "The ultimate 5-in-1 master set bringing together the core foundational texts, daily Ayurvedic discipline manuals, willpower training, and supplementary Vedic wisdom guides.",
-              whyThisNumber: "Positioned at #4 as the complete 5-book bundle referenced across our knowledge base."
+              whyThisNumber: "Positioned at #4 as the complete 5-book bundle referenced across the knowledge base."
             }
           ]).map((source) => {
             const isExpanded = expandedSourceId === source.id;
@@ -1483,35 +1535,35 @@ export default function LandingPage() {
 
                         {/* Authenticity & Context Trust Ratios Breakdown */}
                         <div className="pt-2.5 border-t border-[#E8E1D7] dark:border-[#38332E] space-y-2">
-                          <div className="font-bold text-[#2D2622] dark:text-[#F5F2EB] text-[11px] tracking-wide">
+                          <div className="font-bold text-[#2D2622] dark:text-[#F5F2EB] text-xs tracking-wide">
                             Authenticity & Trust Ratio Breakdown
                           </div>
 
                           {/* Ratio 1: Text Authenticity */}
                           <div className="space-y-0.5">
-                            <div className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center justify-between text-xs">
                               <span className="text-[#5C4F45] dark:text-[#D4C7B8] font-medium">Text Authenticity Ratio:</span>
                               <span className="font-mono font-bold text-[#C25E38] dark:text-[#E06D43]">{source.authenticityRatio}</span>
                             </div>
-                            <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.authenticityDetail}</p>
+                            <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.authenticityDetail}</p>
                           </div>
 
                           {/* Ratio 2: Context Trust */}
                           <div className="space-y-0.5 pt-1">
-                            <div className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center justify-between text-xs">
                               <span className="text-[#5C4F45] dark:text-[#D4C7B8] font-medium">Context Trust (Zero-Bias Ratio):</span>
                               <span className="font-mono font-bold text-[#C25E38] dark:text-[#E06D43]">{source.contextTrustRatio}</span>
                             </div>
-                            <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.contextTrustDetail}</p>
+                            <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.contextTrustDetail}</p>
                           </div>
 
                           {/* Ratio 3: Scholarly Authority */}
                           <div className="space-y-0.5 pt-1">
-                            <div className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center justify-between text-xs">
                               <span className="text-[#5C4F45] dark:text-[#D4C7B8] font-medium">Scholarly Authority Ratio:</span>
                               <span className="font-mono font-bold text-[#C25E38] dark:text-[#E06D43]">{source.scholarlyAuthorityRatio}</span>
                             </div>
-                            <p className="text-[10px] text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.scholarlyAuthorityDetail}</p>
+                            <p className="text-xs text-[#8C7B70] dark:text-[#A89F91] leading-snug">{source.scholarlyAuthorityDetail}</p>
                           </div>
                         </div>
                       </div>
@@ -1521,26 +1573,35 @@ export default function LandingPage() {
                     {/* Footer Action Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-[#DFD5C6]/60 dark:border-[#38332E]/60">
                       <span className="text-xs text-[#6B5E55] dark:text-[#A89F91] font-medium">
-                        {source.link ? "Explore full canonical manuscript in high-resolution in-app reader:" : "Available offline in NityaGeeta's local dataset:"}
+                        {source.link ? (
+                          (source.link.toLowerCase().endsWith(".pdf") || source.link.includes(".pdf"))
+                            ? "Explore full canonical manuscript in high-resolution in-app reader:"
+                            : "Explore official published edition:"
+                        ) : "Available offline in NityaGeeta's local dataset:"}
                       </span>
 
                       {source.link ? (
                         <div className="flex items-center gap-2.5">
-                          <button
-                            onClick={() => handleOpenPdf(source.link, source.title)}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-md cursor-pointer border-0"
-                          >
-                            <BookOpen className="w-4 h-4" />
-                            <span>Read in App Viewer</span>
-                          </button>
+                          {(source.link.toLowerCase().endsWith(".pdf") || source.link.includes(".pdf")) && (
+                            <button
+                              onClick={() => handleOpenPdf(source.link, source.title)}
+                              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C25E38] dark:bg-[#E06D43] text-white text-xs font-bold hover:brightness-110 active:scale-95 transition shadow-md cursor-pointer border-0"
+                            >
+                              <BookOpen className="w-4 h-4" />
+                              <span>Read in App Viewer</span>
+                            </button>
+                          )}
                           <a
                             href={source.link}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#EFE9DF] dark:bg-[#1C1917] border border-[#DFD5C6] dark:border-[#38332E] text-[#5C4F45] dark:text-[#D4C7B8] text-xs font-semibold hover:text-[#C25E38] dark:hover:text-[#E06D43] transition shadow-sm"
-                            title="Download / Open Archive.org PDF"
+                            title="Open Official Edition"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
+                            {!(source.link.toLowerCase().endsWith(".pdf") || source.link.includes(".pdf")) && (
+                              <span>Official Edition</span>
+                            )}
                           </a>
                         </div>
                       ) : (
@@ -1607,7 +1668,7 @@ export default function LandingPage() {
                 Verse Accuracy
               </div>
               <p className="text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
-                Report OCR typos in shlokas or translations. We cross-verify with physical Gita Press editions within 24h.
+                Report OCR typos in shlokas or translations. Cross-verified with physical Gita Press editions within 24h.
               </p>
             </div>
 
@@ -1617,7 +1678,7 @@ export default function LandingPage() {
                 Visual Bug Reports
               </div>
               <p className="text-[#6B5E55] dark:text-[#A89F91] leading-relaxed">
-                Attach screenshots of UI glitches or chat anomalies directly in our high-res image submission portal.
+                Attach screenshots of UI glitches or chat anomalies directly in the high-res image submission portal.
               </p>
             </div>
 
@@ -1655,7 +1716,7 @@ export default function LandingPage() {
             Everything You Need To <span className="text-[#C25E38] dark:text-[#E06D43]">Know</span>
           </h2>
           <p className="mt-2 text-[#6B5E55] dark:text-[#D4C7B8] font-sans text-sm max-w-xl mx-auto">
-            Clear insights on our verified scriptural grounding, 5-model AI architecture, and privacy commitments.
+            Clear insights on verified scriptural grounding, 5-model AI architecture, and privacy commitments.
           </p>
         </div>
 
@@ -1679,7 +1740,7 @@ export default function LandingPage() {
                   NityaGeeta utilizes a strict Retrieval-Augmented Generation (RAG) system grounded in authenticated Sanskrit Gita commentaries—primarily the monumental <em>Sadhaka-Sanjivani</em> commentary by Swami Ramsukhdas (Gita Press Gorakhpur) and Winthrop Sargeant&apos;s SUNY Press interlinear grammar.
                 </p>
                 <p>
-                  When you ask a question, our engine performs hybrid vector search across all 700 canonical Sanskrit verses in RAM (&lt;2ms) before prompting the AI, ensuring every answer is anchored to verified chapters, verses, and traditional purports without hallucination.
+                  When asking a question, the in-memory engine performs hybrid vector search across all 700 canonical Sanskrit verses in RAM (&lt;2ms) before prompting the AI, ensuring every answer is anchored to verified chapters, verses, and traditional purports without hallucination.
                 </p>
               </div>
             )}
@@ -1755,10 +1816,10 @@ export default function LandingPage() {
             {openFaq === 3 && (
               <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed border-t border-[#E8E1D7]/60 dark:border-[#38332E] space-y-2">
                 <p>
-                  NityaGeeta is 100% free, non-commercial, and ad-free. We adhere to a strict <Link href="/privacy" className="text-[#C25E38] dark:text-[#E06D43] font-bold underline">Sacred Privacy Pledge</Link>:
+                  NityaGeeta is 100% free, non-commercial, and ad-free, adhering to a strict <Link href="/privacy" className="text-[#C25E38] dark:text-[#E06D43] font-bold underline">Sacred Privacy Pledge</Link>:
                 </p>
                 <p>
-                  We will never run commercial banner ads, sell user data to advertising networks, or use your private spiritual inquiries to train public AI models. You have complete control over your session history and account data.
+                  Commercial banner ads are never displayed, user data is never sold to advertising networks, and private spiritual inquiries are never used to train public AI models. Users retain complete control over session history and account data.
                 </p>
               </div>
             )}
@@ -1780,7 +1841,7 @@ export default function LandingPage() {
             {openFaq === 4 && (
               <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed border-t border-[#E8E1D7]/60 dark:border-[#38332E] space-y-2">
                 <p>
-                  Yes! We believe transparency is the highest virtue. Visit our dedicated <Link href="/sources" className="text-[#C25E38] dark:text-[#E06D43] font-bold underline">Resources & Sources Page</Link> to access the in-app PDF reader and archive links for original Gita Press, SUNY Press, and Acharya manuscripts.
+                  Yes. Canonical transparency is paramount. Visit the dedicated <Link href="/sources" className="text-[#C25E38] dark:text-[#E06D43] font-bold underline">Resources & Sources Page</Link> to access the in-app PDF reader and archive links for original Gita Press, SUNY Press, and Acharya manuscripts.
                 </p>
               </div>
             )}
@@ -1802,7 +1863,7 @@ export default function LandingPage() {
             {openFaq === 5 && (
               <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-[#5C4F45] dark:text-[#D4C7B8] leading-relaxed border-t border-[#E8E1D7]/60 dark:border-[#38332E] space-y-2">
                 <p>
-                  We actively welcome scholarly contributions and feedback. You can visit our{" "}
+                  Scholarly contributions and feedback are actively welcomed. Visit the{" "}
                   <button
                     type="button"
                     onClick={() => router.push("/contact")}

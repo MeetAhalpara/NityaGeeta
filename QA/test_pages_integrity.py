@@ -38,6 +38,8 @@ def test(name: str):
         return wrapper
     return decorator
 
+test.__test__ = False
+
 
 # ==============================================================================
 # SECTION 1: SOURCES PAGE & CITATIONS AUDIT
@@ -115,47 +117,38 @@ def test_dilemmas_verse_citations():
         assert re.search(r'Chapter\s+\d+\s*•\s*Verse', citation), f"Invalid citation format: {citation}"
 
     # Verify dialogue deep-link prompt query integration
-    assert "router.push(`/app?prompt=" in page_content or 'router.push("/app?prompt=' in page_content, (
-        "Dilemmas cards must provide deep linking into /app with prompt parameters"
+    assert "router.push(`/app?prompt=" in page_content or 'router.push("/app?prompt=' in page_content or 'sessionStorage.setItem("nitya_pending_query"' in page_content, (
+        "Dilemmas cards must provide deep linking into /app with prompt parameters or pending query"
     )
 
 
 # ==============================================================================
-# SECTION 3: ARCHITECTURE PAGE & CITATIONS AUDIT
+# SECTION 3: ARCHITECTURE PAGE & 5 COUNCIL ADVISORS AUDIT
 # ==============================================================================
 
-@test("Architecture: Empirical Citations Alignment & Modern Controls")
-def test_architecture_citations_and_stopwatch():
+@test("Architecture: 5 Council Advisors, Canonical Sources & Competitor Brand Removal")
+def test_architecture_advisors_and_scriptural_grounding():
     with open("frontend/src/app/architecture/page.tsx", "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Verify all 4 research citations are present with verified URLs
-    # Citation [1]: Stanford HELM & arXiv:2309.01219 (Hallucination survey)
-    assert "https://crfm.stanford.edu/helm/" in content, "Missing Stanford HELM benchmark URL"
-    assert "https://arxiv.org/abs/2309.01219" in content, "Missing LLM Hallucination Survey (arXiv:2309.01219)"
+    # Verify all 5 Council Advisors are present
+    assert "Vidvan (The Scripture Scholar)" in content, "Missing Vidvan Advisor"
+    assert "Prof. Winthrop Sargeant" in content, "Missing Prof. Winthrop Sargeant Advisor"
+    assert "Acharya Shankara" in content, "Missing Acharya Shankara Advisor"
+    assert "Swami Ramsukhdas" in content, "Missing Swami Ramsukhdas Advisor"
+    assert "Dr. Vijnana" in content, "Missing Dr. Vijnana Advisor"
 
-    # Citation [2]: Gita Press official & SUNY Press (archive.org REMOVED)
-    assert bool(re.search(r"https://gitapress\.org", content)), "Missing Gitapress official portal in Architecture Citation [2]"
-    assert "https://sunypress.edu/Books/T/The-Bhagavad-Gita" in content, "Missing SUNY Press URL in Citation [2]"
-    assert "https://archive.org/details/shreemed-bhagwat-gita-20220406_20220406_0356" not in content, (
-        "Target archive.org URL still present in architecture/page.tsx"
-    )
+    # Verify canonical source deep links to /sources
+    assert "/sources#geeta-1" in content, "Missing deep link to geeta-1"
+    assert "/sources#geeta-2" in content, "Missing deep link to geeta-2"
+    assert "/sources#geeta-3" in content, "Missing deep link to geeta-3"
+    assert "/sources#geeta-4" in content, "Missing deep link to geeta-4"
+    assert "/sources#ved-1" in content, "Missing deep link to ved-1"
 
-    # Citation [3]: MIT Multiagent Debate (arXiv:2305.14325) & Stanford HAI AI Index
-    assert "https://arxiv.org/abs/2305.14325" in content, "Missing MIT Multiagent Debate paper (arXiv:2305.14325)"
-    assert "https://aiindex.stanford.edu/report/" in content, "Missing Stanford HAI AI Index Report URL"
-
-    # Citation [4]: RAGAS evaluation (arXiv:2309.15217)
-    assert "https://arxiv.org/abs/2309.15217" in content, "Missing RAGAS evaluation paper (arXiv:2309.15217)"
-
-    # Verify Collapsible dropdown exists with default closed state
-    assert "integrityCitationsOpen" in content, "Missing integrityCitationsOpen state"
-    assert "useState(false)" in content, "Collapsible citations must default to closed"
-
-    # Verify stopwatch fix: duration={1.2} with status="complete"
-    assert 'status="complete"' in content and "duration={1.2}" in content, (
-        "AgentActivity in Architecture must pass status='complete' and duration={1.2} to prevent timer creep"
-    )
+    # Verify competitor brand removal (ChatGPT, Claude, Gemini)
+    assert "ChatGPT" not in content, "Architecture page should not mention competitor ChatGPT"
+    assert "Claude" not in content, "Architecture page should not mention competitor Claude"
+    assert "Gemini" not in content, "Architecture page should not mention competitor Gemini"
 
 
 # ==============================================================================
@@ -251,7 +244,8 @@ def test_footer_streamlining():
     assert "AI Dialogue" in content or "Dialogue" in content, "Missing concise Dialogue link"
     assert "Life Dilemmas" in content, "Missing Life Dilemmas link"
     assert "Sources Library" in content, "Missing Sources Library link"
-    assert "System Architecture" in content, "Missing System Architecture link"
+    assert "Thinking & Architecture" in content, "Missing Thinking & Architecture label"
+    assert "/architecture" in content, "Missing /architecture route in footer"
     assert "Contact & Feedback" in content, "Missing Contact link"
     assert "Privacy Policy" in content, "Missing Privacy Policy link"
     assert "Terms of Service" in content, "Missing Terms of Service link"
@@ -325,7 +319,7 @@ if __name__ == "__main__":
         test_sources_canonical_editions,
         test_sources_supporting_citations_alignment,
         test_dilemmas_verse_citations,
-        test_architecture_citations_and_stopwatch,
+        test_architecture_advisors_and_scriptural_grounding,
         test_contact_email_validation,
         test_contact_screenshot_guards,
         test_footer_streamlining,

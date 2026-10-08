@@ -1,0 +1,234 @@
+{
+  "SchemaVersion": "2.0",
+  "ReportId": "c84f5e71-92be-48e2-b137-ea5040a43d99",
+  "GeneratedAtUtc": "2026-10-04T01:45:00.0000000Z",
+  "GeneratedAtLocal": "2026-10-03 21:45:00 -04:00",
+  "TriageSummary": {
+    "OverallHealth": "WARNING",
+    "HealthScore": 80,
+    "IssueCount": 2,
+    "IdentifiedIssues": [
+      "Volume C: is approaching threshold with 12.78% free space (119.23 GB remaining).",
+      "Service 'Print Spooler' (Spooler) is configured for Automatic start but is currently Stopped."
+    ],
+    "RecommendedActions": [
+      "Schedule maintenance to purge temp files, clean Windows update cache (C:\\Windows\\SoftwareDistribution), and review storage growth on C:.",
+      "Attempt service recovery: Start-Service -Name 'Spooler' and inspect Windows Event Log for crash dumps."
+    ]
+  },
+  "SystemMetadata": {
+    "Hostname": "CORP-WKS-8492",
+    "Domain": "CORP.GLOBAL",
+    "OperatingSystem": "Microsoft Windows 11 Enterprise",
+    "Version": "10.0.22631",
+    "BuildNumber": "22631",
+    "Architecture": "64-bit",
+    "InstallDateUtc": "2024-03-12T14:22:10.0000000Z",
+    "LastBootUpTimeUtc": "2026-10-01T23:42:18.7315750Z",
+    "UptimeHours": 50.2,
+    "UptimeFormatted": "2d 2h 11m",
+    "CurrentUser": "CORP\\jdoe_adm",
+    "Manufacturer": "Dell Inc.",
+    "Model": "Latitude 5540",
+    "SystemSerialNumber": "9B4T721",
+    "BIOSVersion": "1.14.2",
+    "PowerShellVersion": "5.1.26100.9549",
+    "ExecutionElevated": true
+  },
+  "StorageHealth": {
+    "Thresholds": {
+      "WarningPercent": 15,
+      "CriticalPercent": 5
+    },
+    "LogicalDisks": [
+      {
+        "DeviceID": "C:",
+        "VolumeName": "OS_SYSTEM",
+        "FileSystem": "NTFS",
+        "TotalSizeBytes": 1001416290304,
+        "TotalSizeGB": 932.64,
+        "FreeSpaceBytes": 128020987904,
+        "FreeSpaceGB": 119.23,
+        "PercentFree": 12.78,
+        "Status": "WARNING"
+      }
+    ],
+    "PhysicalDrives": [
+      {
+        "DeviceId": "0",
+        "FriendlyName": "NVMe PC SN5000S WD 1024GB",
+        "MediaType": "SSD",
+        "BusType": "NVMe",
+        "SizeGB": 953.87,
+        "OperationalStatus": "OK",
+        "HealthStatus": "Healthy",
+        "SmartPredictFailure": false
+      }
+    ],
+    "StorageIssues": [
+      "Volume C: is approaching threshold with 12.78% free space."
+    ]
+  },
+  "ServiceStates": {
+    "TotalMonitored": 8,
+    "HealthyCount": 7,
+    "AnomaliesCount": 1,
+    "Services": [
+      {
+        "Name": "Spooler",
+        "DisplayName": "Print Spooler",
+        "Status": "Stopped",
+        "StartType": "Auto",
+        "StartName": "LocalSystem",
+        "Evaluation": "ANOMALY_STOPPED"
+      },
+      {
+        "Name": "RemoteRegistry",
+        "DisplayName": "Remote Registry",
+        "Status": "Stopped",
+        "StartType": "Disabled",
+        "StartName": "NT AUTHORITY\\LocalService",
+        "Evaluation": "STOPPED_INTENTIONAL"
+      },
+      {
+        "Name": "wuauserv",
+        "DisplayName": "Windows Update",
+        "Status": "Running",
+        "StartType": "Manual",
+        "StartName": "LocalSystem",
+        "Evaluation": "HEALTHY"
+      },
+      {
+        "Name": "LanmanWorkstation",
+        "DisplayName": "Workstation",
+        "Status": "Running",
+        "StartType": "Auto",
+        "StartName": "NT AUTHORITY\\NetworkService",
+        "Evaluation": "HEALTHY"
+      },
+      {
+        "Name": "Dnscache",
+        "DisplayName": "DNS Client",
+        "Status": "Running",
+        "StartType": "Auto",
+        "StartName": "NT AUTHORITY\\NetworkService",
+        "Evaluation": "HEALTHY"
+      },
+      {
+        "Name": "Dhcp",
+        "DisplayName": "DHCP Client",
+        "Status": "Running",
+        "StartType": "Auto",
+        "StartName": "NT Authority\\LocalService",
+        "Evaluation": "HEALTHY"
+      },
+      {
+        "Name": "WinDefend",
+        "DisplayName": "Microsoft Defender Antivirus Service",
+        "Status": "Running",
+        "StartType": "Auto",
+        "StartName": "LocalSystem",
+        "Evaluation": "HEALTHY"
+      },
+      {
+        "Name": "MpsSvc",
+        "DisplayName": "Windows Defender Firewall",
+        "Status": "Running",
+        "StartType": "Auto",
+        "StartName": "NT Authority\\LocalService",
+        "Evaluation": "HEALTHY"
+      }
+    ],
+    "ServiceIssues": [
+      "Service 'Print Spooler' (Spooler) is configured for Automatic start but is currently Stopped."
+    ]
+  },
+  "EventLogErrors": {
+    "LookbackHours": 24,
+    "TotalErrorsRecorded": 5,
+    "CriticalErrorsCount": 0,
+    "ApplicationErrorCount": 2,
+    "SystemErrorCount": 3,
+    "TopRecurringEvents": [
+      {
+        "EventId": 10010,
+        "ProviderName": "Microsoft-Windows-DistributedCOM",
+        "LogName": "System",
+        "Occurrences": 3
+      },
+      {
+        "EventId": 8194,
+        "ProviderName": "VSS",
+        "LogName": "Application",
+        "Occurrences": 2
+      }
+    ],
+    "Events": [
+      {
+        "TimeCreatedUtc": "2026-10-03T23:54:23.0000000Z",
+        "TimeCreatedLocal": "2026-10-03 19:54:23",
+        "LogName": "System",
+        "ProviderName": "Microsoft-Windows-DistributedCOM",
+        "EventId": 10010,
+        "Level": 2,
+        "LevelDisplayName": "Error",
+        "Message": "The server {A463FCB9-6B1C-4E0D-A80B-A2CA7999E25D} did not register with DCOM within the required timeout."
+      },
+      {
+        "TimeCreatedUtc": "2026-10-03T19:31:46.0000000Z",
+        "TimeCreatedLocal": "2026-10-03 15:31:46",
+        "LogName": "Application",
+        "ProviderName": "VSS",
+        "EventId": 8194,
+        "Level": 2,
+        "LevelDisplayName": "Error",
+        "Message": "Volume Shadow Copy Service error: Unexpected error querying for the IVssWriterCallback interface. hr = 0x80070005, Access is denied. Context: Writer Class Id: {e8132975-6f93-4464-a53e-1050253ae220}."
+      }
+    ],
+    "EventLogIssues": []
+  },
+  "NetworkDiagnostics": {
+    "NetworkStatus": "HEALTHY",
+    "ActiveAdaptersCount": 1,
+    "ActiveAdapters": [
+      {
+        "InterfaceAlias": "Ethernet 1",
+        "InterfaceDescription": "Intel(R) Ethernet Connection (17) I219-LM",
+        "MACAddress": "00-15-5D-82-41-A0",
+        "LinkSpeed": "1 Gbps",
+        "Status": "Up",
+        "IPv4Addresses": [
+          "10.100.14.85"
+        ],
+        "IPv6Addresses": [
+          "fe80::4912:6b5a:fe10:982b"
+        ],
+        "DefaultGateways": [
+          "10.100.14.1"
+        ],
+        "DnsServers": [
+          "10.100.0.10",
+          "10.100.0.11"
+        ]
+      }
+    ],
+    "DefaultGatewayPingTest": {
+      "TargetGateway": "10.100.14.1",
+      "Reachable": true,
+      "PacketsSent": 4,
+      "PacketsReceived": 4,
+      "PacketLossPercent": 0.0,
+      "MinLatencyMs": 1.2,
+      "MaxLatencyMs": 3.4,
+      "AverageLatencyMs": 2.15,
+      "Evaluation": "EXCELLENT"
+    },
+    "DnsResolutionTest": {
+      "TargetDomain": "dns.google",
+      "ResolvedIp": "8.8.8.8",
+      "ResolutionTimeMs": 14.82,
+      "Successful": true
+    },
+    "NetworkIssues": []
+  }
+}
