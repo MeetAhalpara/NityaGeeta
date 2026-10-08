@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: './tests',
   timeout: 30000,
   expect: {
-    timeout: 5000
+    timeout: 7000
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -16,6 +16,12 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     headless: true,
+  },
+  webServer: {
+    command: 'npm run start',
+    url: 'http://localhost:1870',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
   },
   projects: [
     {

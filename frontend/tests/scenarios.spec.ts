@@ -1,123 +1,131 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('NityaGeeta Multi-Scenario UI Testing Matrix', () => {
+test.describe('NityaGeeta Production Multi-Scenario UI Matrix', () => {
 
   // ============================================================================
-  // SCENARIO 1: GOOD DAY (Nominal UI Rendering & Navigation)
+  // SCENARIO 1: GOOD DAY (Real Application Page Rendering & Navigation)
   // ============================================================================
   test.describe('Good Day Scenario (Happy Path UI)', () => {
-    test('Sources page displays all canonical manuscript layers', async ({ page }) => {
-      await page.route('**/sources', route => route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: '<html><body><main id="geeta-1">Gita Press</main><div id="geeta-2">Winthrop Sargeant</div></body></html>'
-      }));
-      await page.goto('http://localhost:1870/sources');
-      await expect(page.locator('#geeta-1')).toBeVisible();
-      await expect(page.locator('#geeta-2')).toBeVisible();
+    test('Sources page displays authentic headers, search bar, and manuscript sections', async ({ page }) => {
+      await page.goto('/sources');
+
+      // Assert real H1 and subheading
+      const heading = page.locator('h1');
+      await expect(heading).toBeVisible();
+      await expect(heading).toContainText('Verifiable');
+      await expect(heading).toContainText('Sources & Manuscripts');
+
+      // Assert real interactive search bar
+      const searchInput = page.locator('input[placeholder*="Search books"]');
+      await expect(searchInput).toBeVisible();
+      await searchInput.fill('Sanskrit grammar');
+      await expect(searchInput).toHaveValue('Sanskrit grammar');
     });
 
-    test('Contact page mounts contact form with inputs and upload dropzone', async ({ page }) => {
-      await page.route('**/contact', route => route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: `
-          <html><body>
-            <form id="contact-form">
-              <input type="text" name="name" placeholder="Your Name" />
-              <input type="email" name="email" placeholder="Your Email" />
-              <textarea name="message" placeholder="Message"></textarea>
-              <input type="file" name="attachments" multiple />
-              <button type="submit" id="submit-btn">Send Message</button>
-            </form>
-          </body></html>
-        `
-      }));
-      await page.goto('http://localhost:1870/contact');
-      await expect(page.locator('#contact-form')).toBeVisible();
-      await expect(page.locator('input[name="name"]')).toBeVisible();
-      await expect(page.locator('input[name="email"]')).toBeVisible();
-      await expect(page.locator('button#submit-btn')).toBeVisible();
+    test('Contact page mounts all real form controls, inputs, and screenshot dropzone', async ({ page }) => {
+      await page.goto('/contact');
+
+      // Assert real form controls
+      const nameInput = page.locator('input[placeholder="Enter your name"]');
+      const emailInput = page.locator('input[placeholder="name@gmail.com"]');
+      const messageTextarea = page.locator('textarea[placeholder*="Describe your issue"]');
+      const fileInput = page.locator('#contact-page-images');
+      const submitBtn = page.locator('button[type="submit"]');
+
+      await expect(nameInput).toBeVisible();
+      await expect(emailInput).toBeVisible();
+      await expect(messageTextarea).toBeVisible();
+      await expect(fileInput).toBeAttached();
+      await expect(submitBtn).toBeVisible();
+      await expect(submitBtn).toContainText('Submit Feedback');
     });
   });
 
   // ============================================================================
-  // SCENARIO 2: BUSY DAY (Rapid Concurrency & Navigation Switching)
+  // SCENARIO 2: BUSY DAY (Rapid Navigation & Route Switching)
   // ============================================================================
-  test.describe('Busy Day Scenario (Rapid Navigation & High Activity)', () => {
-    test('Handles rapid successive route switches without client crash', async ({ page }) => {
-      const routes = ['/sources', '/contact', '/architecture', '/dilemmas'];
+  test.describe('Busy Day Scenario (Rapid Route Switching)', () => {
+    test('Navigates across multiple actual routes without client hydration crash', async ({ page }) => {
+      const routes = ['/sources', '/architecture', '/dilemmas', '/privacy', '/contact'];
+
       for (const route of routes) {
-        await page.route(`**${route}`, r => r.fulfill({
+        await page.goto(route);
+        await expect(page).toHaveURL(new RegExp(route));
+        // Verify persistent header brand navigation is mounted
+        await expect(page.locator('header')).toBeVisible();
+      }
+    });
+  });
+
+  // ============================================================================
+  // SCENARIO 3: RAINY DAY (Form Validation, Domain Suggestions & Error States)
+  // ============================================================================
+  test.describe('Rainy Day Scenario (Real Form Validation)', () => {
+    test('Catches invalid email format and suggests domain typos on contact page', async ({ page }) => {
+      await page.goto('/contact');
+
+      const emailInput = page.locator('input[placeholder="name@gmail.com"]');
+      await expect(emailInput).toBeVisible();
+
+      // Test typo domain trigger (e.g. gmial.com -> gmail.com suggestion)
+      await emailInput.fill('arjuna@gmial.com');
+      await emailInput.blur();
+
+      // Verify smart domain suggestion banner appears
+      const suggestionBanner = page.locator('text=Did you mean');
+      await expect(suggestionBanner).toBeVisible();
+      await expect(page.locator('text=arjuna@gmail.com')).toBeVisible();
+
+      // Test "Apply Fix" button
+      const applyFixBtn = page.locator('button:has-text("Apply Fix")');
+      await expect(applyFixBtn).toBeVisible();
+      await applyFixBtn.click();
+      await expect(emailInput).toHaveValue('arjuna@gmail.com');
+    });
+  });
+
+  // ============================================================================
+  // SCENARIO 4: TUFFEST DAY (In-Flight Duplicate Submission Protection)
+  // ============================================================================
+  test.describe('Tuffest Day Scenario (In-Flight Protection)', () => {
+    test('Disables submit button while contact dispatch is in-flight', async ({ page }) => {
+      // Mock only the backend API route with artificial delay to test in-flight UI state
+      await page.route('**/api/contact', async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await route.fulfill({
           status: 200,
-          contentType: 'text/html',
-          body: `<html><body><h1>${route}</h1></body></html>`
-        }));
-      }
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            ticketId: 'NG-TEST-TICKET',
+            deliveryStatus: 'simulated_success',
+            message: 'Inquiry recorded.',
+            timestamp: new Date().toUTCString(),
+          }),
+        });
+      });
 
-      for (const route of routes) {
-        await page.goto(`http://localhost:1870${route}`);
-        await expect(page.locator('h1')).toHaveText(route);
-      }
-    });
-  });
+      await page.goto('/contact');
 
-  // ============================================================================
-  // SCENARIO 3: RAINY DAY (Form Validation, Network Degrade & Error Handlers)
-  // ============================================================================
-  test.describe('Rainy Day Scenario (Edge Cases & Fault Injection)', () => {
-    test('Client-side contact form catches invalid email and prevents submission', async ({ page }) => {
-      await page.route('**/contact', route => route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: `
-          <html><body>
-            <form id="contact-form">
-              <input type="email" id="email-input" required />
-              <button type="submit" id="submit-btn">Send</button>
-            </form>
-          </body></html>
-        `
-      }));
+      const nameInput = page.locator('input[placeholder="Enter your name"]');
+      const emailInput = page.locator('input[placeholder="name@gmail.com"]');
+      const messageTextarea = page.locator('textarea[placeholder*="Describe your issue"]');
+      const submitBtn = page.locator('button[type="submit"]');
 
-      await page.goto('http://localhost:1870/contact');
-      await page.fill('#email-input', 'bad-email-format');
+      await nameInput.fill('Arjuna Pandava');
+      await emailInput.fill('arjuna@kurukshetra.org');
+      await messageTextarea.fill('Requesting philosophical clarity on verse 2.47 duty.');
 
-      // Native HTML5 and DOM validity check
-      const isValid = await page.$eval('#email-input', (el: HTMLInputElement) => el.checkValidity());
-      expect(isValid).toBe(false);
+      // Click submit
+      await submitBtn.click();
 
-      // Verify browser CSS pseudo-class flags invalid input
-      await expect(page.locator('#email-input:invalid')).toBeVisible();
-    });
-  });
+      // Assert button enters in-flight state and is disabled
+      await expect(submitBtn).toBeDisabled();
+      await expect(submitBtn).toContainText('Sending Notification...');
 
-  // ============================================================================
-  // SCENARIO 4: TUFFEST DAY (Payload Bounds & Disabled Submit Protection)
-  // ============================================================================
-  test.describe('Tuffest Day Scenario (Adversarial Spam & Button Protection)', () => {
-    test('Prevents duplicate submissions by disabling button while in-flight', async ({ page }) => {
-      await page.route('**/contact', route => route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: `
-          <html><body>
-            <button id="send-btn">Submit</button>
-            <script>
-              document.getElementById('send-btn').onclick = function() {
-                this.disabled = true;
-                this.innerText = 'Transmitting...';
-              };
-            </script>
-          </body></html>
-        `
-      }));
-
-      await page.goto('http://localhost:1870/contact');
-      const button = page.locator('#send-btn');
-      await button.click();
-      await expect(button).toBeDisabled();
-      await expect(button).toHaveText('Transmitting...');
+      // Wait for mock API response to complete and success view to render
+      await expect(page.locator('text=Feedback Received')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('text=NG-TEST-TICKET')).toBeVisible();
     });
   });
 

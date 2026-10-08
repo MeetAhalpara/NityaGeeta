@@ -43,6 +43,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Create writable private storage for contact uploads with proper permissions
+RUN mkdir -p /app/private_uploads/contact && chown -R nextjs:nodejs /app/private_uploads
+
 USER nextjs
 
 EXPOSE 3000
