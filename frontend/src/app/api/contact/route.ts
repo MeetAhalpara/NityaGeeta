@@ -660,7 +660,7 @@ ${safeMessage}
 
         return { ok: true, status: 200 };
       } catch (err: unknown) {
-        console.error(`[SMTP Error] Delivery to ${to} failed:`, err);
+        console.error("[SMTP Error] Delivery failed for recipient:", to, err);
         return { ok: false, status: 500, error: String(err) };
       }
     };
@@ -722,12 +722,12 @@ ${safeMessage}
 
           if (!resp.ok) {
             const errBody = await resp.text();
-            console.error(`[Resend Error] Delivery to ${to} failed. Status:`, resp.status, errBody);
+            console.error("[Resend Error] Delivery failed for recipient:", to, "Status:", resp.status, errBody);
             return { ok: false, status: resp.status, error: errBody };
           }
           return { ok: true, status: resp.status };
         } catch (err) {
-          console.error(`[Resend Network Error] Delivery to ${to} failed:`, err);
+          console.error("[Resend Network Error] Delivery failed for recipient:", to, err);
           return { ok: false, status: 500, error: String(err) };
         }
       };
@@ -737,7 +737,7 @@ ${safeMessage}
 
       // If Resend failed for user receipt, attempt SMTP fallback if configured
       if (!resUser.ok && canUseSmtp) {
-        console.warn(`[Contact API] Resend failed for customer (${trimmedEmail}). Attempting SMTP fallback...`);
+        console.warn("[Contact API] Resend failed for customer. Attempting SMTP fallback...", trimmedEmail);
         const smtpAttempt = await sendEmailViaSmtp(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
         if (smtpAttempt.ok) {
           resUser = { ok: true, status: 200 };
@@ -749,7 +749,7 @@ ${safeMessage}
 
       // If Resend failed for desk alert, attempt SMTP fallback if configured
       if (!resInternal.ok && canUseSmtp) {
-        console.warn(`[Contact API] Resend failed for desk alert (${OFFICIAL_EMAIL}). Attempting SMTP fallback...`);
+        console.warn("[Contact API] Resend failed for desk alert. Attempting SMTP fallback...", OFFICIAL_EMAIL);
         const smtpAttempt = await sendEmailViaSmtp(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
         if (smtpAttempt.ok) {
           resInternal = { ok: true, status: 200 };
@@ -799,12 +799,12 @@ ${safeMessage}
 
           if (!resp.ok) {
             const errBody = await resp.text();
-            console.error(`[SendGrid Error] Delivery to ${to} failed. Status:`, resp.status, errBody);
+            console.error("[SendGrid Error] Delivery failed for recipient:", to, "Status:", resp.status, errBody);
             return { ok: false, status: resp.status, error: errBody };
           }
           return { ok: true, status: resp.status };
         } catch (err) {
-          console.error(`[SendGrid Network Error] Delivery to ${to} failed:`, err);
+          console.error("[SendGrid Network Error] Delivery failed for recipient:", to, err);
           return { ok: false, status: 500, error: String(err) };
         }
       };

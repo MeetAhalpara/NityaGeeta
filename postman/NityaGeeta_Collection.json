@@ -155,8 +155,8 @@
                   "});",
                   "pm.test(\"Page object contains canonical data\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property(\"page_num\");",
-                  "    pm.expect(jsonData.page_num).to.eql(47);",
+                  "    pm.expect(jsonData).to.have.property(\"page\");",
+                  "    pm.expect(jsonData.page).to.eql(47);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -275,6 +275,49 @@
               "path": ["api", "v1", "auth", "login"]
             }
           }
+        },
+        {
+          "name": "POST /api/v1/auth/register - Provision Isolated Test User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 Created or 400 Already Exists\", function () {",
+                  "    pm.expect([200, 400]).to.include(pm.response.code);",
+                  "});",
+                  "pm.test(\"Isolated test user is provisioned and ready\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (pm.response.code === 200) {",
+                  "        pm.expect(jsonData.exists).to.be.true;",
+                  "        pm.expect(jsonData.user.email).to.eql(pm.environment.get(\"test_user_email\") || \"qa_tester@nityageeta.internal\");",
+                  "    } else {",
+                  "        pm.expect(jsonData.detail).to.include(\"already exists\");",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_user_email}}\",\n  \"full_name\": \"QA Newman Isolated Runner\",\n  \"password\": \"TemporaryQaPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{backend_url}}/api/v1/auth/register",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
         }
       ]
     },
@@ -284,6 +327,36 @@
         {
           "name": "POST /api/v1/sessions/save - Save Session",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Dynamic session isolation: generate fresh UUID for each run to prevent overwriting persistent conversations",
+                  "var freshSessionId = pm.variables.replaceIn('{{$guid}}');",
+                  "pm.environment.set(\"test_session_id\", freshSessionId);",
+                  "",
+                  "// Ensure isolated test user account exists prior to saving session",
+                  "var backendUrl = pm.environment.get(\"backend_url\") || \"http://localhost:8000\";",
+                  "var testEmail = pm.environment.get(\"test_user_email\") || \"qa_tester@nityageeta.internal\";",
+                  "pm.sendRequest({",
+                  "    url: backendUrl + \"/api/v1/auth/register\",",
+                  "    method: \"POST\",",
+                  "    header: { \"Content-Type\": \"application/json\" },",
+                  "    body: {",
+                  "        mode: \"raw\",",
+                  "        raw: JSON.stringify({",
+                  "            email: testEmail,",
+                  "            full_name: \"QA Newman Isolated Runner\",",
+                  "            password: \"TemporaryQaPassword123!\"",
+                  "        })",
+                  "    }",
+                  "}, function (err, res) {",
+                  "    // 200 (created) or 400 (already exists) both confirm account availability",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -382,6 +455,41 @@
               "path": ["api", "v1", "sessions", "invalid-uuid-format", "messages"]
             }
           }
+        },
+        {
+          "name": "DELETE /api/v1/sessions/:id - Cleanup Test Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Session successfully cleaned up after test run\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/api/v1/sessions/{{test_session_id}}?user_email={{test_user_email}}",
+              "host": ["{{backend_url}}"],
+              "path": ["api", "v1", "sessions", "{{test_session_id}}"],
+              "query": [
+                {
+                  "key": "user_email",
+                  "value": "{{test_user_email}}"
+                }
+              ]
+            }
+          }
         }
       ]
     },
@@ -392,16 +500,35 @@
           "name": "POST /api/contact - Valid Submission Contract",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Mail safety guard: skip live contact email submission by default",
+                  "// to prevent dispatching real emails through Resend/SendGrid/SMTP.",
+                  "// Enable only when targeting an isolated mail sink or stub by setting enable_live_email_dispatch=true.",
+                  "if (pm.environment.get(\"enable_live_email_dispatch\") !== \"true\") {",
+                  "    console.warn(\"[SKIPPED] POST /api/contact live dispatch skipped to prevent sending real email. Configure isolated mail sink and set enable_live_email_dispatch=true in environment to execute.\");",
+                  "    if (pm.execution && typeof pm.execution.skipRequest === \"function\") {",
+                  "        pm.execution.skipRequest();",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 200 OK or 503 (if unconfigured in prod)\", function () {",
-                  "    pm.expect([200, 503]).to.include(pm.response.code);",
-                  "});",
-                  "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData).to.have.property(\"ticketId\");",
+                  "if (pm.response) {",
+                  "    pm.test(\"Status code is 200 OK or 503 (if unconfigured in prod)\", function () {",
+                  "        pm.expect([200, 503]).to.include(pm.response.code);",
+                  "    });",
+                  "    if (pm.response.code === 200) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "        pm.expect(jsonData).to.have.property(\"ticketId\");",
+                  "    }",
                   "}"
                 ],
                 "type": "text/javascript"
