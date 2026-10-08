@@ -346,7 +346,12 @@ class TestTuffestDayScenario:
 
     def test_tuffest_day_sql_injection_resilience(self):
         """SQL injection attempts in parameters are safely handled with parameterized queries."""
-        client = TestClient(app)
+        from unittest.mock import MagicMock, patch
+
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor.fetchone.return_value = None
 
         sqli_payloads = [
             "' OR '1'='1",
@@ -355,10 +360,20 @@ class TestTuffestDayScenario:
             "UNION SELECT * FROM sqlite_master --"
         ]
 
-        for payload in sqli_payloads:
-            res = client.post("/api/v1/auth/lookup", json={"email": f"{payload}@test.com"})
-            # Must return clean application response (400 or 404 or 200), never an unhandled 500 error
-            assert res.status_code in [200, 400, 404]
+        with patch("api.main.get_db_connection", return_value=mock_conn):
+            client = TestClient(app)
+            for payload in sqli_payloads:
+                test_email = f"{payload}@test.com"
+                res = client.post("/api/v1/auth/lookup", json={"email": test_email})
+                # Must return clean application response (200), never an unhandled 500 error
+                assert res.status_code == 200
+                assert res.json() == {"exists": False, "message": "User not found."}
+
+                # Verify query remained strictly parameterized (%s) and payload was passed as bound parameter tuple
+                mock_cursor.execute.assert_called_with(
+                    "SELECT id, email, display_name, avatar_url FROM users WHERE email = %s;",
+                    (test_email.strip().lower(),)
+                )
 
     def test_tuffest_day_prompt_injection_sanitization(self):
         """Adversarial prompt injections are stripped of markdown artifacts and patronizing terms."""
