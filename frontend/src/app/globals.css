@@ -1,6 +1,5 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 /* Hide scrollbar — used by AgePicker drum & chat containers */
 .scrollbar-hide {
