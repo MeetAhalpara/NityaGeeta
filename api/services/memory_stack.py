@@ -5,7 +5,7 @@ and topic returns as a Directed Acyclic Graph (DAG) with push/pop/squash mechani
 """
 
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import networkx as nx
 from pydantic import BaseModel, Field
 
@@ -14,7 +14,7 @@ class TurnMessage(BaseModel):
     turn_id: int
     speaker: str  # "user" | "assistant"
     content: str
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     shlokas_cited: List[str] = []
 
 
@@ -23,7 +23,7 @@ class TopicNodeData(BaseModel):
     name: str
     parent_id: Optional[str] = None
     status: str = "active"  # "main" | "active_tangent" | "collapsed"
-    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     summary: Optional[str] = None
     turns: List[TurnMessage] = []
 
@@ -75,7 +75,7 @@ class ConversationGraphStack:
         Creates a child node in the NetworkX graph connected to the active parent.
         """
         parent_id = self.active_node_id
-        new_node_id = f"tangent_{nx.number_of_nodes(self.graph) + 1}_{int(datetime.utcnow().timestamp())}"
+        new_node_id = f"tangent_{nx.number_of_nodes(self.graph) + 1}_{int(datetime.now(timezone.utc).timestamp())}"
 
         new_node = TopicNodeData(
             node_id=new_node_id,
