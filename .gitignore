@@ -60,3 +60,5 @@ Errors/*
 .claude.json
 AGENTS.md
 Q&A.txt
+frontend/test-results/
+playwright-report/
