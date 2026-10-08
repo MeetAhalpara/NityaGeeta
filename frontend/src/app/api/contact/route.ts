@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import fs from "fs";
+import path from "path";
 
 const OFFICIAL_EMAIL = process.env.NITYAGEETA_CONTACT_EMAIL || "Morved.NityaGeeta@outlook.com";
 
@@ -88,6 +90,26 @@ interface ProcessedAttachment {
   filename: string;
   buffer: Buffer;
   contentType: string;
+  size: number;
+  contentId?: string;
+  publicUrl?: string;
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
 export async function POST(request: Request) {
@@ -199,7 +221,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // Ticket Reference ID & Timestamp (Generated prior to file processing so storage and URLs can use ticketId)
+    const ticketId = `NG-MSG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const timestamp = new Date().toUTCString();
+
+    const host = request.headers.get("host") || "localhost:1870";
+    const proto = request.headers.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+    const siteBaseUrl = process.env.NEXTAUTH_URL || `${proto}://${host}`;
+
     const attachments: ProcessedAttachment[] = [];
+    const cwd = process.cwd();
+    const publicDir = fs.existsSync(path.join(cwd, "public"))
+      ? path.join(cwd, "public")
+      : path.join(cwd, "frontend", "public");
+    const ticketUploadsDir = path.join(publicDir, "uploads", "contact", ticketId);
+
+    let fileIdx = 0;
     for (const file of rawFiles) {
       if (file.size > MAX_FILE_SIZE_BYTES) {
         return NextResponse.json(
@@ -217,70 +254,518 @@ export async function POST(request: Request) {
       }
 
       const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || `evidence_${fileIdx + 1}.png`;
+      const contentId = `evidence_${fileIdx + 1}_${ticketId}@nityageeta.tech`;
+      const publicUrl = `${siteBaseUrl}/uploads/contact/${ticketId}/${encodeURIComponent(sanitizedName)}`;
+
+      // Save to disk for static serving / permanent access
+      try {
+        fs.mkdirSync(ticketUploadsDir, { recursive: true });
+        fs.writeFileSync(path.join(ticketUploadsDir, sanitizedName), buffer);
+      } catch (fsErr) {
+        console.error("[Attachment Storage Warning] Failed to write file to disk:", fsErr);
+      }
+
       attachments.push({
-        filename: file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "screenshot.png",
-        buffer: Buffer.from(arrayBuffer),
+        filename: sanitizedName,
+        buffer,
         contentType: mimeType,
+        size: file.size,
+        contentId,
+        publicUrl,
       });
+      fileIdx++;
     }
 
-    // Ticket Reference ID & Timestamp
-    const ticketId = `NG-MSG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-    const timestamp = new Date().toUTCString();
+    const BRAND_LOGO_URL = "https://raw.githubusercontent.com/MeetAhalpara/NityaGeeta/feat/postman-collection-and-api-testing-suite/frontend/public/images/optimized-logo.png";
+
+    // Sanitized values for HTML email templates
+    const safeName = escapeHtml(trimmedName);
+    const safeEmail = escapeHtml(trimmedEmail);
+    const safeTopicLabel = escapeHtml(topicLabel);
+    const safeMessage = escapeHtml(trimmedMessage);
 
     // 4. Generate Email Messages
-    // A) Customer Confirmation Email (FIXED TEMPLATE - Zero user-written text to prevent spam relay attacks)
+    // A) Customer Confirmation Email (Apple-Inspired Steve Jobs Aesthetic)
     const userSubject = `NityaGeeta | Received: Inquiry regarding "${topicLabel}" [Ref: ${ticketId}]`;
     const userText = `Namaste ${trimmedName},
 
-Thank you for reaching out. We confirm that NityaGeeta has received your inquiry regarding "${topicLabel}".
+Thank you for reaching out to NityaGeeta. We confirm that your inquiry regarding "${topicLabel}" has been safely received and logged.
 
 Submission Summary:
 -------------------
 Reference ID: ${ticketId}
 Topic / Category: ${topicLabel}
 Date Received: ${timestamp}
-Screenshots Attached: ${attachments.length}
+Screenshots Attached: ${attachments.length > 0 ? `${attachments.length} file(s)` : "None"}
 
-The NityaGeeta editorial desk will review your submission and apply any verified corrections or commentary updates accordingly.
+The NityaGeeta editorial desk will review your submission and apply any verified commentary or manuscript corrections accordingly.
+
+If you have additional details or screenshots to share, simply reply directly to this email.
 
 With reverence,
-The NityaGeeta Project Desk
-Morved.NityaGeeta@outlook.com
-https://nityageeta.com
+NityaGeeta
+NityaGeeta@outlook.com
 `;
 
-    // B) NityaGeeta Internal Notification Email (Contains user message & attachments for investigation)
+    const userHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NityaGeeta Inquiry Confirmation</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #FAF7F2; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1C1917; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FAF7F2; padding: 48px 16px;">
+    <tr>
+      <td align="center">
+        <!-- Main Apple-Style Canvas Card -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 580px; background-color: #FFFFFF; border-radius: 20px; border: 1px solid #ECE6DB; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04); overflow: hidden;">
+          
+          <!-- Header with Seamless Floating Wordmark -->
+          <tr>
+            <td style="padding: 44px 44px 28px 44px; text-align: center; background-color: #FAF7F2; border-bottom: 1px solid #EFEAE1;">
+              <img src="${BRAND_LOGO_URL}" alt="NityaGeeta" width="160" height="58" style="display: block; margin: 0 auto 14px auto; max-width: 170px; height: auto;" />
+              <div style="font-size: 11px; color: #8C7E72; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;">Timeless Wisdom &middot; Zero Hallucinations &middot; Pure Clarity</div>
+            </td>
+          </tr>
+
+          <!-- Body Narrative -->
+          <tr>
+            <td style="padding: 38px 44px 28px 44px;">
+              <div style="font-size: 19px; font-weight: 600; color: #1C1917; margin-bottom: 16px; letter-spacing: -0.01em;">
+                Namaste ${safeName},
+              </div>
+              <div style="font-size: 15px; line-height: 1.68; color: #44403C; margin-bottom: 26px;">
+                Thank you for reaching out. We confirm that NityaGeeta has received your inquiry regarding <strong style="color: #1C1917;">${safeTopicLabel}</strong>. Every insight, correction, and dialogue note helps ensure that the canonical scripture delivered on NityaGeeta remains uncompromised and authentic.
+              </div>
+
+              <!-- Spec Receipt Card (Apple Hardware / Order Style) -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FAF7F2; border: 1px solid #EFEAE1; border-radius: 14px; margin-bottom: 28px;">
+                <tr>
+                  <td style="padding: 22px 26px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="padding-bottom: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Reference ID</td>
+                        <td align="right" style="padding-bottom: 12px; font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 700; color: #C25E38;">${ticketId}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Topic / Category</td>
+                        <td align="right" style="padding-bottom: 12px; font-size: 14px; font-weight: 600; color: #1C1917;">${safeTopicLabel}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: ${attachments.length > 0 ? "12px" : "0"}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Logged At</td>
+                        <td align="right" style="padding-bottom: ${attachments.length > 0 ? "12px" : "0"}; font-size: 13px; color: #57534E;">${timestamp}</td>
+                      </tr>
+                      ${
+                        attachments.length > 0
+                          ? `<tr>
+                        <td style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Attached Evidence</td>
+                        <td align="right" style="font-size: 13px; color: #1C1917; font-weight: 500;">${attachments.length} screenshot file${attachments.length > 1 ? "s" : ""}</td>
+                      </tr>`
+                          : ""
+                      }
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Quiet Editorial Notice (Apple Minimalist) -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FAF7F2; border: 1px solid #EAE4D9; border-radius: 12px; margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 16px 20px; font-size: 13px; line-height: 1.6; color: #6B5E55;">
+                    The NityaGeeta editorial desk will review your submission and cross-verify with our canonical manuscript archives. If you have additional thoughts or context, simply reply directly to this email.
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Sign-off Block -->
+              <div style="border-top: 1px solid #EFEAE1; padding-top: 26px;">
+                <div style="font-size: 13px; color: #8C7E72; margin-bottom: 6px;">With reverence,</div>
+                <div style="font-size: 17px; font-weight: 700; color: #1C1917; margin-bottom: 4px;">NityaGeeta</div>
+                <div>
+                  <a href="mailto:Morved.NityaGeeta@outlook.com" style="font-size: 13px; color: #C25E38; text-decoration: none; font-weight: 500;">NityaGeeta@outlook.com</a>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Understated Minimal Footer -->
+          <tr>
+            <td style="padding: 24px 44px; background-color: #F8F5EE; border-top: 1px solid #ECE6DB; text-align: center;">
+              <div style="font-size: 11px; color: #A89C90; letter-spacing: 0.04em; text-transform: uppercase;">
+                &copy; 2026 NityaGeeta &middot; Sacred Scripture Grounding
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    // B) NityaGeeta Internal Editorial Desk Alert (Apple Cupertino Draft Design with full User, Issue, Message, and Attached Files)
     const internalSubject = `[NityaGeeta Alert] New Inquiry: ${topicLabel} from ${trimmedName} [${ticketId}]`;
-    const internalText = `[NITYAGEETA CONTACT ALERT]
+    const internalText = `[NITYAGEETA EDITORIAL DESK ALERT]
 Reference Ticket: ${ticketId}
 Timestamp: ${timestamp}
 --------------------------------------------------
-From: ${trimmedName} <${trimmedEmail}>
+Submitter Name: ${trimmedName}
+Submitter Email: ${trimmedEmail}
 Topic / Category: ${topicLabel}
-Screenshots Attached: ${attachments.length}
-${attachments.length > 0 ? `Attached Files: ${attachments.map((a) => a.filename).join(", ")}\n` : ""}--------------------------------------------------
-Message Body:
+Client IP: ${clientIp}
+Screenshots Attached: ${attachments.length} file(s)
+${
+  attachments.length > 0
+    ? `\nAttached Evidence Files:\n${attachments
+        .map(
+          (a, idx) =>
+            `[#${idx + 1}] ${a.filename} (${formatBytes(a.size)})\n  Direct URL: ${a.publicUrl}\n`
+        )
+        .join("")}\n`
+    : ""
+}--------------------------------------------------
+User Message:
 ${trimmedMessage}
-
-Reply directly to this user at: ${trimmedEmail}
+--------------------------------------------------
+Hit Reply in your email client to answer ${trimmedName} directly at: ${trimmedEmail}
 `;
 
+    const internalHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NityaGeeta Editorial Desk Alert</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #FAF7F2; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1C1917; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FAF7F2; padding: 48px 16px;">
+    <tr>
+      <td align="center">
+        <!-- Main Apple-Style Canvas Card -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #FFFFFF; border-radius: 20px; border: 1px solid #ECE6DB; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04); overflow: hidden;">
+          
+          <!-- Header with Seamless Floating Wordmark & Desk Badge -->
+          <tr>
+            <td style="padding: 40px 44px 26px 44px; text-align: center; background-color: #FAF7F2; border-bottom: 1px solid #EFEAE1;">
+              <img src="${BRAND_LOGO_URL}" alt="NityaGeeta" width="160" height="58" style="display: block; margin: 0 auto 12px auto; max-width: 170px; height: auto;" />
+              <div style="font-size: 11px; color: #C25E38; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;">EDITORIAL DESK &middot; NEW INQUIRY DOSSIER</div>
+            </td>
+          </tr>
+
+          <!-- Body Narrative -->
+          <tr>
+            <td style="padding: 36px 44px 28px 44px;">
+              <div style="font-size: 20px; font-weight: 700; color: #1C1917; margin-bottom: 8px; letter-spacing: -0.01em;">
+                New Inquiry: ${safeTopicLabel}
+              </div>
+              <div style="font-size: 14px; line-height: 1.6; color: #57534E; margin-bottom: 24px;">
+                A reader has submitted an inquiry through the NityaGeeta contact and verification portal. Comprehensive submitter information, issue categorization, message content, and uploaded evidence files are compiled below.
+              </div>
+
+              <!-- Spec Receipt Card (Apple Hardware / Order Style) -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FAF7F2; border: 1px solid #EFEAE1; border-radius: 14px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 22px 26px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="padding-bottom: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Reference ID</td>
+                        <td align="right" style="padding-bottom: 12px; font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 700; color: #C25E38;">${ticketId}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Submitter Name</td>
+                        <td align="right" style="padding-bottom: 12px; font-size: 14px; font-weight: 600; color: #1C1917;">${safeName}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Submitter Email</td>
+                        <td align="right" style="padding-bottom: 12px; font-size: 13px; font-weight: 600;">
+                          <a href="mailto:${safeEmail}" style="color: #C25E38; text-decoration: none;">${safeEmail}</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Issue Category</td>
+                        <td align="right" style="padding-bottom: 12px; font-size: 13px; font-weight: 600; color: #1C1917;">${safeTopicLabel}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Logged At</td>
+                        <td align="right" style="padding-bottom: 12px; font-size: 13px; color: #57534E;">${timestamp}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-bottom: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Client IP</td>
+                        <td align="right" style="padding-bottom: 12px; font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: #78716C;">${clientIp}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72;">Uploaded Files</td>
+                        <td align="right" style="font-size: 13px; font-weight: 600; color: #1C1917;">${attachments.length} file${attachments.length === 1 ? "" : "s"}</td>
+                      </tr>
+                    </table>
+
+                    ${
+                      attachments.length > 0
+                        ? `
+                    <!-- Uploaded Files Breakdown & Visual Evidence -->
+                    <div style="margin-top: 18px; padding-top: 18px; border-top: 1px dashed #E0D7CB;">
+                      <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72; margin-bottom: 12px;">
+                        Attached Evidence Files (${attachments.length}):
+                      </div>
+                      ${attachments
+                        .map(
+                          (a, idx) => `
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FFFFFF; border: 1px solid #ECE6DB; border-radius: 12px; margin-bottom: 14px; overflow: hidden;">
+                        <tr>
+                          <td style="padding: 12px 16px; border-bottom: 1px solid #F2ECE3; background-color: #FAF7F2;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                              <tr>
+                                <td>
+                                  <span style="display: inline-block; background-color: #C25E38; color: #FFFFFF; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-right: 8px;">FILE #${idx + 1}</span>
+                                  <strong style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #1C1917;">${escapeHtml(a.filename)}</strong>
+                                  <span style="font-size: 12px; color: #78716C; margin-left: 6px;">(${formatBytes(a.size)})</span>
+                                </td>
+                                <td align="right">
+                                  <a href="${a.publicUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #C25E38; color: #FFFFFF; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; text-decoration: none;">
+                                    📥 Download / View
+                                  </a>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 16px; text-align: center; background-color: #FFFFFF;">
+                            <!-- Inline Visual Preview via CID -->
+                            <img src="cid:${a.contentId}" alt="${escapeHtml(a.filename)}" style="max-width: 100%; max-height: 460px; height: auto; border-radius: 8px; border: 1px solid #EFEAE1; object-fit: contain; display: block; margin: 0 auto;" />
+                            <div style="margin-top: 10px; font-size: 11px; color: #8C7E72;">
+                              Direct URL: <a href="${a.publicUrl}" target="_blank" rel="noopener noreferrer" style="color: #C25E38; text-decoration: underline; word-break: break-all;">${a.publicUrl}</a>
+                            </div>
+                          </td>
+                        </tr>
+                      </table>`
+                        )
+                        .join("")}
+                      <div style="font-size: 11px; color: #8C7E72; margin-top: 6px; font-style: italic;">
+                        * Triple-layer availability: (1) Downloadable attachment in Outlook, (2) Rendered inline preview, and (3) Permanent direct web link above.
+                      </div>
+                    </div>`
+                        : `
+                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed #E0D7CB; font-size: 12px; color: #8C7E72;">
+                      No screenshot files were attached with this submission.
+                    </div>`
+                    }
+                  </td>
+                </tr>
+              </table>
+
+              <!-- User Message Box -->
+              <div style="margin-bottom: 24px;">
+                <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #8C7E72; margin-bottom: 8px;">
+                  User Message & Feedback Details
+                </div>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FAF7F2; border: 1px solid #EAE4D9; border-radius: 12px;">
+                  <tr>
+                    <td style="padding: 20px; font-size: 15px; line-height: 1.68; color: #1C1917; white-space: pre-wrap; word-break: break-word;">
+${safeMessage}
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Quick Action / Reply Notice -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FFF9F5; border: 1px solid #F0D9CE; border-radius: 12px; margin-bottom: 28px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <div style="font-size: 13px; font-weight: 700; color: #C25E38; margin-bottom: 4px;">Direct Response Action</div>
+                    <div style="font-size: 13px; line-height: 1.5; color: #6B5E55;">
+                      Hit <strong>Reply</strong> in Outlook to answer <strong>${safeName}</strong> directly at <a href="mailto:${safeEmail}" style="color: #C25E38; font-weight: 600; text-decoration: none;">${safeEmail}</a>.
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Sign-off / Destination Block -->
+              <div style="border-top: 1px solid #EFEAE1; padding-top: 24px;">
+                <div style="font-size: 12px; color: #8C7E72; margin-bottom: 4px;">Automated Dossier Dispatched To:</div>
+                <div style="font-size: 15px; font-weight: 700; color: #1C1917;">${OFFICIAL_EMAIL}</div>
+                <div style="font-size: 12px; color: #A89C90; margin-top: 2px;">NityaGeeta Editorial Verification Pipeline</div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Understated Minimal Footer -->
+          <tr>
+            <td style="padding: 22px 44px; background-color: #F8F5EE; border-top: 1px solid #ECE6DB; text-align: center;">
+              <div style="font-size: 11px; color: #A89C90; letter-spacing: 0.04em; text-transform: uppercase;">
+                &copy; 2026 NityaGeeta &middot; Confidential Editorial Dispatch
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
     // 5. Dispatch Delivery
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const sendgridApiKey = process.env.SENDGRID_API_KEY;
     const smtpHost = process.env.SMTP_HOST;
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
-    const sendgridApiKey = process.env.SENDGRID_API_KEY;
+    const noReplySender = process.env.NOREPLY_EMAIL || "NityaGeeta <onboarding@resend.dev>";
 
     let deliveryStatus = "simulated";
 
-    // Method A: Twilio SendGrid
-    if (sendgridApiKey) {
+    // Helper for SMTP Delivery (Gmail / Outlook / Custom SMTP)
+    const sendEmailViaSmtp = async (
+      to: string,
+      replyTo: string,
+      subject: string,
+      text: string,
+      htmlContent: string,
+      filesToSend: ProcessedAttachment[] = []
+    ) => {
+      if (!smtpHost || !smtpUser || !smtpPass) {
+        return { ok: false, status: 500, error: "SMTP credentials not configured." };
+      }
+      try {
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: Number(process.env.SMTP_PORT) || 587,
+          secure: process.env.SMTP_SECURE === "true",
+          auth: {
+            user: smtpUser,
+            pass: smtpPass,
+          },
+        });
+
+        await transporter.sendMail({
+          from: `"NityaGeeta" <${smtpUser}>`,
+          to,
+          replyTo,
+          subject,
+          text,
+          html: htmlContent,
+          attachments: filesToSend.map((a) => ({
+            filename: a.filename,
+            content: a.buffer,
+            contentType: a.contentType,
+            cid: a.contentId,
+            contentDisposition: "attachment",
+          })),
+        });
+
+        return { ok: true, status: 200 };
+      } catch (err: unknown) {
+        console.error("[SMTP Error] Delivery failed for recipient:", to, err);
+        return { ok: false, status: 500, error: String(err) };
+      }
+    };
+
+    let resUser: { ok: boolean; status?: number; error?: string } = { ok: false };
+    let resInternal: { ok: boolean; status?: number; error?: string } = { ok: false };
+
+    const isResendSandbox = noReplySender.includes("resend.dev");
+    const canUseSmtp = Boolean(smtpHost && smtpUser && smtpPass);
+
+    // Method A: SMTP Direct (Prioritized when Resend is in unverified sandbox mode or Resend key is absent)
+    if (canUseSmtp && (isResendSandbox || !resendApiKey)) {
+      resUser = await sendEmailViaSmtp(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
+      resInternal = await sendEmailViaSmtp(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
+      deliveryStatus = resUser.ok && resInternal.ok ? "smtp_dispatched" : "attempted";
+    }
+    // Method B: Resend API (Used when custom verified domain is configured)
+    else if (resendApiKey) {
+      const resendEndpoint = "https://api.resend.com/emails";
+      const sendEmailViaResend = async (
+        to: string,
+        replyTo: string,
+        subject: string,
+        text: string,
+        htmlContent: string,
+        filesToSend: ProcessedAttachment[] = []
+      ) => {
+        try {
+          const payload: Record<string, unknown> = {
+            from: noReplySender,
+            to: [to],
+            reply_to: replyTo,
+            subject,
+            text,
+            html: htmlContent,
+          };
+
+          if (filesToSend.length > 0) {
+            payload.attachments = filesToSend.map((a) => {
+              const item: Record<string, unknown> = {
+                filename: a.filename,
+                content: a.buffer.toString("base64"),
+              };
+              if (a.contentId) {
+                item.contentId = a.contentId;
+              }
+              return item;
+            });
+          }
+
+          const resp = await fetch(resendEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${resendApiKey}`,
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!resp.ok) {
+            const errBody = await resp.text();
+            console.error("[Resend Error] Delivery failed for recipient:", to, "Status:", resp.status, errBody);
+            return { ok: false, status: resp.status, error: errBody };
+          }
+          return { ok: true, status: resp.status };
+        } catch (err) {
+          console.error("[Resend Network Error] Delivery failed for recipient:", to, err);
+          return { ok: false, status: 500, error: String(err) };
+        }
+      };
+
+      // 1. Send customer receipt strictly to trimmedEmail (0 attachments)
+      resUser = await sendEmailViaResend(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
+
+      // If Resend failed for user receipt, attempt SMTP fallback if configured
+      if (!resUser.ok && canUseSmtp) {
+        console.warn("[Contact API] Resend failed for customer. Attempting SMTP fallback...", trimmedEmail);
+        const smtpAttempt = await sendEmailViaSmtp(trimmedEmail, OFFICIAL_EMAIL, userSubject, userText, userHtml, []);
+        if (smtpAttempt.ok) {
+          resUser = { ok: true, status: 200 };
+        }
+      }
+
+      // 2. Send desk alert strictly to OFFICIAL_EMAIL (with ALL attachments)
+      resInternal = await sendEmailViaResend(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
+
+      // If Resend failed for desk alert, attempt SMTP fallback if configured
+      if (!resInternal.ok && canUseSmtp) {
+        console.warn("[Contact API] Resend failed for desk alert. Attempting SMTP fallback...", OFFICIAL_EMAIL);
+        const smtpAttempt = await sendEmailViaSmtp(OFFICIAL_EMAIL, trimmedEmail, internalSubject, internalText, internalHtml, attachments);
+        if (smtpAttempt.ok) {
+          resInternal = { ok: true, status: 200 };
+        }
+      }
+
+      deliveryStatus = resUser.ok && resInternal.ok ? "resend_dispatched" : "attempted";
+    }
+    // Method C: Twilio SendGrid
+    else if (sendgridApiKey) {
       const sendgridEndpoint = "https://api.sendgrid.com/v3/mail/send";
       const sendEmailViaSendGrid = async (
         to: string,
         subject: string,
         text: string,
+        htmlContent: string,
         filesToSend: ProcessedAttachment[] = []
       ) => {
         try {
@@ -288,7 +773,10 @@ Reply directly to this user at: ${trimmedEmail}
             personalizations: [{ to: [{ email: to }] }],
             from: { email: OFFICIAL_EMAIL, name: "NityaGeeta" },
             subject,
-            content: [{ type: "text/plain", value: text }],
+            content: [
+              { type: "text/plain", value: text },
+              { type: "text/html", value: htmlContent },
+            ],
           };
 
           if (filesToSend.length > 0) {
@@ -311,133 +799,76 @@ Reply directly to this user at: ${trimmedEmail}
 
           if (!resp.ok) {
             const errBody = await resp.text();
-            console.error("[SendGrid Error] Failed sending message. Status:", resp.status, errBody);
+            console.error("[SendGrid Error] Delivery failed for recipient:", to, "Status:", resp.status, errBody);
             return { ok: false, status: resp.status, error: errBody };
           }
           return { ok: true, status: resp.status };
         } catch (err) {
-          console.error("[SendGrid Network Error]:", err);
+          console.error("[SendGrid Network Error] Delivery failed for recipient:", to, err);
           return { ok: false, status: 500, error: String(err) };
         }
       };
 
-      const [resUser, resInternal] = await Promise.all([
-        sendEmailViaSendGrid(trimmedEmail, userSubject, userText),
-        sendEmailViaSendGrid(OFFICIAL_EMAIL, internalSubject, internalText, attachments),
-      ]);
-
-      // If the desk alert fails, report error with HTTP 502
-      if (!resInternal.ok) {
-        return NextResponse.json(
-          { success: false, error: "Failed to dispatch notification to the editorial desk. Please try again later." },
-          { status: 502 }
-        );
-      }
-
-      // If internal succeeded but user receipt failed, return partial delivery status
-      if (resInternal.ok && !resUser.ok) {
-        return NextResponse.json({
-          success: true,
-          ticketId,
-          deliveryStatus: "partial",
-          warning: "Your inquiry was safely delivered to our editorial desk, but the customer acknowledgment email could not be sent.",
-          timestamp,
-        });
-      }
-
-      deliveryStatus = "sendgrid_dispatched";
+      resUser = await sendEmailViaSendGrid(trimmedEmail, userSubject, userText, userHtml, []);
+      resInternal = await sendEmailViaSendGrid(OFFICIAL_EMAIL, internalSubject, internalText, internalHtml, attachments);
+      deliveryStatus = resUser.ok && resInternal.ok ? "sendgrid_dispatched" : "attempted";
     }
-    // Method B: SMTP (Outlook / Office 365 / SES)
-    else if (smtpHost && smtpUser && smtpPass) {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
+
+    // Evaluate Delivery Results
+    if (resUser.ok && resInternal.ok) {
+      return NextResponse.json({
+        success: true,
+        ticketId,
+        deliveryStatus,
+        message: "Inquiry successfully recorded and notifications sent to both parties.",
+        timestamp,
+      });
+    }
+
+    // If Desk Alert succeeded but User receipt failed
+    if (resInternal.ok && !resUser.ok) {
+      return NextResponse.json({
+        success: true,
+        ticketId,
+        deliveryStatus: "partial",
+        warning: `Your inquiry was delivered to our editorial desk (${OFFICIAL_EMAIL}), but confirmation to ${trimmedEmail} could not be sent.`,
+        timestamp,
+      });
+    }
+
+    // If User receipt succeeded but Desk alert failed
+    if (resUser.ok && !resInternal.ok) {
+      return NextResponse.json({
+        success: true,
+        ticketId,
+        deliveryStatus: "user_receipt_dispatched",
+        warning: `Customer receipt delivered to ${trimmedEmail}. Desk alert to ${OFFICIAL_EMAIL} is pending domain verification.`,
+        timestamp,
+      });
+    }
+
+    // Both failed
+    const isSandboxError =
+      resUser.error?.includes("only send testing emails") ||
+      resInternal.error?.includes("only send testing emails");
+
+    if (isSandboxError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Resend Sandbox Restriction: Resend's free tier currently only allows sending from onboarding@resend.dev to its registered account owner (meetahalpara1@gmail.com). To deliver emails to ${trimmedEmail} and ${OFFICIAL_EMAIL}, please either verify a custom domain on resend.com/domains or provide working Gmail SMTP credentials in .env.local.`,
         },
-      });
-
-      // Send to Official NityaGeeta mailbox with attachments
-      let internalOk = false;
-      try {
-        await transporter.sendMail({
-          from: `"NityaGeeta Alert" <${smtpUser}>`,
-          to: OFFICIAL_EMAIL,
-          replyTo: trimmedEmail,
-          subject: internalSubject,
-          text: internalText,
-          attachments: attachments.map((a) => ({
-            filename: a.filename,
-            content: a.buffer,
-            contentType: a.contentType,
-          })),
-        });
-        internalOk = true;
-      } catch (err) {
-        console.error("[SMTP Error] Failed to send desk alert:", err);
-        return NextResponse.json(
-          { success: false, error: "Failed to dispatch notification to the editorial desk. Please try again later." },
-          { status: 502 }
-        );
-      }
-
-      // Send Customer Receipt
-      let userOk = false;
-      try {
-        await transporter.sendMail({
-          from: `"NityaGeeta Desk" <${smtpUser}>`,
-          to: trimmedEmail,
-          subject: userSubject,
-          text: userText,
-        });
-        userOk = true;
-      } catch (err) {
-        console.error("[SMTP Warning] Failed to send customer receipt:", err);
-      }
-
-      if (internalOk && !userOk) {
-        return NextResponse.json({
-          success: true,
-          ticketId,
-          deliveryStatus: "partial",
-          warning: "Your inquiry was safely delivered to our editorial desk, but the customer acknowledgment email could not be sent.",
-          timestamp,
-        });
-      }
-
-      deliveryStatus = "smtp_dispatched";
-    } else {
-      // In production, reject unconfigured mail service rather than silently faking delivery
-      if (process.env.NODE_ENV === "production") {
-        console.error("[CRITICAL] Contact API invoked in production without mail credentials configured.");
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Outbound contact service is temporarily unavailable in production. Please reach out to Morved.NityaGeeta@outlook.com directly.",
-          },
-          { status: 503 }
-        );
-      }
-
-      // Dev & Test Mode Fallback: Server Audit Log
-      console.log("[CONTACT EMAIL DISPATCH - DEV SIMULATION]", {
-        ticket: ticketId,
-        customerEmail: trimmedEmail,
-        officialEmail: OFFICIAL_EMAIL,
-        attachmentsCount: attachments.length,
-      });
-      deliveryStatus = "simulated_success";
+        { status: 403 }
+      );
     }
 
-    return NextResponse.json({
-      success: true,
-      ticketId,
-      deliveryStatus,
-      message: "Inquiry successfully recorded and notifications processed for both parties.",
-      timestamp,
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Email delivery failed: ${resUser.error || resInternal.error || "Unknown mail service error."}`,
+      },
+      { status: 502 }
+    );
   } catch (error: unknown) {
     console.error("[/api/contact] Internal Server Error:", error);
     return NextResponse.json(

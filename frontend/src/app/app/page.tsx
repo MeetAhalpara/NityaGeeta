@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Send,
@@ -32,7 +33,6 @@ import {
   Bookmark,
   Check,
 } from "lucide-react";
-import Link from "next/link";
 import { RadialContextMenu, RadialMenuItem } from "@/components/ui/radial-context-menu";
 import {
   AnimatedSidebarProvider,
@@ -44,7 +44,6 @@ import {
   AnimatedSidebarMenuItem,
   AnimatedSidebarMenuButton,
   AnimatedSidebarInset,
-  AnimatedSidebarTrigger,
   AnimatedSidebarRail,
   useAnimatedSidebar,
 } from "@/components/motion/animated-sidebar";
@@ -451,16 +450,6 @@ function NityaGeetaChatSidebar({
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function FloatingSidebarTrigger() {
-  const { open } = useAnimatedSidebar();
-  if (open) return null;
-  return (
-    <div className="absolute top-3 left-3 z-30 pointer-events-auto">
-      <AnimatedSidebarTrigger className="size-8 rounded-lg flex items-center justify-center text-[#8C7B70] hover:text-[#2D2622] dark:hover:text-[#F5F2EB] bg-[#FAF7F2]/40 dark:bg-[#1A1816]/40 backdrop-blur-md border border-[#E6DDD0]/30 dark:border-[#2D2825]/30 hover:bg-[#EFE9DF]/80 dark:hover:bg-[#262320]/80 transition-colors shadow-2xs cursor-pointer" />
     </div>
   );
 }
@@ -1287,9 +1276,6 @@ Start or verify the backend server:
               style={{ backgroundImage: "url('/assets/images/ChatBG/BG.png')" }}
             />
 
-            {/* Discreet Floating Sidebar Trigger (Only visible when sidebar is collapsed) */}
-            <FloatingSidebarTrigger />
-
             {/* Discreet Floating Pinned Reflections Button (Only visible when pinned messages exist) */}
             {pinnedMessages.length > 0 && (
               <div className="absolute top-3 right-4 z-30 pointer-events-auto">
@@ -1635,8 +1621,20 @@ Start or verify the backend server:
 
             {/* Fixed Bottom Input Bar (Disabled when loading) */}
 
-            <div className="relative z-10 w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 pb-6 pt-2 flex flex-col gap-3">
+            <div className="relative z-10 w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-8 pb-3 pt-2 flex flex-col gap-1.5 items-center">
               {renderInputBox(false)}
+              <p className="text-[11px] sm:text-xs text-center text-[#8C7B70] dark:text-[#8E8E8E] select-none px-2 tracking-tight">
+                NityaGeeta is in beta and can make mistakes. Please verify with{" "}
+                <Link
+                  href="/sources"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-[#C25E38] dark:hover:text-[#E06D43] transition-colors cursor-pointer"
+                >
+                  provided scripture sources
+                </Link>
+                .
+              </p>
             </div>
 
             {/* PINNED MESSAGES SLIDE-OVER DRAWER */}
