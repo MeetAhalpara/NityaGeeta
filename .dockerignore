@@ -4,24 +4,25 @@
 .github
 
 # Virtual Environments & Python Cache
-.venv
-venv
-ENV
-env
-__pycache__
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
 *.py[cod]
 *$py.class
-.pytest_cache
+.pytest_cache/
 .coverage
 htmlcov
 
-# Frontend (containerized separately)
+# Frontend (containerized separately via frontend/Dockerfile)
 frontend/
 
-# Local data & databases
+# Local databases & heavy data
 data/postgres/
 data/redis/
 data/raw/
+Files/
 *.db
 *.sqlite
 
@@ -30,10 +31,13 @@ tests/
 scratch/
 *.tmp
 *.log
+image*.png
 boss_out.txt
 *.docx
+.DS_Store
+Thumbs.db
 
-# Docs & Private Notes
+# Documentation & Private Notes
 docs/
 Q&A.txt
 recovery-codes.txt

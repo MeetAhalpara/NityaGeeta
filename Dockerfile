@@ -1,7 +1,7 @@
 # =============================================================================
 # Stage 1: Build & Dependency Wheel Cache
 # =============================================================================
-FROM python:3.11-slim AS builder
+FROM python:3.12-slim AS builder
 
 WORKDIR /build
 
@@ -16,13 +16,14 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 # =============================================================================
 # Stage 2: Final Minimal Runner (Non-Root User)
 # =============================================================================
-FROM python:3.11-slim AS runner
+FROM python:3.12-slim AS runner
 
 WORKDIR /app
 
-# Install runtime utilities (curl for healthcheck)
+# Install runtime utilities (curl for healthcheck, libpq5 for PostgreSQL client)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 # Security: Create non-root system user and group (UID 10001)
@@ -39,7 +40,8 @@ COPY --chown=appuser:appgroup . /app
 ENV PATH="/home/appuser/.local/bin:${PATH}" \
     PYTHONPATH="/app" \
     PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=8000
 
 USER appuser
 

@@ -1,10 +1,12 @@
 {
   "project_name": "NityaGeeta",
-  "last_synced_commit": "49a017f32bf793beee0414f9b6ca1aeb464692dd",
-  "last_synced_date": "2026-10-05 13:54:26",
-  "test_count": 45,
-  "fastapi_routes": 21,
+  "last_synced_commit": "a14400b654449604b50ad96cd79faa497922fbcb",
+  "last_synced_date": "2026-10-08 16:34:00",
+  "test_count": 71,
+  "fastapi_routes": 17,
+  "nextjs_routes": 23,
   "pages_indexed": 5034,
   "unique_shlokas": 649,
-  "architecture": "Hybrid BM25Okapi + RRF (k=60) Scriptural RAG Engine, Redis Streams, Steve Jobs Follow-Up Engine & Interactive Domain Data Model Topology"
+  "production_domain": "nityageeta.tech",
+  "architecture": "6-Brain Multi-Model RAG Ensemble (Groq GPT-OSS 120B / Qwen 27B, DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o mini), LLM Judge Arbitration, Hybrid BM25Okapi + RRF (k=60), SSE Sub-Second Streaming (<300ms TTFT), Redis Streams Telemetry, DeepEval & Playwright Multi-Scenario Resilience Matrix (Good Day, Busy Day, Rainy Day, Tuffest Day), Triple-Layer Contact Attachment Pipeline, Citation Guardrail & Cupertino UI"
 }
