@@ -30,6 +30,13 @@ jobs:
           pip install -r requirements.txt pytest pytest-cov
           pytest tests/test_qa_suite.py --cov=api --cov-report=xml:coverage.xml || true
 
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
