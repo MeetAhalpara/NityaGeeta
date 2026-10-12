@@ -2,7 +2,7 @@ import logging
 import asyncio
 import re
 import logfire
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, Tuple
 from api.services.dataset_cache import search_all_datasets, search_verses, search_boss_context, search_boss_items
 from api.services.web_search import search_web_async
 from api.services.prompt_builder import (
