@@ -34,8 +34,8 @@ def get_langfuse() -> Optional[Langfuse]:
                     host=host
                 )
                 logger.info("Langfuse LLM Observability initialized successfully.")
-            except Exception as e:
-                logger.error("Failed to initialize Langfuse client: %s", e)
+            except Exception:
+                logger.exception("Failed to initialize Langfuse client")
                 _langfuse_client = None
         else:
             logger.info("Langfuse credentials not configured in environment. Running in no-op mode.")

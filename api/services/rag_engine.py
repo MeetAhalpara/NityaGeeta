@@ -96,110 +96,51 @@ def trim_to_full_sentence(text: str, max_chars: int = 1200) -> str:
     return truncated.strip() + "..."
 
 
-@observe(name="NityaGeeta Multi-Model RAG Execution")
-async def _run_rag_pipeline_async(question: str) -> Dict[str, Any]:
-    """Internal implementation executing 4-dataset RAG search, 5-model parallel execution, Judge evaluation,
-    cross-model synthesis, live web search, and dual-source authorized synthesis."""
-    logger.info(f"Initiating Multi-Model RAG pipeline for query: '{question}'")
+def _format_verse_citation(v: Dict[str, Any]) -> Dict[str, Any]:
+    eng_text = v.get("english", "")
+    return {
+        "type": "scripture",
+        "priority": 1,
+        "source": v.get("source", ""),
+        "page": v.get("page", 0),
+        "chapter": v.get("chapter", ""),
+        "verse": v.get("verse", ""),
+        "citation": v.get("citation", ""),
+        "sanskrit": v.get("sanskrit", ""),
+        "translation": eng_text,
+        "snippet": trim_to_full_sentence(eng_text, 450),
+        "score": 100,
+    }
 
-    # ── Step 1a: Verse-level search (primary) ────────────────────────────────
-    # Find the most relevant individual shlokas from the verse index
-    matched_verses = search_verses(question, top_k=3)
-    logger.info(f"Verse index returned {len(matched_verses)} relevant shlokas.")
 
-    # ── Step 1b: Smart fallback — if confidence is low, expand via LLM ───────
-    # Score is considered low when we got fewer than 2 verses OR the best verse
-    # was found only via broad stem-matching (no direct keyword hit).
-    # We run expansion in the background; it adds ~0.5s on a fast model.
-    if len(matched_verses) < 2:
-        logger.info("Low verse confidence — expanding query via LLM...")
-        expanded_terms = await expand_query_for_gita(question)
-        if expanded_terms:
-            expanded_query = question + " " + " ".join(expanded_terms)
-            expanded_verses = search_verses(expanded_query, top_k=3)
-            if len(expanded_verses) >= len(matched_verses):
-                matched_verses = expanded_verses
-                logger.info(f"Expanded search returned {len(matched_verses)} verses.")
+def _format_page_citation(item: Dict[str, Any]) -> Dict[str, Any]:
+    eng_text = item.get("english") or item.get("text", "")
+    return {
+        "type": "scripture",
+        "priority": item["priority"],
+        "source": item["source"],
+        "page": item["page"],
+        "sanskrit": item.get("original", "") if item.get("original") else "",
+        "translation": eng_text,
+        "snippet": trim_to_full_sentence(eng_text, 450),
+        "score": item["score"],
+    }
 
-    # ── Step 1b: Page-level search (supplementary commentary) ────────────────
-    retrieved_items = search_all_datasets(question, top_per_dataset=1)
 
-    # ── Step 1c: Build combined context block ────────────────────────────────
-    # Verse context comes first — the LLM must use these exact verses
-    verse_context_text   = build_verse_context_block(matched_verses)
-    page_context_text    = build_rag_context_block(retrieved_items)
+def _build_scripture_citations(
+    matched_verses: List[Dict[str, Any]],
+    retrieved_items: List[Dict[str, Any]],
+    boss_items: Optional[List[Dict[str, Any]]] = None,
+    boss_context: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    citations = [_format_verse_citation(v) for v in matched_verses]
+    citations.extend([_format_page_citation(item) for item in retrieved_items])
 
-    retrieved_context_text = verse_context_text
-    if page_context_text and page_context_text != "No direct scripture context retrieved.":
-        retrieved_context_text += "\n\n--- SUPPLEMENTARY COMMENTARY PAGES ---\n" + page_context_text
-
-    # ── Step 1d: Build scripture citations from verse results ─────────────────
-    scripture_citations = []
-    for v in matched_verses:
-        eng_text = v.get("english", "")
-        scripture_citations.append({
-            "type": "scripture",
-            "priority": 1,
-            "source": v.get("source", ""),
-            "page": v.get("page", 0),
-            "chapter": v.get("chapter", ""),
-            "verse": v.get("verse", ""),
-            "citation": v.get("citation", ""),
-            "sanskrit": v.get("sanskrit", ""),
-            "translation": eng_text,
-            "snippet": trim_to_full_sentence(eng_text, 450),
-            "score": 100,
-        })
-    # Also include page-level citations as fallback
-    for item in retrieved_items:
-        eng_text = item.get("english") or item.get("text", "")
-        scripture_citations.append({
-            "type": "scripture",
-            "priority": item["priority"],
-            "source": item["source"],
-            "page": item["page"],
-            "sanskrit": item.get("original", "") if item.get("original") else "",
-            "translation": eng_text,
-            "snippet": trim_to_full_sentence(eng_text, 450),
-            "score": item["score"]
-        })
-
-    # ── Step 2: Build messages for 6-model parallel dispatch ─────────────────
-    user_prompt = build_scripture_user_prompt(question, retrieved_context_text)
-    messages = [
-        {"role": "system", "content": SCRIPTURE_SYSTEM_PROMPT},
-        {"role": "user", "content": user_prompt}
-    ]
-
-    # ── Step 2b: Search BOSS book for M6 context (runs fast, in-memory) ──────
-    boss_context = search_boss_context(question, top_k=3)
-    logger.info(f"BOSS context: {len(boss_context)} chars retrieved.")
-
-    # ── Step 3: 6-model parallel + live web search concurrently ──────────────
-    models_task = generate_5_model_parallel_responses(messages, boss_context=boss_context)
-    web_task = search_web_async(question, max_results=4)
-
-    candidate_responses, web_results = await asyncio.gather(models_task, web_task)
-
-    web_citations = []
-    for item in web_results:
-        web_citations.append({
-            "type": "web",
-            "priority": 1,
-            "source": item.get("source", "Web Search"),
-            "title": item.get("title", ""),
-            "snippet": trim_to_full_sentence(item.get("snippet", ""), 350),
-            "url": item.get("url", ""),
-            "score": 95
-        })
-
-    # Add BOSS as named resource citations with actual retrieved book page numbers & excerpts
-    boss_items = search_boss_items(question, top_k=2)
     if boss_items:
         for b_item in reversed(boss_items):
             b_text = str(b_item.get("text", "")).strip()
             if b_text:
-                scripture_citations.insert(0, {
+                citations.insert(0, {
                     "type": "scripture",
                     "priority": 1,
                     "source": "Basics of Sanatan Sanskriti (BOSS)",
@@ -214,7 +155,7 @@ async def _run_rag_pipeline_async(question: str) -> Dict[str, Any]:
                 })
     elif boss_context:
         boss_excerpt = boss_context[:400].strip() + ("..." if len(boss_context) > 400 else "")
-        scripture_citations.insert(0, {
+        citations.insert(0, {
             "type": "scripture",
             "priority": 1,
             "source": "Basics of Sanatan Sanskriti (BOSS)",
@@ -227,51 +168,118 @@ async def _run_rag_pipeline_async(question: str) -> Dict[str, Any]:
             "snippet": boss_excerpt,
             "score": 95,
         })
+    return citations
 
-    # ── Step 4: Judge evaluation ──────────────────────────────────────────────
+
+def _build_web_citations(web_results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "type": "web",
+            "priority": 1,
+            "source": item.get("source", "Web Search"),
+            "title": item.get("title", ""),
+            "snippet": trim_to_full_sentence(item.get("snippet", ""), 350),
+            "url": item.get("url", ""),
+            "score": 95,
+        }
+        for item in web_results
+    ]
+
+
+async def _retrieve_scripture_context(question: str) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], str]:
+    matched_verses = search_verses(question, top_k=3)
+    logger.info("Verse index returned %d relevant shlokas.", len(matched_verses))
+
+    if len(matched_verses) < 2:
+        logger.info("Low verse confidence — expanding query via LLM...")
+        expanded_terms = await expand_query_for_gita(question)
+        if expanded_terms:
+            expanded_query = question + " " + " ".join(expanded_terms)
+            expanded_verses = search_verses(expanded_query, top_k=3)
+            if len(expanded_verses) >= len(matched_verses):
+                matched_verses = expanded_verses
+                logger.info("Expanded search returned %d verses.", len(matched_verses))
+
+    retrieved_items = search_all_datasets(question, top_per_dataset=1)
+    verse_context_text = build_verse_context_block(matched_verses)
+    page_context_text = build_rag_context_block(retrieved_items)
+
+    retrieved_context_text = verse_context_text
+    if page_context_text and page_context_text != "No direct scripture context retrieved.":
+        retrieved_context_text += "\n\n--- SUPPLEMENTARY COMMENTARY PAGES ---\n" + page_context_text
+
+    return matched_verses, retrieved_items, retrieved_context_text
+
+
+def _resolve_winning_candidate(
+    candidate_responses: List[Dict[str, Any]],
+    judge_result: Dict[str, Any],
+) -> Tuple[str, str]:
+    winning_model_name = judge_result.get("winning_model", "Groq Llama 3.3 70B")
+    scorecards = judge_result.get("scorecards", [])
+    score_map = {card.get("model_name"): card.get("score", 90) for card in scorecards}
+    for cand in candidate_responses:
+        cand["score"] = score_map.get(cand.get("model_name"), 90)
+
+    for cand in candidate_responses:
+        if cand.get("model_name") == winning_model_name:
+            return winning_model_name, cand.get("response", "")
+
+    fallback_text = candidate_responses[0].get("response", "") if candidate_responses else ""
+    return winning_model_name, fallback_text
+
+
+@observe(name="NityaGeeta Multi-Model RAG Execution")
+async def _run_rag_pipeline_async(question: str) -> Dict[str, Any]:
+    """Internal implementation executing 4-dataset RAG search, 5-model parallel execution, Judge evaluation,
+    cross-model synthesis, live web search, and dual-source authorized synthesis."""
+    logger.info("Initiating Multi-Model RAG pipeline for query: '%s'", question)
+
+    # Step 1: Verse & page-level scripture context retrieval
+    matched_verses, retrieved_items, retrieved_context_text = await _retrieve_scripture_context(question)
+
+    # Step 2: Build model messages & background BOSS context
+    messages = [
+        {"role": "system", "content": SCRIPTURE_SYSTEM_PROMPT},
+        {"role": "user", "content": build_scripture_user_prompt(question, retrieved_context_text)}
+    ]
+    boss_context = search_boss_context(question, top_k=3)
+    logger.info("BOSS context: %d chars retrieved.", len(boss_context))
+
+    # Step 3: 5-model parallel execution + live web search concurrently
+    candidate_responses, web_results = await asyncio.gather(
+        generate_5_model_parallel_responses(messages, boss_context=boss_context),
+        search_web_async(question, max_results=4)
+    )
+
+    # Step 4: Structured citations formatting
+    boss_items = search_boss_items(question, top_k=2)
+    scripture_citations = _build_scripture_citations(matched_verses, retrieved_items, boss_items, boss_context)
+    web_citations = _build_web_citations(web_results)
+
+    # Step 5: Judge evaluation & winning response resolution
     judge_result = await evaluate_with_judge_model(
         query=question,
         retrieved_context=retrieved_context_text,
         candidate_responses=candidate_responses
     )
+    winning_model_name, winning_answer_text = _resolve_winning_candidate(candidate_responses, judge_result)
 
-    winning_model_name = judge_result.get("winning_model", "Groq Llama 3.3 70B")
-
-    # Attach Judge scorecard scores directly to candidate_responses
-    scorecards = judge_result.get("scorecards", [])
-    score_map = {card.get("model_name"): card.get("score", 90) for card in scorecards}
-    for cand in candidate_responses:
-        m_name = cand.get("model_name")
-        cand["score"] = score_map.get(m_name, 90)
-
-    winning_answer_text = ""
-    for cand in candidate_responses:
-        if cand["model_name"] == winning_model_name:
-            winning_answer_text = cand["response"]
-            break
-
-    if not winning_answer_text and candidate_responses:
-        winning_answer_text = candidate_responses[0]["response"]
-
-    # ── Step 5: Cross-model synthesis ────────────────────────────────────────
-    scripture_synthesized_answer = await synthesize_cross_model_responses(
+    # Step 6: Multi-model & dual-source syntheses
+    scripture_synthesized = await synthesize_cross_model_responses(
         query=question,
         winning_model_name=winning_model_name,
         winning_response=winning_answer_text,
         candidate_responses=candidate_responses
     )
-
-    # ── Step 6: Dual-source synthesis (scripture + web) ──────────────────────
-    dual_authorized_answer = await synthesize_dual_source_response(
+    dual_authorized = await synthesize_dual_source_response(
         query=question,
-        scripture_synthesized_answer=scripture_synthesized_answer,
+        scripture_synthesized_answer=scripture_synthesized,
         web_results=web_results
     )
 
-    # ── Step 7: Tone sanitization & Citation Guardrail Validation ───────────
-    sanitized_answer = sanitize_response_tone(dual_authorized_answer)
-
-    # Validate citations against the retrieved ground-truth verse chunks
+    # Step 7: Tone sanitization & Citation Guardrail Validation
+    sanitized_answer = sanitize_response_tone(dual_authorized)
     guardrail_report = CitationGuardrail.validate_citations(
         response_text=sanitized_answer,
         retrieved_verses=matched_verses,
