@@ -43,6 +43,14 @@ try:
 except Exception as e:
     logger.warning("Could not instrument httpx with logfire: %s", e)
 
+try:
+    import pydantic_ai
+    logfire.instrument_pydantic_ai()
+except ImportError:
+    pass
+except Exception as e:
+    logger.warning("Could not instrument pydantic_ai with logfire: %s", e)
+
 # CORS configuration
 # Allow all origins during development for flexibility with Next.js ports.
 # For production, this should be restricted to the actual domain of the frontend.

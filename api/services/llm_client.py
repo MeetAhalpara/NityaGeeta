@@ -49,6 +49,7 @@ from api.services.prompt_builder import (
     build_dual_source_synthesis_prompt,
 )
 from api.services.circuit_breaker import groq_breaker, openrouter_breaker, CircuitState
+from api.services.observability import observe
 
 logger = logging.getLogger("nityageeta.llm_client")
 
@@ -128,6 +129,7 @@ def get_next_groq_client():
 
 # ── Low-level callers ────────────────────────────────────────────────────────
 
+@observe(name="Groq Model Generation", as_type="generation")
 async def _call_groq(
     messages: List[Dict[str, str]],
     model: str = DEFAULT_MODEL,
@@ -172,6 +174,7 @@ async def _call_groq(
     return "Unable to retrieve response from Groq."
 
 
+@observe(name="OpenRouter Model Generation", as_type="generation")
 async def _call_openrouter(
     messages: List[Dict[str, str]],
     model: str = OPENROUTER_BRAIN2_MODEL,
@@ -348,6 +351,7 @@ async def generate_5_model_parallel_responses(
 
 # ── Judge ─────────────────────────────────────────────────────────────────────
 
+@observe(name="LLM-as-a-Judge Evaluation", as_type="generation")
 async def evaluate_and_judge_responses(
     query: str,
     retrieved_context: str,
@@ -393,6 +397,7 @@ evaluate_with_judge_model = evaluate_and_judge_responses
 
 # ── Cross-model synthesis ─────────────────────────────────────────────────────
 
+@observe(name="Cross-Model Synthesis", as_type="generation")
 async def synthesize_cross_model_responses(
     query: str,
     winning_model_name: str,
@@ -419,6 +424,7 @@ async def synthesize_cross_model_responses(
 
 # ── Dual-source synthesis ─────────────────────────────────────────────────────
 
+@observe(name="Dual-Source Synthesis", as_type="generation")
 async def synthesize_dual_source_response(
     query: str,
     scripture_synthesized_answer: str,

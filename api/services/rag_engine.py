@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import re
+import logfire
 from typing import Dict, Any, List
 from api.services.dataset_cache import search_all_datasets, search_verses, search_boss_context, search_boss_items
 from api.services.web_search import search_web_async
@@ -19,6 +20,7 @@ from api.services.llm_client import (
 )
 from api.services.citation_guardrail import CitationGuardrail
 from api.services.telemetry_stream import generate_steve_jobs_followup
+from api.services.observability import observe
 
 logger = logging.getLogger("nityageeta.rag_engine")
 logging.basicConfig(level=logging.INFO)
@@ -94,8 +96,9 @@ def trim_to_full_sentence(text: str, max_chars: int = 1200) -> str:
     return truncated.strip() + "..."
 
 
-async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
-    """Executes full prioritized 4-dataset RAG search, 5-model parallel execution, Judge evaluation,
+@observe(name="NityaGeeta Multi-Model RAG Execution")
+async def _run_rag_pipeline_async(question: str) -> Dict[str, Any]:
+    """Internal implementation executing 4-dataset RAG search, 5-model parallel execution, Judge evaluation,
     cross-model synthesis, live web search, and dual-source authorized synthesis."""
     logger.info(f"Initiating Multi-Model RAG pipeline for query: '{question}'")
 
@@ -293,6 +296,21 @@ async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
         "steve_jobs_followup": steve_jobs_followup
     }
 
+
+async def execute_rag_pipeline_async(question: str) -> Dict[str, Any]:
+    """Executes full RAG agent pipeline wrapped in OpenTelemetry GenAI invoke_agent span for Logfire."""
+    with logfire.span(
+        "invoke_agent",
+        **{
+            "gen_ai.operation.name": "invoke_agent",
+            "gen_ai.agent.name": "nityageeta-spiritual-companion",
+            "gen_ai.system": "nityageeta",
+            "gen_ai.request.model": "ensemble-5model-judge",
+            "query": question[:200],
+        }
+    ):
+        return await _run_rag_pipeline_async(question)
+
 def execute_rag_query(question: str) -> Dict[str, Any]:
     """Synchronous wrapper for FastAPI endpoint compatibility."""
     try:
@@ -309,7 +327,7 @@ from typing import AsyncGenerator
 from api.services.llm_client import stream_groq_completion
 from api.config import DEFAULT_MODEL
 
-async def stream_rag_pipeline_async(question: str) -> AsyncGenerator[str, None]:
+async def _stream_rag_pipeline_async(question: str) -> AsyncGenerator[str, None]:
     """
     Streams Server-Sent Event (SSE) frames for sub-second Time-To-First-Token.
     Yields:
@@ -404,4 +422,20 @@ async def stream_rag_pipeline_async(question: str) -> AsyncGenerator[str, None]:
     except Exception as exc:
         logger.error(f"Error in stream_rag_pipeline_async: {exc}", exc_info=True)
         yield f"event: error\ndata: {_json.dumps({'error': 'An internal error occurred while processing the stream.'})}\n\n"
+
+
+async def stream_rag_pipeline_async(question: str) -> AsyncGenerator[str, None]:
+    """Streams SSE frames wrapped in OpenTelemetry GenAI invoke_agent span for Logfire."""
+    with logfire.span(
+        "invoke_agent",
+        **{
+            "gen_ai.operation.name": "invoke_agent",
+            "gen_ai.agent.name": "nityageeta-spiritual-companion-streaming",
+            "gen_ai.system": "nityageeta",
+            "gen_ai.request.model": DEFAULT_MODEL,
+            "query": question[:200],
+        }
+    ):
+        async for frame in _stream_rag_pipeline_async(question):
+            yield frame
 
