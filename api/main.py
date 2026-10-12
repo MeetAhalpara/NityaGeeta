@@ -1,22 +1,55 @@
 import logging
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from passlib.hash import bcrypt
+import logfire
 
 from api.services.dataset_cache import search_dataset, get_page
 from database.connection import get_db_connection
 
+# Load environment variables
+load_dotenv()
+
 # Setup logging
 logger = logging.getLogger("nityageeta.main")
 logging.basicConfig(level=logging.INFO)
+
+# Configure Pydantic Logfire Observability & Telemetry
+logfire_token = os.getenv("LOGFIRE_TOKEN")
+if logfire_token:
+    logfire.configure(
+        token=logfire_token,
+        service_name="nityageeta-api",
+        inspect_arguments=False
+    )
+else:
+    logfire.configure(send_to_logfire=False)
 
 app = FastAPI(
     title="NityaGeeta API",
     description="Grounded AI spiritual companion API for Srimad Bhagavad Gita",
     version="1.0.0"
 )
+
+# Instrument FastAPI endpoints, Pydantic models, and outgoing HTTPX requests
+logfire.instrument_fastapi(app)
+logfire.instrument_pydantic()
+try:
+    logfire.instrument_httpx()
+except Exception as e:
+    logger.warning("Could not instrument httpx with logfire: %s", e)
+
+try:
+    import pydantic_ai
+    logfire.instrument_pydantic_ai()
+except ImportError:
+    pass
+except Exception as e:
+    logger.warning("Could not instrument pydantic_ai with logfire: %s", e)
 
 # CORS configuration
 # Allow all origins during development for flexibility with Next.js ports.

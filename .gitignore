@@ -13,6 +13,7 @@ env/
 .env
 .env.local
 gcp-key.json
+.logfire/
 
 # Local database files & storage
 data/postgres/

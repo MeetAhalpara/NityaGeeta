@@ -8,5 +8,5 @@
   "pages_indexed": 5034,
   "unique_shlokas": 649,
   "production_domain": "nityageeta.tech",
-  "architecture": "6-Brain Multi-Model RAG Ensemble (Groq GPT-OSS 120B / Qwen 27B, DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o mini), LLM Judge Arbitration, Hybrid BM25Okapi + RRF (k=60), SSE Sub-Second Streaming (<300ms TTFT), Redis Streams Telemetry, DeepEval & Playwright Multi-Scenario Resilience Matrix (Good Day, Busy Day, Rainy Day, Tuffest Day), Triple-Layer Contact Attachment Pipeline, Citation Guardrail & Cupertino UI"
+  "architecture": "6-Brain Multi-Model RAG Ensemble (Groq GPT-OSS 120B / Qwen 27B, DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o mini), LLM Judge Arbitration, Hybrid BM25Okapi + RRF (k=60), SSE Sub-Second Streaming (<300ms TTFT), Pydantic Logfire Distributed Tracing & OpenTelemetry APM, Redis Streams Telemetry, DeepEval & Playwright Multi-Scenario Resilience Matrix, Triple-Layer Contact Attachment Pipeline, Citation Guardrail & Cupertino UI"
 }
