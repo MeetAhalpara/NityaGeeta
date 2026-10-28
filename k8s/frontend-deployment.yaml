@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nityageeta-frontend
+  namespace: nityageeta
+  labels:
+    app: nityageeta-frontend
+    tier: ui
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: nityageeta-frontend
+  template:
+    metadata:
+      labels:
+        app: nityageeta-frontend
+        tier: ui
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+        - name: frontend
+          image: us-central1-docker.pkg.dev/protean-smile-376716/nityageeta-repo/frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http-frontend
+              containerPort: 1870
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: nityageeta-config
+          env:
+            - name: PORT
+              value: "1870"
+            - name: NODE_ENV
+              value: "production"
+            - name: NEXT_TELEMETRY_DISABLED
+              value: "1"
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: NEXTAUTH_SECRET
+                  optional: true
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: GOOGLE_CLIENT_ID
+                  optional: true
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: GOOGLE_CLIENT_SECRET
+                  optional: true
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 1870
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 1870
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 2
