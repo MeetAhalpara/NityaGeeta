@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nityageeta
+  labels:
+    app.kubernetes.io/name: nityageeta
+    app.kubernetes.io/part-of: nityageeta-platform
+    environment: production

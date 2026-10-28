@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nityageeta-backend
+  namespace: nityageeta
+  labels:
+    app: nityageeta-backend
+    tier: api
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: nityageeta-backend
+  template:
+    metadata:
+      labels:
+        app: nityageeta-backend
+        tier: api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: backend
+          image: us-central1-docker.pkg.dev/protean-smile-376716/nityageeta-repo/backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http-backend
+              containerPort: 1866
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: nityageeta-config
+          env:
+            - name: PORT
+              value: "1866"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: DATABASE_URL
+                  optional: true
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: REDIS_URL
+                  optional: true
+            - name: WEAVIATE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: WEAVIATE_URL
+                  optional: true
+            - name: WEAVIATE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: WEAVIATE_API_KEY
+                  optional: true
+            - name: GROQ_API_KEY1
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: GROQ_API_KEY1
+                  optional: true
+            - name: GROQ_API_KEY2
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: GROQ_API_KEY2
+                  optional: true
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nityageeta-secrets
+                  key: GEMINI_API_KEY
+                  optional: true
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 1866
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 1866
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 2

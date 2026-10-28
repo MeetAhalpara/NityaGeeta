@@ -57,6 +57,7 @@ Errors/*
 
 # Agent Customizations & Settings
 .agents/
+.vscode/mcp.json
 .claude/
 .claude.json
 AGENTS.md

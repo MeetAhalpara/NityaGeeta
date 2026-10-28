@@ -1,12 +1,12 @@
 {
   "project_name": "NityaGeeta",
-  "last_synced_commit": "09bba11b1bf76229e0a0e05ba8cbe9d968f9be3e",
-  "last_synced_date": "2026-10-08 19:58:30",
+  "last_synced_commit": "6778f0f4ff84d1009f8f7512017e280283700e6e",
+  "last_synced_date": "2026-10-12 13:35:00",
   "test_count": 71,
   "fastapi_routes": 17,
   "nextjs_routes": 23,
   "pages_indexed": 5034,
   "unique_shlokas": 649,
   "production_domain": "nityageeta.tech",
-  "architecture": "6-Brain Multi-Model RAG Ensemble (Groq GPT-OSS 120B / Qwen 27B, DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o mini), LLM Judge Arbitration, Hybrid BM25Okapi + RRF (k=60), SSE Sub-Second Streaming (<300ms TTFT), Pydantic Logfire Distributed Tracing & OpenTelemetry APM, Redis Streams Telemetry, DeepEval & Playwright Multi-Scenario Resilience Matrix, Triple-Layer Contact Attachment Pipeline, Citation Guardrail & Cupertino UI"
+  "architecture": "6-Brain Multi-Model RAG Ensemble (Groq GPT-OSS 120B / Qwen 27B, DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o mini), LLM Judge Arbitration, Hybrid BM25Okapi + RRF (k=60), SSE Sub-Second Streaming (<300ms TTFT), Pydantic Logfire Distributed Tracing & OpenTelemetry APM, Langfuse LLM Observability & Trace Scoring, SonarCloud Quality Gate CI, Redis Streams Telemetry, DeepEval & Playwright Multi-Scenario Resilience Matrix, Triple-Layer Contact Attachment Pipeline, Citation Guardrail & Cupertino UI"
 }

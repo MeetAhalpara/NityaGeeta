@@ -17,6 +17,7 @@ services:
       - PORT=3000
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - NEXT_TELEMETRY_DISABLED=1
+      - NEXT_PUBLIC_GTM_ID=GTM-PHTNG299
     env_file:
       - path: .env
         required: false

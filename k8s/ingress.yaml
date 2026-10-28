@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nityageeta-ingress
+  namespace: nityageeta
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    networking.gke.io/managed-certificates: "nityageeta-ssl-cert"
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  rules:
+    - host: www.nityageeta.tech
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nityageeta-frontend-svc
+                port:
+                  number: 1870
+    - host: nityageeta.tech
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nityageeta-frontend-svc
+                port:
+                  number: 1870
+    - host: api.nityageeta.tech
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nityageeta-backend-svc
+                port:
+                  number: 1866

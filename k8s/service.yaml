@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nityageeta-backend-svc
+  namespace: nityageeta
+  labels:
+    app: nityageeta-backend
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-backend
+      port: 1866
+      targetPort: 1866
+      protocol: TCP
+  selector:
+    app: nityageeta-backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nityageeta-frontend-svc
+  namespace: nityageeta
+  labels:
+    app: nityageeta-frontend
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-frontend
+      port: 1870
+      targetPort: 1870
+      protocol: TCP
+  selector:
+    app: nityageeta-frontend

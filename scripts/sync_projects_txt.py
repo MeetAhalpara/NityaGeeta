@@ -5,6 +5,7 @@ Sync updated NityaGeeta project specifications to Projects.txt files in:
 2. C:\Users\Meeta\OneDrive - Algonquin College\Resume\Files\Projects.txt
 """
 
+import shutil
 import sys
 from pathlib import Path
 
@@ -14,21 +15,22 @@ TARGET_FILES = [
 ]
 
 NITYAGEETA_BLOCK = """1. NityaGeeta
-System Architecture & Purpose: NityaGeeta (hosted at nityageeta.tech) is a high-concurrency, grounded scriptural intelligence platform engineered to eliminate LLM hallucinations and provide sub-second access (<300ms TTFT) to the Srimad Bhagavad Gita and Vedic commentaries. It implements a decoupled client-server architecture combining a Next.js 16 App Router (React 19, TypeScript 7.0, Tailwind CSS v4) frontend with a high-throughput, asynchronous FastAPI backend running a 6-Brain multi-model parallel RAG retrieval pipeline (Groq GPT-OSS 120B, Qwen 27B, OpenRouter DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o mini), Groq LLM Judge arbitration, cross-model and dual-source web synthesis, Redis Streams real-time event aggregation, DeepEval scripture faithfulness evaluation, "The Steve Jobs Follow-Up Engine", and real-time Server-Sent Events (SSE) streaming.
+System Architecture & Purpose: NityaGeeta (hosted at nityageeta.tech) is a high-concurrency, grounded scriptural intelligence platform engineered to eliminate LLM hallucinations and provide sub-second access (<300ms TTFT) to the Srimad Bhagavad Gita and Vedic commentaries. It implements a decoupled client-server architecture combining a Next.js 16 App Router (React 19, TypeScript 7.0, Tailwind CSS v4) frontend with a high-throughput, asynchronous FastAPI backend running a 6-Brain multi-model parallel RAG retrieval pipeline (Groq GPT-OSS 120B, Qwen 27B, OpenRouter DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o mini), Groq LLM Judge arbitration, cross-model and dual-source web synthesis, Redis Streams real-time event aggregation, Pydantic Logfire distributed tracing & OpenTelemetry APM, Langfuse LLM observability & automated trace scoring, SonarCloud Quality Gate static analysis, DeepEval scripture faithfulness evaluation, "The Steve Jobs Follow-Up Engine", and real-time Server-Sent Events (SSE) streaming.
 
 Core Tech Stack:
 Languages & Runtimes: Python 3.11/3.12 (CPython, Uvicorn, Asyncio), TypeScript 7.0 (TypeScript 7.0.2 with native relative module paths), Node.js 20.x/22.x, SQL.
-Backend & APIs: FastAPI, Pydantic v2, SQLAlchemy ORM, SQLite / PostgreSQL (psycopg2-binary), Redis Streams (redis-py XADD event streaming), Passlib (bcrypt), HTTPX, AsyncGroq, SlowAPI rate-limiting (30 req/min), DeepEval (RAG Triad & Scripture Context Precision metrics).
+Backend & APIs: FastAPI, Pydantic v2, SQLAlchemy ORM, SQLite / PostgreSQL (psycopg2-binary), Redis Streams (redis-py XADD event streaming), Passlib (bcrypt), HTTPX, AsyncGroq, SlowAPI rate-limiting (30 req/min), Pydantic Logfire (distributed tracing & APM), Langfuse (LLM observability & evaluation scoring), DeepEval (RAG Triad & Scripture Context Precision metrics).
 Frontend & Styling: Next.js 16 (16.3.8, 23 static/dynamic routes, Turbopack, 0 build errors), React 19 (19.3.0), Tailwind CSS v4 (migrated with @tailwindcss/postcss and @config directive), Framer Motion 14, Lucide React, Nodemailer 10.
-AI, RAG & Search: In-memory BM25Okapi (Robertson-Sparck Jones IDF with document-length normalization k1=1.5, b=0.75), Reciprocal Rank Fusion (k=60), Groq API (multi-key round-robin rotation, openai/gpt-oss-120b, qwen/qwen3.8-27b), OpenRouter multi-model cascade (DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o-mini), Groq LLM Judge arbitration, DuckDuckGo dual-source web synthesis.
-Stream Processing & Telemetry: Redis Streams (nityageeta:seeker_stream buffer with maxlen=25000), bounded in-memory sliding buffer fallback (deque maxlen=10000), 18-chapter contemplative motif taxonomy aggregation, and browser IntersectionObserver microsecond dwell-time tracking.
-Curated 25 Production Stack Tags: next.js, react, fastapi, python, typescript, rag, redis, postgresql, docker, tailwindcss, framer-motion, groq, bm25, sse, pydantic, pytest, llm, generative-ai, nlp, artificial-intelligence, stream-processing, github-actions, playwright, deepeval, postman.
+AI, RAG & Search: In-memory BM25Okapi (Robertson-Sparck Jones IDF with document-length normalization k1=1.5, b=0.75), Reciprocal Rank Fusion (k=60), Groq API (multi-key round-robin rotation, openai/gpt-oss-120b, qwen/qwen3.8-27b), OpenRouter multi-model cascade (DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o-mini), Groq LLM Judge arbitration, Langfuse trace span scoring, DuckDuckGo dual-source web synthesis.
+Stream Processing, Telemetry & Observability: Redis Streams (nityageeta:seeker_stream buffer with maxlen=25000), bounded in-memory sliding buffer fallback (deque maxlen=10000), Pydantic Logfire OpenTelemetry instrumentation across FastAPI, Pydantic, HTTPX, and Pydantic AI runtimes, Langfuse LLM generation tracing, 18-chapter contemplative motif taxonomy aggregation, and browser IntersectionObserver microsecond dwell-time tracking.
+Curated 25 Production Stack Tags: next.js, react, fastapi, python, typescript, rag, redis, postgresql, docker, tailwindcss, framer-motion, groq, bm25, sse, pydantic, logfire, langfuse, sonarcloud, pytest, llm, generative-ai, stream-processing, github-actions, playwright, deepeval.
 Cloud & Lakehouse Integration: Production domain registered at nityageeta.tech, Google Cloud Platform (Cloud Run container deployment target, gcloud SDK, BigQuery data-agent-kit MCP server), Databricks SDK for Python (live handshake to AWS Databricks workspace dbc-2e2f6ec3-1a7d.cloud.databricks.com).
-Infrastructure & Protocols: Docker (multi-stage builds, non-root execution appuser UID 10001), Docker Compose (FastAPI backend, Next.js frontend, Redis 7 appendonly, PostgreSQL 16), HTTP/1.1 & HTTP/2, Server-Sent Events (text/event-stream), REST, Authenticated SMTP TLS.
+Infrastructure & Protocols: Docker (multi-stage builds, non-root execution appuser UID 10001), Docker Compose (FastAPI backend, Next.js frontend, Redis 7 appendonly, PostgreSQL 16), SonarCloud Quality Gate CI, HTTP/1.1 & HTTP/2, Server-Sent Events (text/event-stream), REST, Authenticated SMTP TLS.
 
 Key Modules / Routing / APIs:
-api/main.py: Central routing layer exposing 17 asynchronous endpoints including real-time SSE streaming (POST/GET /api/v1/chat/stream), telemetry stream batch ingestion (POST /api/v1/telemetry/stream), seeker affinity profile (GET /api/v1/telemetry/affinity/{user_id}), blocking fallback chat (POST /api/v1/chat), lexical search (POST /api/v1/search), canonical PDF serving (GET /api/v1/pdf/{source_id}), and stateful session management (/api/v1/sessions/*).
-api/services/rag_engine.py: Asynchronous RAG orchestration handling 6-model parallel fan-out, LLM judge arbitration, and SSE chunk generation (event: citations, event: status, event: token, event: guardrail, event: followup, event: done).
+api/main.py: Central routing layer exposing 17 asynchronous endpoints including real-time SSE streaming (POST/GET /api/v1/chat/stream), telemetry stream batch ingestion (POST /api/v1/telemetry/stream), seeker affinity profile (GET /api/v1/telemetry/affinity/{user_id}), blocking fallback chat (POST /api/v1/chat), lexical search (POST /api/v1/search), canonical PDF serving (GET /api/v1/pdf/{source_id}), stateful session management (/api/v1/sessions/*), and Pydantic Logfire auto-instrumentation across FastAPI, HTTPX, and Pydantic schemas.
+api/services/observability.py: Centralized Langfuse LLM Observability & Tracing Singleton logging LLM-as-a-judge scores (record_judge_score) and span telemetry across the 6-brain RAG retrieval pipeline with zero-overhead fallback when unconfigured.
+api/services/rag_engine.py: Asynchronous RAG orchestration handling 6-model parallel fan-out, Langfuse generation spans, cognitive complexity refactoring, LLM judge arbitration, and SSE chunk generation (event: citations, event: status, event: token, event: guardrail, event: followup, event: done).
 api/services/llm_client.py: Multi-provider LLM orchestration with round-robin Groq key rotation, asynchronous non-blocking token streaming with AsyncGroq, 6-brain parallel execution (openai/gpt-oss-120b, qwen/qwen3.8-27b, DeepSeek V3, Mistral 24B, Gemma 3 12B, GPT-4o mini), Groq LLM Judge evaluation, cross-model candidate enrichment, and live web synthesis.
 api/services/deepeval_evaluator.py: Automated DeepEval RAG validation suite calculating Faithfulness, Answer Relevancy, Hallucination Suppression, and Scripture Context Precision against Sanskrit canonical truth.
 frontend/src/app/api/contact/route.ts & download/route.ts: Multi-layer contact and bug reporting pipeline with dual-layer sliding window IP/email rate limiting, RFC 5322 validation, authenticated SMTP transport, two-way Cupertino-styled HTML email dossiers (seeker confirmation + admin telemetry report with IP, UA, viewport, referrer), triple-layer attachment delivery (MIME attachment, inline CID rendering, local disk persistence to public/uploads/contact/${ticketId} with direct web download buttons), and secure local file download proxy route with directory traversal defense.
@@ -41,6 +43,7 @@ api/services/verse_index.py: O(1) deterministic citation parser (parse_verse_cit
 api/services/citation_guardrail.py & circuit_breaker.py: Post-generation citation verification against ground-truth corpus and upstream API circuit breaker state machine (CLOSED, OPEN, HALF-OPEN).
 postman/NityaGeeta_Collection.json & postman/NityaGeeta_Environment.json: Complete 17-endpoint Postman API collection with pre-request scripting, dynamic variable chaining (Bearer auth tokens, session IDs), and Newman CI automated test harness.
 scripts/test_databricks_connection.py: Automated cloud lakehouse handshake script verifying PAT token authentication, cluster runtime status, and Unity Catalog access against AWS Databricks workspace.
+sonar-project.properties & .github/workflows/sonarcloud.yml: SonarCloud static analysis configuration and automated CI workflow scanning cognitive complexity, vulnerability hotspots, and test coverage thresholds.
 
 Data / Network Layer:
 Relational Schema: SQLite (dev) and PostgreSQL database utilizing UUID primary keys across 8 normalized entities: users, user_preferences, sessions (18-day TTL tokens), chat_conversations, chat_messages, saved_verses, study_notes, and nityageeta:seeker_stream (Redis Streams).
@@ -67,9 +70,10 @@ tests/test_memory_stack.py: 1 test validating NetworkX conversation graph state 
 Playwright E2E Browser Suite: 5 automated end-to-end browser tests (frontend/tests/scenarios.spec.ts & tests/test_playwright_e2e.py) validating dropzone screenshot attachments, client-side RFC email validation, rapid multi-route switching without hydration errors, and in-flight dispatch lockouts.
 Postman & Newman API Suite: 17 automated endpoint validation tests (postman/NityaGeeta_Collection.json) orchestrated via Newman CLI with automated HTML/JSON test execution reporting (QA/reports/api_test_execution_report.json).
 Total Test Suite: 71 automated tests (66 Pytest + 5 Playwright E2E) with 100% pass rate in CI/CD.
-4-Pillar Quality Protocol: Mandatory verification protocol enforcing Pillar 1 (QA & QT automated testing), Pillar 2 (Cupertino design tokens #FAF7F2, #1E1B18, #C25E38 and UI checking), Pillar 3 (CyberSecurity defensive bounds, SSRF proxy guards, and non-root execution), and Pillar 4 (FrontEnd Analyser next build with 0 compilation errors across all 23 routes).
+SonarCloud Quality Gate: Automated static code analysis and cognitive complexity gate (.github/workflows/sonarcloud.yml) with 0 security hotspots and clean maintainability metrics.
+4-Pillar Quality Protocol: Mandatory verification protocol enforcing Pillar 1 (QA & QT automated testing), Pillar 2 (Cupertino design tokens #FAF7F2, #1E1B18, #C25E38 and UI checking), Pillar 3 (CyberSecurity defensive bounds, SonarCloud static analysis, SSRF proxy guards, and non-root execution), and Pillar 4 (FrontEnd Analyser next build with 0 compilation errors across all 23 routes).
 Frontend Build Gate: Next.js 16 production build with 0 TypeScript errors and 0 lint warnings across all 23 routes.
-CI/CD Pipeline: Automated GitHub Actions workflow (.github/workflows/ci.yml) triggering on pushes and pull requests across main to execute linting, TypeScript compilation checks, and the full Pytest test suite.
+CI/CD Pipeline: Automated GitHub Actions workflow (.github/workflows/ci.yml and .github/workflows/sonarcloud.yml) triggering on pushes and pull requests across main to execute linting, TypeScript compilation checks, SonarCloud scans, and the full Pytest test suite.
 """
 
 def update_file(path: Path):
@@ -85,6 +89,14 @@ def update_file(path: Path):
     if target_marker not in content:
         print(f"Error: Target marker '{target_marker}' not found in {path}")
         return
+
+    # Create safety backup before overwriting
+    backup_path = path.with_suffix(".txt.bak")
+    try:
+        shutil.copy2(path, backup_path)
+        print(f"Safety backup created at {backup_path}")
+    except Exception as e:
+        print(f"Warning: Could not create backup at {backup_path}: {e}")
 
     _, remaining = content.split(target_marker, 1)
 
